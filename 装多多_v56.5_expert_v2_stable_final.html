@@ -1,0 +1,4672 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>装多多 v56 · 多装快省增收益</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --bg: #f0f2f0;
+    --card: #ffffff;
+    --primary: #2e7d32;
+    --primary-light: #4caf50;
+    --primary-pale: #e8f5e9;
+    --accent: #66bb6a;
+    --text: #1b2e1c;
+    --text-sub: #5a7a5b;
+    --border: #c8e6c9;
+    --shadow: 0 2px 12px rgba(46,125,50,0.10);
+    --radius: 12px;
+    --warn: #fff3e0;
+    --warn-border: #ffcc80;
+    --warn-text: #e65100;
+  }
+  /* 力学建议：条件触发的警告 */
+  .condition-warning { color: #d32f2f; font-weight: 700; }
+  /* 力学建议：通用提示 */
+  .general-tip { color: #757575; font-size: 0.9em; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  header {
+    background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 60%, #43a047 100%);
+    color: #fff;
+    padding: 18px 32px;
+    display: flex; align-items: center; gap: 16px;
+    box-shadow: 0 2px 8px rgba(27,94,32,0.3);
+  }
+  .logo { font-size: 2rem; }
+  .header-text h1 {
+    font-size: 1.8rem; font-weight: 700; letter-spacing: 2px;
+    line-height: 1.3;
+  }
+  .header-text .en-byline {
+    font-size: 0.62rem;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.4;
+    margin-top: 1px;
+  }
+  .header-text p {
+    font-size: 0.82rem; opacity: 0.85; margin-top: 4px;
+  }
+  .header-text .func-desc {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: #e8f5e9;
+    margin-top: 5px;
+    letter-spacing: 0.5px;
+    opacity: 1;
+  }
+
+  .main-layout {
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    gap: 20px;
+    padding: 20px 24px;
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+
+  .panel {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px;
+  }
+  .panel-title {
+    font-size: 1rem; font-weight: 700; color: var(--primary);
+    border-bottom: 2px solid var(--primary-pale);
+    padding-bottom: 10px; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .panel-title .icon { font-size: 1.2rem; }
+  .btn-upload {
+    margin-left: auto;
+    background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+    border: none;
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(46,125,50,0.3);
+  }
+  .btn-upload:hover {
+    background: linear-gradient(135deg, #66bb6a 0%, #4caf50 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(46,125,50,0.4);
+  }
+  .btn-upload:active {
+    transform: translateY(0);
+  }
+  /* 悬停提示 */
+  .upload-hint {
+    background: #fff3e0;
+    border: 1px solid #ffcc80;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-top: 8px;
+    font-size: 0.8rem;
+    color: #e65100;
+    display: none;
+  }
+  .upload-hint b { color: #bf360c; }
+  /* Excel导入成功提示 */
+  .upload-tip {
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+    border: 2px solid #4caf50;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: slideDown 0.3s ease;
+  }
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* 集装箱选择 */
+  .container-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    margin-bottom: 8px;
+  }
+  .container-card {
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    background: #fafff9;
+  }
+  .container-card:hover { border-color: var(--accent); background: var(--primary-pale); }
+  .container-card.selected {
+    border-color: var(--primary);
+    background: var(--primary-pale);
+    box-shadow: 0 0 0 3px rgba(46,125,50,0.15);
+  }
+  .container-card .c-name { font-weight: 700; font-size: 0.95rem; color: var(--primary); }
+  .container-card .c-dim { font-size: 0.72rem; color: var(--text-sub); margin-top: 3px; }
+  .container-card .c-vol { font-size: 0.8rem; color: var(--accent); font-weight: 600; margin-top: 2px; }
+  .container-card .c-wt { font-size: 0.7rem; color: #e65100; margin-top: 1px; font-weight: 600; }
+
+  /* 载重说明块 */
+  .weight-note {
+    background: var(--warn);
+    border: 1px solid var(--warn-border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.77rem;
+    color: var(--warn-text);
+    margin-top: 8px;
+    line-height: 1.6;
+  }
+  .weight-note b { color: #bf360c; }
+
+  /* 货物输入 */
+  .cargo-list { display: flex; flex-direction: column; gap: 10px; }
+  .cargo-item {
+    background: var(--primary-pale);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    position: relative;
+  }
+  .cargo-item-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 10px;
+  }
+  .cargo-label {
+    font-weight: 700; font-size: 0.9rem; color: var(--primary);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .badge-expand {
+    display: inline-block;
+    background: #fff3e0;
+    color: #e65100;
+    font-size: 0.7rem;
+    padding: 1px 6px;
+    border-radius: 8px;
+    margin-left: 6px;
+    border: 1px solid #ffcc80;
+    font-weight: 600;
+  }
+  .color-dot {
+    width: 12px; height: 12px; border-radius: 50%; display: inline-block;
+  }
+  .btn-remove {
+    background: none; border: none; cursor: pointer;
+    color: #e57373; font-size: 1.1rem; padding: 2px 6px;
+    border-radius: 6px; transition: background 0.15s;
+  }
+  .btn-remove:hover { background: #ffebee; }
+
+  .cargo-fields {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+  }
+  .field-group label {
+    display: block; font-size: 0.7rem; color: var(--text-sub);
+    margin-bottom: 3px; font-weight: 600;
+  }
+  .field-group input {
+    width: 100%; border: 1px solid var(--border);
+    border-radius: 6px; padding: 6px 8px;
+    font-size: 0.85rem; color: var(--text);
+    background: #fff; transition: border 0.15s;
+    outline: none;
+  }
+  .field-group input:focus { border-color: var(--primary); }
+
+  /* 摆放方式选择器 */
+  .orient-row {
+    margin-top: 8px;
+    display: flex; align-items: center; gap: 6px;
+    flex-wrap: wrap;
+  }
+  .orient-row .orient-label {
+    font-size: 0.72rem; color: var(--text-sub); font-weight: 600;
+    white-space: nowrap;
+  }
+  .orient-btns {
+    display: flex; gap: 4px; flex-wrap: wrap;
+  }
+  .orient-btn {
+    font-size: 0.7rem; padding: 3px 9px; border-radius: 20px;
+    border: 1.5px solid var(--border); background: #fff;
+    cursor: pointer; color: var(--text-sub); font-weight: 600;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .orient-btn.active {
+    background: var(--primary); color: #fff; border-color: var(--primary);
+  }
+  .orient-btn:hover:not(.active) { border-color: var(--accent); color: var(--primary); }
+
+  /* 摆放图示说明 */
+  .orient-hint {
+    font-size: 0.68rem; color: var(--text-sub); margin-top: 4px;
+    padding: 4px 8px; background: rgba(255,255,255,0.6);
+    border-radius: 6px; border-left: 3px solid var(--accent);
+  }
+
+  .btn-add-cargo {
+    width: 100%; margin-top: 10px;
+    background: var(--primary-pale); color: var(--primary);
+    border: 2px dashed var(--accent);
+    border-radius: 10px; padding: 10px;
+    font-size: 0.9rem; font-weight: 600; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-add-cargo:hover { background: #c8e6c9; border-color: var(--primary); }
+
+  /* 一键涨方工具栏 */
+  .expand-toolbar {
+    margin-top: 10px;
+    padding: 12px 14px;
+    background: linear-gradient(135deg, #fff8e1, #fff3cd);
+    border: 1.5px solid #ffd54f;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .expand-toolbar .expand-label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #e65100;
+    white-space: nowrap;
+  }
+  .expand-delta-group {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+  }
+  .expand-delta-group label {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    padding: 4px 9px;
+    border-radius: 14px;
+    border: 1.5px solid #ffd54f;
+    background: #fffde7;
+    color: #795548;
+    font-weight: 600;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .expand-delta-group label:hover { background: #ffe082; }
+  .expand-delta-group input[type=radio] { display: none; }
+  .expand-delta-group input[type=radio]:checked + span {
+    /* checked 样式由label整体控制 */
+  }
+  .expand-delta-group label.selected {
+    background: #ff9800;
+    border-color: #f57c00;
+    color: #fff;
+  }
+  .btn-expand {
+    padding: 6px 14px;
+    background: linear-gradient(135deg, #ff9800, #f57c00);
+    color: white;
+    border: none;
+    border-radius: 18px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .btn-expand:hover { background: linear-gradient(135deg, #fb8c00, #e64a19); transform: translateY(-1px); }
+  .btn-expand-reset {
+    padding: 6px 12px;
+    background: #fff;
+    color: #757575;
+    border: 1.5px solid #bdbdbd;
+    border-radius: 18px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .btn-expand-reset:hover { background: #f5f5f5; border-color: #757575; }
+  .expand-status {
+    font-size: 0.78rem;
+    color: #e65100;
+    font-weight: 600;
+    background: #fff3e0;
+    padding: 3px 8px;
+    border-radius: 10px;
+    display: none;
+  }
+  .expand-status.active { display: inline-block; }
+
+  /* 计算按钮 */
+  .btn-calc {
+    width: 100%; margin-top: 16px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: #fff; border: none; border-radius: 10px;
+    padding: 14px; font-size: 1.05rem; font-weight: 700;
+    cursor: pointer; letter-spacing: 1px;
+    box-shadow: 0 3px 10px rgba(46,125,50,0.3);
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-calc:hover { transform: translateY(-1px); box-shadow: 0 5px 16px rgba(46,125,50,0.4); }
+  .btn-calc:active { transform: translateY(0); }
+
+  /* 右侧结果区 */
+  .right-col { display: flex; flex-direction: column; gap: 16px; }
+
+  /* 统计卡片 */
+  .stats-row {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+  }
+  .stat-card {
+    background: var(--card); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 16px 14px; text-align: center;
+    border-top: 3px solid var(--accent);
+  }
+  .stat-val { font-size: 1.8rem; font-weight: 800; color: var(--primary); line-height: 1; }
+  .stat-label { font-size: 0.75rem; color: var(--text-sub); margin-top: 6px; }
+
+  /* 利用率进度条 */
+  .util-bar-wrap {
+    background: #e0e0e0; border-radius: 8px; height: 12px;
+    overflow: hidden; margin-top: 8px;
+  }
+  .util-bar {
+    height: 100%; border-radius: 8px;
+    background: linear-gradient(90deg, #66bb6a, #2e7d32);
+    transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  /* 载重警告 */
+  .weight-warn {
+    background: #ffebee; border: 1px solid #ef9a9a;
+    border-radius: 8px; padding: 10px 14px;
+    font-size: 0.82rem; color: #c62828;
+    display: none; margin-top: 8px;
+  }
+  
+  /* 重心分析面板 */
+  #gravityPanel {
+    background: #fff3e0 !important;
+    border: 1px solid #ffcc80 !important;
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: #333;
+  }
+  #gravityPanel .panel-title {
+    font-weight: bold;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    color: #e65100;
+  }
+  #gravityPanel .panel-title .icon {
+    margin-right: 4px;
+  }
+  .weight-ok {
+    background: #e8f5e9; border: 1px solid #a5d6a7;
+    border-radius: 8px; padding: 10px 14px;
+    font-size: 0.82rem; color: #2e7d32;
+    display: none; margin-top: 8px;
+  }
+
+  /* 3D视图区 */
+  .viz-panel { flex: 1; min-height: 420px; position: relative; }
+  #three-canvas {
+    width: 100%; height: 420px; border-radius: 12px;
+    background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+    display: block;
+  }
+  .viz-hint {
+    position: absolute; bottom: 10px; right: 14px;
+    font-size: 0.72rem; color: var(--text-sub); opacity: 0.8;
+  }
+  /* 多集装箱标签页 */
+  .multi-tabs { display: flex; gap: 6px; }
+  .container-tab {
+    background: #f5f5f5;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    transition: all 0.2s;
+  }
+  .container-tab:hover { background: var(--primary-pale); border-color: var(--accent); }
+  .container-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+  .container-tab .tab-info { font-size: 0.7rem; font-weight: 400; opacity: 0.8; }
+  /* 图例横向排列在3D图下方 */
+  .legend-bar {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 10px 14px;
+    margin-top: 12px;
+    display: block;
+  }
+  .legend-bar .legend-title {
+    font-weight: 700; font-size: 0.85rem; color: var(--primary);
+    margin-bottom: 8px;
+    display: block;
+  }
+  #cargoLegend {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 默认3列 */
+    gap: 6px 16px;
+  }
+  .legend-item {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 0.75rem; color: var(--text);
+    padding: 2px 0;
+  }
+  .legend-color {
+    width: 14px; height: 14px; border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .viz-controls {
+    position: absolute; top: 10px; right: 10px;
+    display: flex; gap: 6px;
+  }
+  .viz-btn {
+    background: rgba(255,255,255,0.85); border: 1px solid var(--border);
+    border-radius: 6px; padding: 4px 10px; font-size: 0.75rem;
+    cursor: pointer; color: var(--primary); font-weight: 600;
+    transition: background 0.15s;
+  }
+  .viz-btn:hover { background: var(--primary-pale); }
+
+  /* 货物摆放明细表 */
+  .result-table {
+    width: 100%; border-collapse: collapse; font-size: 0.85rem;
+  }
+  .result-table th {
+    background: var(--primary-pale); color: var(--primary);
+    padding: 9px 12px; text-align: left; font-weight: 700;
+    border-bottom: 2px solid var(--border);
+  }
+  .result-table td {
+    padding: 8px 12px; border-bottom: 1px solid #f0f0f0;
+  }
+  .result-table tr:hover td { background: #f9fff9; }
+
+  /* 提示/空状态 */
+  .empty-state {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; height: 320px;
+    color: var(--text-sub); gap: 12px;
+  }
+  .empty-state .big-icon { font-size: 4rem; opacity: 0.3; }
+  .empty-state p { font-size: 0.9rem; opacity: 0.6; }
+
+  .alert {
+    background: var(--warn); border: 1px solid var(--warn-border);
+    border-radius: 8px; padding: 10px 14px;
+    font-size: 0.85rem; color: var(--warn-text);
+    margin-bottom: 12px;
+    display: none;
+  }
+
+  /* 数据来源注脚 */
+  .data-source {
+    font-size: 0.68rem; color: #9e9e9e; margin-top: 4px;
+    padding: 4px 8px; text-align: right;
+  }
+
+  /* 全局免责页脚 */
+  footer.disclaimer {
+    text-align: center;
+    padding: 16px 24px 20px;
+    font-size: 0.75rem;
+    color: #9e9e9e;
+    border-top: 1px solid #e0e0e0;
+    margin-top: 8px;
+    line-height: 1.8;
+  }
+  footer.disclaimer span.main-text {
+    color: #7a7a7a;
+    font-style: italic;
+  }
+  footer.disclaimer span.byline {
+    color: #aaa;
+    letter-spacing: 0.5px;
+  }
+
+  @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+  .loading { animation: spin 1s linear infinite; display: inline-block; }
+
+  @media(max-width: 900px) {
+    .main-layout { grid-template-columns: 1fr; }
+    .stats-row { grid-template-columns: repeat(2,1fr); }
+  }
+
+    /* HELP涓嬫媺鑿滃崟 */
+    .help-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+    .help-dropdown-btn {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 20px;
+      padding: 6px 14px;
+      color: white;
+      font-size: 0.8rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .help-dropdown-btn:hover {
+      background: rgba(255,255,255,0.25);
+    }
+    .help-dropdown-content {
+      display: none;
+      position: absolute;
+      top: 100%;
+      right: 0;
+      margin-top: 6px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+      overflow: hidden;
+      z-index: 9999;
+      min-width: 220px;
+    }
+    .help-dropdown-content.show {
+      display: block;
+      animation: helpFadeIn 0.2s ease;
+    }
+    @keyframes helpFadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .help-dropdown-content a {
+      display: block;
+      padding: 10px 18px;
+      color: #2c3e50;
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+    .help-dropdown-content a:hover {
+      background: #f0f9f6;
+      color: #4ecdc4;
+    }
+    .help-dropdown-content a + a {
+      border-top: 1px solid #f0f0f0;
+    }
+
+</style>
+
+<style>
+/* 静态引导页 */
+.auto-guide {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1a5f2a 0%, #2e7d32 50%, #43a047 100%);
+  z-index: 9998;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+.auto-guide .guide-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: white;
+  margin-bottom: 8px;
+  letter-spacing: 2px;
+}
+.auto-guide .guide-subtitle {
+  font-size: 1rem;
+  color: rgba(255,255,255,0.8);
+  margin-bottom: 30px;
+}
+.auto-guide .guide-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 800px;
+}
+.auto-guide .guide-step {
+  background: rgba(255,255,255,0.15);
+  border-radius: 16px;
+  padding: 20px 24px;
+  text-align: center;
+  min-width: 200px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.2);
+}
+.auto-guide .step-num {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
+.auto-guide .step-title {
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+}
+@keyframes fadeOutGuide {
+  from { opacity: 1; }
+  to { opacity: 0; pointer-events: none; }
+}
+.auto-guide.hiding {
+  animation: fadeOutGuide 0.8s ease-out forwards;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">📦</div>
+  <div class="header-text">
+    <h1>装多多 FIT WISE <span class="en-byline">Designed by Victor Mao</span></h1>
+    <p class="func-desc" id="func-desc">智能装载计算器 · 让空间创造价值</p>
+  </div>
+  <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+    <!-- ★ 专家模式开关 -->
+    <button id="expertToggle" onclick="toggleExpertMode()" style="
+      background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);
+      border-radius:20px;padding:6px 14px;color:white;font-size:0.8rem;
+      cursor:pointer;font-weight:600;transition:all 0.2s;">
+      🔧 <span id="expertLabel">专家模式</span>
+    </button>
+    <div class="help-dropdown">
+      <button class="help-dropdown-btn" onclick="toggleHelpDropdown(event)">
+        ❓ <span id="helpBtnText">HELP</span> ▼
+      </button>
+      <div class="help-dropdown-content" id="helpDropdown">
+        <a href="help.html" target="_blank">📖 <span id="helpQuickTutorial">快速教程</span></a>
+        <a href="user-manual.html" target="_blank">📋 <span id="helpFullManual">完整手册</span></a>
+      </div>
+    </div>
+    <button id="langToggle" onclick="toggleLanguage()" style="
+      background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);
+      border-radius:20px;padding:6px 14px;color:white;font-size:0.8rem;
+      cursor:pointer;font-weight:600;transition:all 0.2s;">
+      🌐 EN
+    </button>
+  </div>
+</header>
+
+<!-- 静态引导页 - 5秒后自动消失 -->
+<div class="auto-guide" id="autoGuide">
+  <div class="guide-title">🚢 装多多 FIT WISE</div>
+  <div class="guide-subtitle">智能集装箱装载计算器</div>
+  <div class="guide-row">
+    <div class="guide-step">
+      <div class="step-num">1️⃣</div>
+      <div class="step-title">选择集装箱</div>
+    </div>
+    <div class="guide-step">
+      <div class="step-num">2️⃣</div>
+      <div class="step-title">信息录入</div>
+    </div>
+    <div class="guide-step">
+      <div class="step-num">3️⃣</div>
+      <div class="step-title">点击计算</div>
+    </div>
+  </div>
+  <div class="guide-row">
+    <div class="guide-step">
+      <div class="step-num">4️⃣</div>
+      <div class="step-title">3D预览</div>
+    </div>
+    <div class="guide-step">
+      <div class="step-num">5️⃣</div>
+      <div class="step-title">一键方案</div>
+    </div>
+    <div class="guide-step">
+      <div class="step-num">6️⃣</div>
+      <div class="step-title">盈利来</div>
+    </div>
+  </div>
+</div>
+
+
+<div class="main-layout">
+  <!-- 左侧控制面板 -->
+  <div>
+    <!-- 集装箱选择 -->
+    <div class="panel" style="margin-bottom:16px">
+      <div class="panel-title"><span class="icon">🚢</span> <span data-i18n="container-title">选择集装箱类型</span></div>
+      <div class="container-grid" id="containerGrid">
+        <!-- 动态生成 -->
+      </div>
+      <div id="selContainerInfo" style="font-size:0.8rem;color:var(--text-sub);margin-top:6px;padding:8px;background:var(--primary-pale);border-radius:8px;display:none;"></div>
+
+      <!-- 自定义集装箱输入区域 -->
+      <div id="customContainerPanel" style="display:none;margin-top:10px;padding:10px 14px;background:#fff8e1;border:2px dashed #ffc107;border-radius:8px;">
+        <div style="font-weight:700;color:#f57c00;margin-bottom:8px;font-size:0.85rem;" data-i18n="custom-title">⚙️ 自定义计算基准 / 限重自行填写</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
+          <input type="number" id="customL" min="100" max="2000" value="1200" style="width:65px;text-align:center;" onchange="updateCustomContainer()">
+          <span style="color:var(--text-sub);">×</span>
+          <input type="number" id="customW" min="100" max="500" value="230" style="width:55px;text-align:center;" onchange="updateCustomContainer()">
+          <span style="color:var(--text-sub);">×</span>
+          <input type="number" id="customH" min="100" max="500" value="250" style="width:55px;text-align:center;" onchange="updateCustomContainer()">
+          <span style="color:var(--text-sub);">cm</span>
+          <span style="color:var(--accent);font-weight:600;">≈ <span id="customVol">69.0</span> m³</span>
+          <input type="number" id="customWeight" min="1000" max="50000" value="19000" step="500" style="width:70px;text-align:center;" onchange="updateCustomContainer()">
+          <span style="color:var(--text-sub);">kg</span>
+        </div>
+      </div>
+
+      <!-- 载重说明 -->
+      <div class="weight-note" id="weightNote">
+        ⚠️ <b data-i18n="weight-note-title">集装箱限重提醒</b><br>
+        <span data-i18n="weight-note-text">⚠️ 超重将严重影响陆运安全及集装箱重心稳定。建议使用【智能优化】一键调整配载方案，确保合规与运输平稳。</span><br>
+        <span style="opacity:0.75" data-i18n="weight-note-tip">注：具体限重请参照船公司和设备提供商的规定，出发前务必核实。</span>
+      </div>
+      <div class="data-source" data-i18n="weight-source">📐 集装箱计算基准参考 ISO 668 / ISO 1496-1 标准及各主要班轮公司规格表</div>
+    </div>
+
+
+    <!-- 货物输入 -->
+    <div class="panel">
+      <div class="panel-title">
+        <span class="icon">📋</span> <span data-i18n="cargo-title">货物规格输入</span>
+        <button class="btn-upload" id="btnPasteData" onclick="showPasteDialog()">
+          📤 <span data-i18n="paste-btn">批量上传</span>
+        </button>
+      </div>
+      <div id="alertBox" class="alert"></div>
+
+      <div class="cargo-list" id="cargoList">
+        <!-- 动态生成 -->
+      </div>
+      <button class="btn-add-cargo" id="btnAddCargo" onclick="addCargo()">
+        ＋ <span data-i18n="add-cargo">添加货物种类</span>
+      </button>
+
+      <!-- 一键涨方工具栏 -->
+      <div class="expand-toolbar" id="expandToolbar">
+        <span class="expand-label" id="expandLabel">📐 涨方调整（长/宽/高各加）：</span>
+        <div class="expand-delta-group" id="expandDeltaGroup">
+          <label id="expandLabel05" class="selected">
+            <input type="radio" name="expandDelta" value="0.5" checked onchange="updateExpandLabel()">
+            <span>+0.5cm</span>
+          </label>
+          <label id="expandLabel10">
+            <input type="radio" name="expandDelta" value="1" onchange="updateExpandLabel()">
+            <span>+1cm</span>
+          </label>
+          <label id="expandLabel15">
+            <input type="radio" name="expandDelta" value="1.5" onchange="updateExpandLabel()">
+            <span>+1.5cm</span>
+          </label>
+        </div>
+        <button class="btn-expand" id="btnExpand" onclick="applyDimExpansion()">
+          <span>📐</span> <span id="expandBtnText">应用涨方</span>
+        </button>
+        <button class="btn-expand-reset" id="btnExpandReset" onclick="resetDimExpansion()" style="display:none;">
+          <span id="expandResetText">↩ 还原</span>
+        </button>
+        <span class="expand-status" id="expandStatus"></span>
+      </div>
+
+      <div style="margin-top:14px;padding:10px;background:#f3f8f0;border-radius:8px;font-size:0.78rem;color:var(--text-sub);">
+        <span data-i18n="cargo-dim-note">📌 尺寸说明：长×宽×高，单位：厘米(cm) | 重量单位：千克(kg)</span><br>
+        <span data-i18n="cargo-orient-note">🔄 摆放方式：按需为每种货物选择旋转限制（三挡选项）</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 粘贴数据弹窗 -->
+  <div id="pasteModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span data-i18n="paste-title">📋 从Excel粘贴数据</span>
+        <span class="close" onclick="closePasteDialog()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:0.85rem;color:var(--text-sub);margin-bottom:10px;">
+          <span data-i18n="paste-desc">从Excel复制表格数据，<b>直接粘贴</b>到下方文本框中</span><br>
+          <span style="color:#666;" data-i18n="paste-format">支持格式：品名、L、W、H、数量、重量（Tab分隔）</span>
+        </p>
+        <textarea id="pasteInput" data-i18n-placeholder="paste-placeholder" placeholder="粘贴示例：
+101-001 scissors	46	26	22	56	12.2
+101-027 clipboard	38	27	1	345	8.5
+109-022 glue sticks	21	15	5	326	3.2" style="width:100%;height:200px;padding:10px;border:1px solid #ddd;border-radius:6px;font-family:monospace;font-size:13px;"></textarea>
+        <div style="margin-top:10px;font-size:0.8rem;color:#666;" data-i18n="paste-tip">
+          <b>提示：</b>在Excel中选中数据区域 → Ctrl+C复制 → 回到此处 Ctrl+V粘贴
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button onclick="closePasteDialog()" style="padding:10px 20px;background:#999;color:white;border:none;border-radius:6px;cursor:pointer;" data-i18n="cancel">取消</button>
+        <button onclick="handlePasteData()" style="padding:10px 20px;background:var(--primary);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:600;" data-i18n="import">✅ 解析并导入</button>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .modal {
+      position:fixed;top:0;left:0;width:100%;height:100%;
+      background:rgba(0,0,0,0.5);z-index:9999;
+      display:flex;align-items:center;justify-content:center;
+    }
+    .modal-content {
+      background:white;border-radius:12px;width:90%;max-width:500px;
+      box-shadow:0 10px 40px rgba(0,0,0,0.2);
+    }
+    .modal-header {
+      padding:16px 20px;border-bottom:1px solid #eee;
+      display:flex;justify-content:space-between;align-items:center;
+      font-weight:600;font-size:1rem;
+    }
+    .modal-header .close {cursor:pointer;font-size:1.5rem;color:#999;}
+    .modal-header .close:hover {color:#333;}
+    .modal-body {padding:20px;}
+    .modal-footer {
+      padding:16px 20px;border-top:1px solid #eee;
+      display:flex;justify-content:flex-end;gap:10px;
+    }
+    /* ── 重心对比区 ── */
+    #gravityCompare {
+      background:#fff;border:1px solid #e0e6f0;border-radius:12px;
+      padding:14px 16px;margin-top:12px;
+    }
+    #gravityCompare .gc-title {
+      font-size:13px;font-weight:700;color:#1E50A2;
+      margin-bottom:10px;display:flex;align-items:center;gap:6px;
+    }
+    .gc-cards {
+      display:flex;gap:10px;margin-bottom:12px;
+    }
+    .gc-card {
+      flex:1;border-radius:8px;padding:10px 12px;
+      border:1px solid #e0e0e0;background:#fafafa;
+    }
+    .gc-card.before { border-left:3px solid #90a4ae; }
+    .gc-card.after  { border-left:3px solid #43a047; }
+    .gc-card.only   { border-left:3px solid #1E50A2;max-width:100%; }
+    .gc-card-title {
+      font-size:11px;font-weight:600;color:#666;
+      margin-bottom:8px;letter-spacing:.5px;
+    }
+    .gc-row {
+      display:flex;justify-content:space-between;align-items:center;
+      font-size:12px;margin-bottom:4px;
+    }
+    .gc-row .lbl { color:#888; }
+    .gc-row .val { font-family:'Courier New',monospace;font-weight:600; }
+    .gc-row .val.improved  { color:#43a047; }
+    .gc-row .val.worsened  { color:#e53935; }
+    .gc-row .val.neutral   { color:#333; }
+    .gc-badge {
+      display:inline-block;margin-top:6px;
+      font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;
+    }
+    .gc-badge.safe   { background:#e8f5e9;color:#2e7d32; }
+    .gc-badge.warn   { background:#fff3e0;color:#e65100; }
+    .gc-badge.danger { background:#ffebee;color:#c62828; }
+    /* 俯视图 */
+    .gc-map-wrap {
+      background:#f4f7fb;border-radius:8px;padding:10px;
+      display:flex;flex-direction:column;align-items:center;
+    }
+    .gc-map-title {
+      font-size:11px;color:#888;margin-bottom:6px;font-weight:600;
+    }
+    #gcCanvas {
+      border-radius:6px;
+      display:block;
+    }
+    .gc-legend {
+      display:flex;gap:12px;margin-top:6px;font-size:11px;color:#666;
+    }
+    .gc-legend span { display:flex;align-items:center;gap:4px; }
+  </style>
+
+  <!-- 右侧结果区 -->
+  <div class="right-col">
+    <!-- 统计行 -->
+    <div class="stats-row" id="statsRow">
+      <div class="stat-card">
+        <div class="stat-val" id="statUtil">—</div>
+        <div class="stat-label" data-i18n="space-util">空间利用率</div>
+        <div class="util-bar-wrap"><div class="util-bar" id="utilBar" style="width:0%"></div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="statPacked">—</div>
+        <div class="stat-label" data-i18n="packed-count">已装箱数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="statVol">—</div>
+        <div class="stat-label" data-i18n="loaded-vol">已装载体积(m³)</div>
+      </div>
+    </div>
+
+    <!-- 载重状态提示 -->
+    <div id="weightWarn" class="weight-warn">
+      ⛔ <b data-i18n="weight-over">超出集装箱限重！</b> <span data-i18n="weight-over-desc">货物总重</span> <span id="warnWeightVal"></span> kg，<span data-i18n="weight-over-tip">超过所选箱型限重。请减少货量或改用多个集装箱。</span>
+    </div>
+    <div id="weightOk" class="weight-ok">
+      ✅ <span data-i18n="weight-ok">货物总重</span> <span id="okWeightVal"></span> kg，<b>符合</b>所选箱型限重要求。
+    </div>
+    
+    <!-- 重心分析面板 -->
+    <div id="gravityPanel" class="weight-warn" style="display:none;">
+      <div class="panel-title">
+        <span class="icon">🎯</span> <span data-i18n="gravity-title">重心分析</span>
+      </div>
+      <div id="gravityContent"></div>
+    </div>
+    
+    <!-- ★ 专家模式风险评估面板（仅专家模式显示） -->
+    <div id="expertRiskPanel" style="display:none;">
+      <div style="background:linear-gradient(135deg, #fff8e1, #ffecb3);border:2px solid #ffb300;border-radius:10px;padding:14px;margin-top:10px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+          <span style="font-size:1.2em;">🔧</span>
+          <span style="font-weight:bold;font-size:1rem;color:#e65100;" data-i18n="expert-title">专家模式风险评估</span>
+          <span style="margin-left:auto;font-size:0.8rem;color:#666;" id="expertModeHint"></span>
+        </div>
+        
+        <!-- 重货统计 -->
+        <div id="expertHeavyStats" style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:10px;"></div>
+        
+        <!-- 压强分析 -->
+        <div id="expertPressureSection" style="margin-top:10px;"></div>
+        
+        <!-- 力学建议 -->
+        <div style="margin-top:10px;padding:10px;background:#fff;border-radius:6px;font-size:0.85rem;">
+          <div style="font-weight:bold;color:#1565c0;margin-bottom:6px;" data-i18n="expert-mech">📐 力学建议</div>
+          <div id="expertMechanics" style="color:#555;"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 3D可视化 -->
+    <div class="panel viz-panel">
+      <div class="panel-title" style="flex-wrap:wrap;gap:8px;">
+        <span class="icon">🎲</span> <span data-i18n="viz-title">装柜效果3D示意图</span>
+        <div style="display:flex;gap:8px;margin-left:auto;">
+          <button class="btn-calc" id="btnCalculate" style="width:auto;padding:8px 16px;font-size:0.9rem;">
+            <span>🔢</span> <span data-i18n="calc-btn">快速计算</span>
+          </button>
+          <button class="btn-calc" id="btnOptimize" onclick="calculateWithOptimization()" style="width:auto;padding:8px 16px;font-size:0.9rem;background:linear-gradient(135deg, #ff9800, #f57c00);">
+            <span>🚀</span> <span data-i18n="optimize-btn">智能优化</span>
+          </button>
+        </div>
+        <!-- 优化进度显示 -->
+        <div id="optimizationProgress" style="display:none;margin-top:8px;padding:10px 12px;background:#fff3e0;border-radius:6px;font-size:0.82rem;color:#e65100;width:100%;box-sizing:border-box;text-align:center;"></div>
+        <!-- 调试信息条（可见） -->
+        <div id="debugBar" style="display:none;margin-top:6px;padding:6px 12px;background:#e8f5e9;border-radius:6px;font-size:0.78rem;color:#2e7d32;width:100%;box-sizing:border-box;">
+          <span id="debugInfo"></span>
+        </div>
+      </div>
+      <!-- 多集装箱标签页 -->
+      <div id="multiContainerTabs" class="multi-tabs" style="display:none;margin-bottom:10px;flex-wrap:wrap;gap:6px;">
+        <!-- 动态生成 -->
+      </div>
+      <div style="position:relative;">
+        <canvas id="three-canvas"></canvas>
+        <div class="viz-controls">
+          <button class="viz-btn" onclick="resetCamera()" data-i18n="reset-view">重置视角</button>
+        </div>
+        <div class="viz-hint" data-i18n="viz-hint">🖱 拖拽旋转 · 滚轮缩放</div>
+      </div>
+      <!-- 图例横向排列在3D图下方 -->
+      <div class="legend-bar">
+        <span class="legend-title" data-i18n="legend-title">🎨 货物图例：</span>
+        <div id="cargoLegend">
+          <span style="color:#888;font-size:13px;" data-i18n="legend-empty">点击"计算装载方案"后显示</span>
+        </div>
+      </div>
+      <!-- 重心对比区 -->
+      <div id="gravityCompare" style="display:none;"></div>
+      <!-- 明细表 - 移至图例下方 -->
+      <div style="margin-top:12px;">
+        <div class="panel-title" style="flex-wrap:wrap;gap:8px;">
+          <span class="icon">📊</span> <span data-i18n="detail-title">装载方案明细</span>
+          <button id="btnExportExcel" class="btn-upload" style="margin-left:auto;" onclick="exportToExcel()">
+            <span>📥</span> <span data-i18n="export-excel">导出Excel</span>
+          </button>
+        </div>
+        <div id="resultDetail">
+          <div class="empty-state">
+            <div class="big-icon">📦</div>
+            <p data-i18n="detail-empty">请在左侧输入货物规格后点击"开始计算"</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+// ===================== 全局常量 =====================
+const EPS = 0.5; // 容差常数，供所有函数使用
+
+// ===================== 合并的脚本块 =====================
+
+// ===================== 引导页5秒后消失 =====================
+(function() {
+  function hideGuide() {
+    var guide = document.getElementById('autoGuide');
+    if (!guide) return;
+    guide.style.transition = 'opacity 0.8s';
+    guide.style.opacity = '0';
+    guide.style.pointerEvents = 'none';
+    setTimeout(function() {
+      if (guide && guide.parentNode) guide.parentNode.removeChild(guide);
+    }, 800);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() { setTimeout(hideGuide, 5000); });
+  } else {
+    setTimeout(hideGuide, 5000);
+  }
+})();
+
+// ===================== 多语言支持 =====================
+const translations = {
+  'zh-CN': {
+    // 标题
+    'func-desc': '智能装载计算器 · 让空间创造价值',
+    
+    // 集装箱选择
+    'container-title': '选择集装箱类型',
+    'container-inner': 'Internal Ref',
+    'container-weight': '限重 ≤',
+    'container-ton': '吨',
+    'container-custom': '自定义',
+    'container-custom-desc': '计算基准 · 限重',
+    'container-selected': '✅ 已选',
+    'container-total': '共需',
+    'container-needs': '个',
+    'container-current': '第',
+    'container-done': '全部完成',
+    
+    // 载重说明
+    'weight-note-title': '集装箱限重提醒',
+    'weight-note-text': '⚠️ 超重将严重影响陆运安全及集装箱重心稳定。建议使用【智能优化】一键调整配载方案，确保合规与运输平稳。',
+    'weight-note-tip': '注：具体限重请参照船公司和设备提供商的规定，出发前务必核实。',
+    'weight-source': '📐 集装箱计算基准参考 ISO 668 / ISO 1496-1 标准及各主要班轮公司规格表',
+    
+    // 货物输入
+    'cargo-title': '货物规格输入',
+    'paste-btn': '📤 批量上传',
+    'add-cargo': '＋ 添加货物种类',
+    'cargo-dim-note': '📌 尺寸说明：长×宽×高，单位：厘米(cm) | 重量单位：千克(kg)',
+    'cargo-orient-note': '🔄 摆放方式：按需为每种货物选择旋转限制（三挡选项）',
+    'length-label': '长 (cm)',
+    'width-label': '宽 (cm)',
+    'height-label': '高 (cm)',
+    'qty-label': '数量（件）',
+    'weight-label': '单箱毛重 (kg)',
+    'weight-optional': '可选',
+    'weight-fill-tip': '填写后可自动校验集装箱限重',
+    'orient-label': '摆放方式：',
+    'delete-btn': '删除此货物',
+    
+    // 统计卡片
+    'space-util': '空间利用率',
+    'packed-count': '已装箱数',
+    'loaded-vol': '已装载体积(m³)',
+    
+    // 重心分析
+    'gravity-title': '重心分析',
+    
+    // 载重警告
+    'weight-over': '超出集装箱限重！',
+    'weight-over-desc': '货物总重',
+    'weight-over-tip': '超过所选箱型限重。请减少货量或改用多个集装箱。',
+    'weight-ok': '符合集装箱限重要求。',
+    
+    'gravity-rebalance': '⚠️ 重心危险。系统已自动解除品类分组约束，以平衡各箱重量分布。',
+    'all-danger-lcl': '⚠️ 所有排序策略的重心分析均为危险。剩余货物以散货形式出运（LCL拼箱）也许更经济。',
+    
+    // 明细表
+    'detail-title': '装载方案明细',
+    'detail-empty': '请在左侧输入货物规格后点击"开始计算"',
+    'detail-calculating': '计算中...',
+    'detail-cargo': '货物',
+    'detail-container': '集装箱',
+    'detail-packed': '已装(件)',
+    'detail-vol': '体积(m³)',
+    'detail-weight': '重量(kg)',
+    'detail-total-packed': '件已装',
+    'detail-total-vol': '利用体积',
+    'detail-total-weight': '总重量',
+    'detail-total-containers': '共需',
+    'detail-containers-unit': '个集装箱',
+    'expert-title': '专家模式风险评估',
+    'expert-mech': '📐 力学建议',
+    'container-no': '号柜',
+    
+    // 导出
+    'export-excel': '导出Excel',
+    
+    // 3D视图
+    'viz-title': '装柜效果3D示意图',
+    'calc-btn': '快速计算',
+    'optimize-btn': '智能优化',
+    'reset-view': '重置视角',
+    'viz-hint': '🖱 拖拽旋转 · 滚轮缩放',
+    'legend-title': '🎨 货物图例：',
+    'legend-empty': '点击"计算装载方案"后显示',
+    
+    // 摆放方式
+    'orient-free': '🔄 任意旋转',
+    'orient-free-hint': '允许翻转、倒置，系统自动选最优方向（适合对称型货物）',
+    'orient-honly': '↔ 仅水平旋转',
+    'orient-honly-hint': '底面朝下固定，可水平转动 0°/90°/180°/270°（适合不可倒置货物）',
+    'orient-fixed': '⬛ 固定正放',
+    'orient-fixed-hint': '完全按填写的 长×宽×高 摆放，不做任何旋转（适合有方向标识货物）',
+    
+    // 优化器
+    'optimizing': '🔄 正在尝试多种排序策略，请稍候...',
+    'optimize-success': '✅ 优化完成！',
+    'best-strategy': '🏆 最优策略',
+    'avg-util': '📊 平均利用率',
+    'container-count': '📦 集装箱数量',
+    'packed-count-detail': '📦 装箱数量',
+    'tried-strategies': '💡 尝试了',
+    'sorting-strategies': '种排序策略',
+    
+    // 排序策略名称
+    'strategy-vol-desc': '📦 体积降序（大箱优先）',
+    'strategy-vol-asc': '📦 体积升序（小箱优先）',
+    'strategy-height-desc': '📏 高度降序（高箱优先）',
+    'strategy-height-asc': '📏 高度升序（矮箱优先）',
+    'strategy-length-desc': '📐 长度降序',
+    'strategy-weight-desc': '⚖️ 重量降序（重箱优先）',
+    'strategy-composite': '🔄 综合评分',
+    
+    // 集装箱标签
+    'container-tab': '集装箱',
+    
+    // 弹窗
+    'paste-title': '从Excel粘贴数据',
+    'paste-desc': '从Excel复制表格数据，直接粘贴到下方文本框中',
+    'paste-format': '支持格式：品名、L、W、H、数量、重量（Tab分隔）',
+    'paste-placeholder': '粘贴示例：\n101-001 scissors\t46\t26\t22\t56\t12.2\n101-027 clipboard\t38\t27\t1\t345\t8.5\n109-022 glue sticks\t21\t15\t5\t326\t3.2',
+    'paste-tip': '提示：在Excel中选中数据区域 → Ctrl+C复制 → 回到此处 Ctrl+V粘贴',
+    'cancel': '取消',
+    'import': '✅ 解析并导入',
+    
+    // 错误提示
+    'err-empty-data': '请粘贴数据！',
+    'err-no-data': '未识别到有效数据！',
+    'err-parse-fail': '未能解析到有效数据！请确保数据格式为：品名、L、W、H、数量、重量（Tab或逗号分隔）',
+    'err-dim-incomplete': '的尺寸未填写完整，请检查！',
+    'err-optimize-fail': '优化失败，请检查输入数据！',
+    'err-calc-fail': 'calculateMultiContainer出错',
+    'err-optimize-calc': '优化计算出错',
+    'at-least-one': '至少需要保留一种货物！',
+    'import-success': '成功导入',
+    'import-types': '种货物，共',
+    'import-boxes': '箱！',
+    'import-skip': '跳过',
+    'invalid-rows': '行无效数据',
+    
+    // 自定义集装箱
+    'custom-title': '⚙️ 自定义计算基准 / 限重自行填写',
+    'custom-cm': 'cm',
+    'custom-m3': 'm³',
+    'custom-kg': 'kg',
+    
+    // 默认货物名称
+    'cargo-default': '货物',
+    'cargo-default-remaining': '货物',
+    
+    // 一键涨方
+    'expand-title': '📐 一键涨方',
+    'expand-label': '涨方调整（长/宽/高各加）：',
+    'expand-btn': '✅ 应用涨方',
+    'expand-reset': '↩ 还原',
+    'expand-status': '已涨方 +{delta}cm',
+    'expand-tip': '抛货测量值常小于实际尺寸，内置三档容差一键补偿，数据零重复',
+    'expand-no-cargo': '请先输入货物数据！',
+    'expand-applied': '✅ 已涨方 +{delta}cm（长/宽/高各加），容差补偿自动执行',
+    'expand-reset-done': '↩ 已还原原始尺寸，随时可重新涨方对比',
+  },
+  'en-US': {
+    // 标题
+    'func-desc': 'Smart Loading Calculator · Maximize Your Space Value',
+    
+    // 集装箱选择
+    'container-title': 'Select Container Type',
+    'container-inner': 'Inner Dim',
+    'container-weight': 'Max Load ≤',
+    'container-ton': 't',
+    'container-custom': 'Custom',
+    'container-custom-desc': 'Custom Dim / Limit',
+    'container-selected': '✅ Selected',
+    'container-total': 'Need',
+    'container-needs': '',
+    'container-current': 'of',
+    'container-done': 'All Complete',
+    
+    // 载重说明
+    'weight-note-title': 'US Domestic Transport Weight Limit',
+    'weight-note-text': 'FHWA regulations limit cargo payload to 42,000–44,000 lb (≈19–20 tons). To ensure compliance with the limits above, use [ Smart Optimize (US 19.2t Compliance) ].',
+    'weight-note-tip': 'Note: California, Texas, and some other states have stricter limits. Verify local regulations before shipping.',
+    'weight-source': '📐 The internal dimensions are constrained by the door height.',
+    
+    // 货物输入
+    'cargo-title': 'Cargo Specification Input',
+    'paste-btn': '📤 Batch Upload',
+    'add-cargo': '＋ Add Cargo Type',
+    'cargo-dim-note': '📌 Dimensions: L×W×H, unit: cm | Weight unit: kg',
+    'cargo-orient-note': '🔄 Placement Mode: Choose rotation limits as needed (see options beside)',
+    'length-label': 'Length (cm)',
+    'width-label': 'Width (cm)',
+    'height-label': 'Height (cm)',
+    'qty-label': 'Quantity',
+    'weight-label': 'Unit Weight (kg)',
+    'weight-optional': 'optional',
+    'weight-fill-tip': 'Fill in for US domestic weight limit validation',
+    'orient-label': 'Placement Mode:',
+    'delete-btn': 'Remove this cargo',
+    
+    // 统计卡片
+    'space-util': 'Space Utilization',
+    'packed-count': 'Boxes Loaded',
+    'loaded-vol': 'Loaded Volume(m³)',
+    
+    // 重心分析
+    'gravity-title': 'Center of Gravity Analysis',
+    
+    // 载重警告
+    'weight-over': '⚠️ Over US Domestic Highway Weight Limit!',
+    'weight-over-desc': 'Total cargo weight',
+    'weight-over-tip': 'exceeds 19,200 kg safe limit. Reduce cargo or use additional containers.',
+    'weight-ok': '✅ Total weight',
+    'gravity-rebalance': '⚠️ Gravity center is dangerous. System has released category-grouping constraint to re-balance weight distribution.',
+    'all-danger-lcl': '⚠️ All strategies result in dangerous center of gravity. Consider shipping remaining cargo as LCL (Less than Container Load) for better economy.',
+    
+    // 明细表
+    'detail-title': 'Loading Plan Details',
+    'detail-empty': 'Enter cargo specs on the left and click "Calculate"',
+    'detail-calculating': 'Calculating...',
+    'detail-cargo': 'Cargo',
+    'detail-container': 'Container',
+    'detail-packed': 'Packed',
+    'detail-vol': 'Volume(m³)',
+    'detail-weight': 'Weight(kg)',
+    'detail-total-packed': 'packed of',
+    'detail-total-vol': 'Used Volume',
+    'detail-total-weight': 'Total Weight',
+    'detail-total-containers': 'Need',
+    'detail-containers-unit': 'container(s)',
+    'expert-title': 'Expert Mode Risk Assessment',
+    'expert-mech': '📐 Mechanical Recommendations',
+    'container-no': '',
+    
+    // 导出
+    'export-excel': 'Export Excel',
+    
+    // 3D视图
+    'viz-title': '3D Loading Visualization',
+    'calc-btn': 'Quick Calculate',
+    'optimize-btn': 'Smart Optimize',
+    'reset-view': 'Reset View',
+    'viz-hint': '🖱 Drag to rotate · Scroll to zoom',
+    'legend-title': '🎨 Cargo Legend:',
+    'legend-empty': 'Click "Calculate" to display',
+    
+    // 摆放方式
+    'orient-free': '🔄 Free Rotation',
+    'orient-free-hint': 'Allow flipping and rotation in any direction. System auto-selects optimal orientation (suitable for symmetric cargo)',
+    'orient-honly': '↔ Horizontal Only',
+    'orient-honly-hint': 'Base fixed downward, horizontal rotation 0°/90°/180°/270° only (for non-tippable cargo)',
+    'orient-fixed': '⬛ Fixed Orientation',
+    'orient-fixed-hint': 'Place exactly as L×W×H entered, no rotation (for cargo with directional markings)',
+    
+    // 优化器
+    'optimizing': '🔄 Trying multiple sorting strategies, please wait...',
+    'optimize-success': '✅ Optimization Complete!',
+    'best-strategy': '🏆 Best Strategy',
+    'avg-util': '📊 Average Utilization',
+    'container-count': '📦 Container Count',
+    'packed-count-detail': '📦 Boxes Loaded',
+    'tried-strategies': '💡 Tried',
+    'sorting-strategies': 'sorting strategies',
+    
+    // 排序策略名称
+    'strategy-vol-desc': '📦 Volume Desc (Large First)',
+    'strategy-vol-asc': '📦 Volume Asc (Small First)',
+    'strategy-height-desc': '📏 Height Desc (Tall First)',
+    'strategy-height-asc': '📏 Height Asc (Short First)',
+    'strategy-length-desc': '📐 Length Desc',
+    'strategy-weight-desc': '⚖️ Weight Desc (Heavy First)',
+    'strategy-composite': '🔄 Composite Score',
+    'strategy-layer-first': '🏗️ Layer First',
+    'strategy-width-height': '📐 Width-Height Mix',
+    
+    // 集装箱标签
+    'container-tab': 'Container',
+    
+    // 弹窗
+    'paste-title': 'Paste Data from Excel',
+    'paste-desc': 'Copy table data from Excel and paste directly into the text box below',
+    'paste-format': 'Supported format: Name, L, W, H, Qty, Weight (Tab separated)',
+    'paste-placeholder': 'Paste example:\n101-001 scissors\t46\t26\t22\t56\t12.2\n101-027 clipboard\t38\t27\t1\t345\t8.5\n109-022 glue sticks\t21\t15\t5\t326\t3.2',
+    'paste-tip': 'Tip: Select data in Excel → Ctrl+C → Ctrl+V here',
+    'cancel': 'Cancel',
+    'import': '✅ Parse & Import',
+    
+    // 错误提示
+    'err-empty-data': 'Please paste data!',
+    'err-no-data': 'No valid data found!',
+    'err-parse-fail': 'Failed to parse valid data! Ensure format: Name, L, W, H, Qty, Weight (Tab or comma separated)',
+    'err-dim-incomplete': 'dimensions incomplete. Please check!',
+    'err-optimize-fail': 'Optimization failed. Please check input data!',
+    'err-calc-fail': 'Calculation error',
+    'err-optimize-calc': 'Optimization calculation error',
+    'at-least-one': 'At least one cargo type required!',
+    'import-success': 'Successfully imported',
+    'import-types': 'cargo types,',
+    'import-boxes': 'boxes!',
+    'import-skip': 'Skipped',
+    'invalid-rows': 'invalid rows',
+    
+    // 自定义集装箱
+    'custom-title': '⚙️ Custom Inner Dimensions / Weight Limit',
+    'custom-cm': 'cm',
+    'custom-m3': 'm³',
+    'custom-kg': 'kg',
+    
+    // 默认货物名称
+    'cargo-default': 'Cargo',
+    'cargo-default-remaining': 'Cargo',
+    
+    // 一键涨方
+    'expand-title': '📐 Expand Dims',
+    'expand-label': 'Add per dimension (L/W/H each):',
+    'expand-btn': '✅ Apply',
+    'expand-reset': '↩ Reset',
+    'expand-status': '+{delta}cm applied',
+    'expand-tip': 'Measured dimensions often fall short — no manual adjustment needed',
+    'expand-no-cargo': 'Please enter cargo data first!',
+    'expand-applied': '✅ Applied +{delta}cm (L/W/H each) — no manual adjustment needed',
+    'expand-reset-done': '↩ Restored to original — expand again anytime for comparison',
+  }
+};
+
+let currentLang = 'zh-CN';
+
+function t(key) {
+  const dict = translations[currentLang] || translations['zh-CN'];
+  return dict[key] || key;
+}
+
+function toggleLanguage() {
+  currentLang = currentLang === 'zh-CN' ? 'en-US' : 'zh-CN';
+  isEn = (currentLang === 'en-US');  // ★ 同步更新全局 isEn
+  
+  const btn = document.getElementById('langToggle');
+  btn.textContent = currentLang === 'zh-CN' ? '🌐 EN' : '🌐 中文';
+  
+  // 更新header文字
+  document.getElementById('func-desc').textContent = t('func-desc');
+  
+  // 更新data-i18n元素
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (translations[currentLang][key]) {
+      el.textContent = translations[currentLang][key];
+    }
+  });
+  
+  // 更新placeholder
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    if (translations[currentLang][key]) {
+      el.placeholder = translations[currentLang][key];
+    }
+  });
+  
+  // 更新所有可翻译元素
+  updateUIText();
+  
+  // ★ 同步更新专家模式标签
+  updateExpertModeUI();
+}
+
+function updateUIText() {
+  // 更新标签页
+  if (typeof renderContainers === 'function') renderContainers();
+  if (typeof renderCargoList === 'function') renderCargoList();
+  if (typeof updateContainerInfo === 'function') updateContainerInfo();
+  if (typeof renderMultiContainerTabs === 'function') renderMultiContainerTabs();
+  if (typeof renderDetailTableMulti === 'function') renderDetailTableMulti();
+  if (typeof renderCargoLegend === 'function') renderCargoLegend(packedBoxes);
+  if (typeof updateExpandToolbarLang === 'function') updateExpandToolbarLang();
+}
+
+// 全局错误捕获（静默记录，不打断用户）
+window.onerror = function(msg, url, line, col, error) {
+  showAlert('系统错误：' + msg);  // 最简上报，不打断但留痕
+  return true;
+};
+
+// ===================== 集装箱数据（计算基准 = 门高，实际装载受门高限制）=====================
+// 计算基准：使用门高（doorH）作为装载高度限制，因为货物无法超过门高
+// 门高数据：20尺=228cm, 40GP=228cm, 40HC=258cm, 45HC=258cm
+// 数据来源：ISO 668:2020、Maersk / MSC / COSCO 官方设备规格手册
+// 限重标准：中国海运/多式联运通用标准
+const PAYLOAD_LIMIT = 22000; // kg，默认20尺柜限重（根据实际箱型动态调整）
+
+const CONTAINERS = [
+  {
+    id: 'c20', name: '20尺平柜', short: "20' GP", nameEn: '20ft GP', shortEn: "20' GP",
+    L: 590, W: 235, H: 239, doorH: 228,
+    innerDesc: '计算基准 590×235×228 cm', innerDescEn: 'Internal Ref: 590×235×228 cm',
+    maxWeight: 22000, teuCapVol: '31.6 m³'
+  },
+  {
+    id: 'c40', name: '40尺平柜', short: "40' GP", nameEn: '40ft GP', shortEn: "40' GP",
+    L: 1203, W: 235, H: 239, doorH: 228,
+    innerDesc: '计算基准 1203×235×228 cm', innerDescEn: 'Internal Ref: 1203×235×228 cm',
+    maxWeight: 26000, teuCapVol: '64.5 m³'
+  },
+  {
+    id: 'c40hq', name: '40尺高柜', short: "40' HC", nameEn: '40ft HC', shortEn: "40' HC",
+    L: 1203, W: 235, H: 270, doorH: 258,
+    innerDesc: '计算基准 1203×235×258 cm', innerDescEn: 'Internal Ref: 1203×235×258 cm',
+    maxWeight: 26000, teuCapVol: '72.9 m³'
+  },
+  {
+    id: 'c45hq', name: '45尺高柜', short: "45' HC", nameEn: '45ft HC', shortEn: "45' HC",
+    L: 1356, W: 235, H: 270, doorH: 258,
+    innerDesc: '计算基准 1356×235×258 cm', innerDescEn: 'Internal Ref: 1356×235×258 cm',
+    maxWeight: 25000, teuCapVol: '82.2 m³'
+  },
+  {
+    id: 'custom', name: '自定义', short: "自定义", nameEn: 'Custom', shortEn: "Custom",
+    L: 1200, W: 230, H: 250, doorH: 250,
+    innerDesc: '计算基准自定义', innerDescEn: 'Internal Ref',
+    maxWeight: 26500, teuCapVol: ''
+  }
+];
+
+const CARGO_COLORS = [
+  '#ef5350','#42a5f5','#ffca28','#ab47bc',
+  '#26c6da','#ff7043','#66bb6a','#8d6e63',
+  '#ec407a','#29b6f6','#d4e157','#78909c'
+];
+
+// 摆放方式定义
+// 'free'   = 任意旋转（6方向）
+// 'honly'  = 仅水平旋转（底面固定，水平4个朝向，不可倒置）
+// 'fixed'  = 固定正放（只能按原始L×W×H放置，不旋转）
+const ORIENT_OPTIONS = [
+  { key: 'free',  label: '🔄 任意旋转',     labelEn: '🔄 Free Rotation', hint: '允许翻转、倒置，系统自动选最优方向（适合对称型货物）', hintEn: 'Allow flipping and rotation in any direction. System auto-selects optimal orientation (suitable for symmetric cargo)' },
+  { key: 'honly', label: '↔ 仅水平旋转',   labelEn: '↔ Horizontal Only', hint: '底面朝下固定，可水平转动 0°/90°/180°/270°（适合不可倒置货物）', hintEn: 'Base fixed downward, horizontal rotation 0°/90°/180°/270° only (for non-tippable cargo)' },
+  { key: 'fixed', label: '⬛ 固定正放',     labelEn: '⬛ Fixed', hint: '完全按填写的 长×宽×高 摆放，不做任何旋转（适合有方向标识货物）', hintEn: 'Place exactly as L×W×H entered, no rotation (for cargo with directional markings)' }
+];
+
+let selectedContainer = CONTAINERS[2]; // 默认40尺高柜
+let cargoItems = [];
+
+// 多集装箱装载全局变量
+let allContainerResults = []; // 存储所有集装箱的装载结果
+let currentViewContainer = 0;   // 当前查看的集装箱索引（0-based）
+let autoContainerCount = true;  // 自动检测集装箱数量
+
+// 默认演示货物数据
+cargoItems.push({id:'c1',name:'Cargo A',L:60,W:40,H:30,qty:20,weight:10,color:'#FF6B6B',orient:'free'});
+cargoItems.push({id:'c2',name:'Cargo B',L:45,W:30,H:25,qty:35,weight:8,color:'#4ECDC4',orient:'free'});
+cargoItems.push({id:'c3',name:'Cargo C',L:50,W:50,H:40,qty:15,weight:15,color:'#45B7D1',orient:'free'});
+cargoItems.push({id:'c4',name:'Cargo D',L:35,W:25,H:20,qty:50,weight:5,color:'#96CEB4',orient:'free'});
+cargoItems.push({id:'c5',name:'Cargo E',L:70,W:50,H:35,qty:10,weight:20,color:'#FFEAA7',orient:'free'});
+// 5 cargo types, 130 boxes total
+let cargoIdCounter = 0;
+let packedBoxes = [];
+let remainingItems = []; // ★ 直接用装箱算法的结果，不推算
+let scene, camera, renderer, isDragging = false, prevMouse = {};
+let labelSprites = [];
+var isEn = false; // ★ 全局变量，供所有函数使用
+
+// ===================== 初始化 =====================
+function init() {
+  renderContainers();
+  renderCargoList(); // 使用预设测试货物
+  initThree();
+  renderEmptyScene();
+
+  // 绑定计算按钮事件
+  const calcBtn = document.getElementById('btnCalculate');
+  if (calcBtn) {
+    calcBtn.addEventListener('click', function() {
+      calculate();
+    });
+  }
+}
+
+// ===================== 集装箱渲染 =====================
+function renderContainers() {
+  const grid = document.getElementById('containerGrid');
+  const isEn = currentLang === 'en-US';
+  
+  grid.innerHTML = CONTAINERS.map(c => {
+    const vol = c.id === 'custom' ? '—' : ((c.L * c.W * c.H) / 1e6).toFixed(1);
+    const sel = c.id === selectedContainer.id ? 'selected' : '';
+    const name = isEn ? (c.nameEn || c.name) : c.name;
+    const innerDesc = isEn ? (c.innerDescEn || c.innerDesc) : c.innerDesc;
+    
+    if (c.id === 'custom') {
+      return `<div class="container-card ${sel}" onclick="selectContainer('${c.id}')">
+        <div class="c-name">${isEn ? 'Custom' : '自定义'}</div>
+        <div class="c-dim">${isEn ? 'Internal Ref / Limit' : '计算基准 · 限重'}</div>
+      </div>`;
+    }
+    return `<div class="container-card ${sel}" onclick="selectContainer('${c.id}')">
+      <div class="c-name">${name}</div>
+      <div class="c-dim">${c.short}</div>
+      <div class="c-dim">${innerDesc}</div>
+      <div class="c-vol">≈ ${vol} m³</div>
+      <div class="c-wt">${isEn ? 'Max' : '限重 ≤'}${isEn ? '' : ' '}${(c.maxWeight/1000).toFixed(0)} ${isEn ? 'T' : '吨'}</div>
+    </div>`;
+  }).join('');
+  updateContainerInfo();
+  updateCustomPanelVisibility();
+}
+
+function selectContainer(id) {
+  selectedContainer = CONTAINERS.find(c => c.id === id);
+  renderContainers();
+  if (packedBoxes.length > 0) renderEmptyScene();
+}
+
+function updateCustomContainer() {
+  // 更新自定义集装箱的参数
+  const custom = CONTAINERS.find(c => c.id === 'custom');
+  custom.L = parseInt(document.getElementById('customL').value) || 1200;
+  custom.W = parseInt(document.getElementById('customW').value) || 230;
+  custom.H = parseInt(document.getElementById('customH').value) || 250;
+  custom.maxWeight = parseInt(document.getElementById('customWeight').value) || 19000;
+
+  // 更新容积显示
+  const vol = ((custom.L * custom.W * custom.H) / 1e6).toFixed(2);
+  document.getElementById('customVol').textContent = vol;
+
+  // 如果当前选中的是自定义集装箱，更新selectedContainer
+  if (selectedContainer.id === 'custom') {
+    selectedContainer = {...custom}; // 复制值
+    updateContainerInfo();
+    if (packedBoxes.length > 0) renderEmptyScene();
+  }
+}
+
+function updateCustomPanelVisibility() {
+  const panel = document.getElementById('customContainerPanel');
+  if (panel) {
+    panel.style.display = selectedContainer.id === 'custom' ? 'block' : 'none';
+    if (selectedContainer.id === 'custom') {
+      // 同步输入框值
+      document.getElementById('customL').value = selectedContainer.L;
+      document.getElementById('customW').value = selectedContainer.W;
+      document.getElementById('customH').value = selectedContainer.doorH;  // ★ 使用计算基准高度
+      document.getElementById('customWeight').value = selectedContainer.maxWeight;
+      const vol = ((selectedContainer.L * selectedContainer.W * selectedContainer.doorH) / 1e6).toFixed(2);  // ★ 使用门高
+      document.getElementById('customVol').textContent = vol;
+    }
+  }
+}
+
+function updateContainerInfo() {
+  const info = document.getElementById('selContainerInfo');
+  const c = selectedContainer;
+  const vol = ((c.L * c.W * c.H) / 1e6).toFixed(2);
+  const isEn = currentLang === 'en-US';
+  const nameDisplay = isEn 
+    ? (c.id === 'custom' ? `Custom (${c.L}×${c.W}×${c.H} cm)` : (c.nameEn || c.name))
+    : (c.id === 'custom' ? `自定义 (${c.L}×${c.W}×${c.H} cm)` : c.name);
+  const innerDescDisplay = c.id === 'custom' ? '' : (isEn ? (c.innerDescEn || c.innerDesc) : c.innerDesc) + (isEn ? ' | ' : ' · ');
+  const weightDisplay = c.id === 'custom' ? '' : ` ${isEn ? 'Payload Limit' : 'Payload限重'} <b>${(c.maxWeight/1000).toFixed(0)} ${isEn ? 'T' : '吨'}</b>`;
+
+  info.style.display = 'block';
+  info.innerHTML = `${isEn ? '✅ Selected' : '✅ 已选'}：<b>${nameDisplay}</b>${innerDescDisplay ? (isEn ? innerDescDisplay : ' | ' + innerDescDisplay) : ''} | ${isEn ? 'Volume' : '容积'} <b>${vol} m³</b>${weightDisplay}`;
+}
+
+// ===================== 货物操作 =====================
+// ===================== 粘贴数据功能 =====================
+function showPasteDialog() {
+  document.getElementById('pasteModal').style.display = 'flex';
+  setTimeout(() => document.getElementById('pasteInput').focus(), 100);
+}
+
+function closePasteDialog() {
+  document.getElementById('pasteModal').style.display = 'none';
+  document.getElementById('pasteInput').value = '';
+}
+
+function handlePasteData() {
+  const text = document.getElementById('pasteInput').value.trim();
+  const isEn = currentLang === 'en-US';
+  
+  if (!text) {
+    showAlert(isEn ? 'Please paste data!' : '请粘贴数据！');
+    return;
+  }
+
+  const lines = text.split('\n').filter(line => line.trim());
+  if (lines.length === 0) {
+    showAlert(isEn ? 'No valid data found!' : '未识别到有效数据！');
+    return;
+  }
+
+  const colors = CARGO_COLORS;
+  let newItems = [];
+  let skippedRows = 0;
+
+  lines.forEach((line, lineIdx) => {
+    // 支持Tab分隔或逗号分隔
+    let cells = line.includes('\t') ? line.split('\t') : line.split(/[,，]/);
+    cells = cells.map(c => c.trim()).filter(c => c);
+
+    if (cells.length < 4) {
+      skippedRows++;
+      return;
+    }
+
+    let name = '', L = '', W = '', H = '', qty = 1, weight = '';
+
+    // 找出数字列
+    if (cells.length >= 6) {
+      name = cells[0];
+      L = parseFloat(cells[1]) || '';
+      W = parseFloat(cells[2]) || '';
+      H = parseFloat(cells[3]) || '';
+      qty = parseInt(cells[4]) || 1;
+      weight = parseFloat(cells[5]) || '';
+    } else if (cells.length >= 4) {
+      name = cells[0];
+      L = parseFloat(cells[1]) || '';
+      W = parseFloat(cells[2]) || '';
+      H = parseFloat(cells[3]) || '';
+    }
+
+    if (L && W && H && L > 0 && W > 0 && H > 0) {
+      newItems.push({
+        id: 'c' + Date.now() + '_' + lineIdx,
+        name: name || (isEn ? 'Cargo' : '货物') + (lineIdx + 1),
+        L: L, W: W, H: H,
+        qty: qty, weight: weight || '',
+        color: colors[newItems.length % colors.length],
+        orient: 'free'
+      });
+    } else {
+      skippedRows++;
+    }
+  });
+
+  if (newItems.length === 0) {
+    showAlert(isEn ? 'Failed to parse valid data! Ensure format: Name, L, W, H, Qty, Weight (Tab or comma separated)' : '未能解析到有效数据！请确保数据格式为：品名、L、W、H、数量、重量（Tab或逗号分隔）');
+    return;
+  }
+
+  // 替换当前货物列表
+  cargoItems = newItems;
+  renderCargoList();
+  closePasteDialog();
+
+  const totalBoxes = cargoItems.reduce((s, c) => s + (parseInt(c.qty) || 0), 0);
+  showAlert(`${isEn ? '✅ Successfully imported' : '✅ 成功导入'} ${newItems.length} ${isEn ? 'cargo types,' : '种货物，共'} ${totalBoxes} ${isEn ? 'boxes!' : '箱！'} (${isEn ? 'Skipped' : '跳过'} ${skippedRows} ${isEn ? 'invalid rows' : '行无效数据'})`);
+}
+
+// ===================== 添加货物 =====================
+function addCargo() {
+  const id = 'new_' + (++cargoIdCounter);
+  const colorIdx = (cargoItems.length) % CARGO_COLORS.length;
+  const letterIdx = cargoItems.length;
+  const letter = String.fromCharCode(65 + (letterIdx % 26));
+  const isEn = currentLang === 'en-US';
+  cargoItems.push({
+    id, name: (isEn ? 'Cargo' : '货物') + letter, color: CARGO_COLORS[colorIdx],
+    L: '', W: '', H: '', qty: 1,
+    weight: '',
+    orient: 'free'
+  });
+  renderCargoList();
+}
+
+function removeCargo(id) {
+  if (cargoItems.length <= 1) { showAlert(currentLang === 'en-US' ? 'At least one cargo type required!' : '至少需要保留一种货物！'); return; }
+  cargoItems = cargoItems.filter(c => String(c.id) !== String(id));
+  renderCargoList();
+}
+
+function setOrient(id, key) {
+  const c = cargoItems.find(x => String(x.id) === String(id));
+  if (!c) return;
+  c.orient = key;
+  renderCargoList();
+}
+
+// ===================== 一键涨方功能 =====================
+// 记录当前涨方是否已应用
+let expandApplied = false;
+let expandDeltaValue = 0;
+
+// 更新radio选中样式
+function updateExpandLabel() {
+  const radios = document.querySelectorAll('input[name="expandDelta"]');
+  radios.forEach(r => {
+    const lbl = r.closest('label');
+    if (r.checked) lbl.classList.add('selected');
+    else lbl.classList.remove('selected');
+  });
+}
+
+// 获取当前选中的增量（cm）
+function getExpandDelta() {
+  const checked = document.querySelector('input[name="expandDelta"]:checked');
+  return checked ? parseFloat(checked.value) : 1;
+}
+
+// 应用涨方：对所有货物 L/W/H 各加 delta cm
+// ★ 不直接修改 c.L/W/H，而是存到 _expL/_expW/_expH
+//   这样 cargoItems 永远保留原始数据，快速计算不受影响
+function applyDimExpansion() {
+  if (!cargoItems || cargoItems.length === 0) {
+    showAlert(t('expand-no-cargo'));
+    return;
+  }
+  const delta = getExpandDelta();
+  let count = 0;
+  cargoItems.forEach(c => {
+    const lv = parseFloat(c.L);
+    const wv = parseFloat(c.W);
+    const hv = parseFloat(c.H);
+    if (!isNaN(lv) && !isNaN(wv) && !isNaN(hv)) {
+      // 保存原始值（只在第一次涨方时保存，还原后再涨也重新保存）
+      if (!expandApplied || c._origL === undefined) {
+        c._origL = lv; c._origW = wv; c._origH = hv;
+      }
+      // 涨方后的尺寸存在 _expL/_expW/_expH，不碰 c.L/W/H
+      c._expL = parseFloat((lv + delta).toFixed(1));
+      c._expW = parseFloat((wv + delta).toFixed(1));
+      c._expH = parseFloat((hv + delta).toFixed(1));
+      count++;
+    }
+  });
+  expandApplied = true;
+  expandDeltaValue = delta;
+  renderCargoList();
+  // 更新状态显示
+  const statusEl = document.getElementById('expandStatus');
+  if (statusEl) {
+    statusEl.textContent = t('expand-status').replace('{delta}', delta);
+    statusEl.classList.add('active');
+  }
+  // 显示还原按钮
+  const resetBtn = document.getElementById('btnExpandReset');
+  if (resetBtn) resetBtn.style.display = '';
+  const msg = t('expand-applied').replace('{count}', count).replace('{delta}', delta);
+  showAlert(msg);
+}
+
+// 还原所有货物尺寸到原始值
+// ★ 只清除 _expL/_expW/_expH，不修改 c.L/W/H
+function resetDimExpansion() {
+  let restored = 0;
+  cargoItems.forEach(c => {
+    if (c._origL !== undefined) {
+      delete c._expL; delete c._expW; delete c._expH;
+      delete c._origL; delete c._origW; delete c._origH;
+      restored++;
+    }
+  });
+  expandApplied = false;
+  expandDeltaValue = 0;
+  renderCargoList();
+  // 隐藏状态
+  const statusEl = document.getElementById('expandStatus');
+  if (statusEl) { statusEl.textContent = ''; statusEl.classList.remove('active'); }
+  const resetBtn = document.getElementById('btnExpandReset');
+  if (resetBtn) resetBtn.style.display = 'none';
+  if (restored > 0) showAlert(t('expand-reset-done'));
+}
+
+// 语言切换时同步更新涨方区域文字
+function updateExpandToolbarLang() {
+  const isEn = currentLang === 'en-US';
+  const lbl = document.getElementById('expandLabel');
+  if (lbl) lbl.textContent = t('expand-label');
+  const btnEl = document.getElementById('expandBtnText');
+  if (btnEl) btnEl.textContent = t('expand-btn').replace('✅ ', '');
+  const resetTextEl = document.getElementById('expandResetText');
+  if (resetTextEl) resetTextEl.textContent = t('expand-reset');
+  // 更新状态文字（若已涨方）
+  if (expandApplied) {
+    const statusEl = document.getElementById('expandStatus');
+    if (statusEl) statusEl.textContent = t('expand-status').replace('{delta}', expandDeltaValue);
+  }
+}
+
+function renderCargoList() {
+  const list = document.getElementById('cargoList');
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const isEn = currentLang === 'en-US';
+  
+  list.innerHTML = cargoItems.map((c, idx) => {
+    const orientOpt = ORIENT_OPTIONS.find(o => o.key === c.orient);
+    const orientHint = isEn ? (orientOpt?.hintEn || orientOpt?.hint || '') : (orientOpt?.hint || '');
+    const orientLabel = isEn ? (orientOpt?.labelEn || orientOpt?.label || '') : (orientOpt?.label || '');
+    const cid = String(c.id);
+    const displayName = c.name && c.name.trim() ? c.name : `${isEn ? 'Cargo' : '货物'} ${letters[idx] || (idx+1)}`;
+    
+    return `
+    <div class="cargo-item" id="cargo_${cid}">
+      <div class="cargo-item-header">
+        <div class="cargo-label">
+          <span class="color-dot" style="background:${c.color}"></span>
+          ${displayName}${c._expL !== undefined ? ` <span class="badge-expand">⚡ ${isEn ? 'Expanded' : '已涨方'}</span>` : ''}
+        </div>
+        <button class="btn-remove" onclick="removeCargo('${cid}')" title="${isEn ? 'Remove' : '删除此货物'}">✕</button>
+      </div>
+      <div class="cargo-fields">
+        <div class="field-group">
+          <label>${isEn ? 'Length (cm)' : '长 (cm)'}</label>
+          <input type="number" min="1" placeholder="如: 60"
+            value="${c.L}" oninput="updateCargo('${cid}','L',this.value)">
+        </div>
+        <div class="field-group">
+          <label>${isEn ? 'Width (cm)' : '宽 (cm)'}</label>
+          <input type="number" min="1" placeholder="如: 40"
+            value="${c.W}" oninput="updateCargo('${cid}','W',this.value)">
+        </div>
+        <div class="field-group">
+          <label>${isEn ? 'Height (cm)' : '高 (cm)'}</label>
+          <input type="number" min="1" placeholder="如: 30"
+            value="${c.H}" oninput="updateCargo('${cid}','H',this.value)">
+        </div>
+        <div class="field-group">
+          <label>${isEn ? 'Quantity' : '数量（件）'}</label>
+          <input type="number" min="1" max="9999" placeholder="${isEn ? 'Qty' : '件数'}"
+            value="${c.qty}" oninput="updateCargo('${cid}','qty',this.value)">
+        </div>
+      </div>
+      <!-- 单箱重量（可选，用于载重校验） -->
+      <div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
+        <div class="field-group" style="flex:0 0 140px;">
+          <label>${isEn ? 'Unit Wt (kg)' : '单箱毛重 (kg)'} <span style="color:#b0b0b0;font-weight:400;">${isEn ? 'opt' : '可选'}</span></label>
+          <input type="number" min="0" placeholder="如: 25"
+            value="${c.weight}" oninput="updateCargo('${cid}','weight',this.value)">
+        </div>
+        <div style="font-size:0.7rem;color:var(--text-sub);padding-top:16px;">
+          ${isEn ? 'Fill in for US weight validation' : '填写后可自动校验美国内陆限重'}
+        </div>
+      </div>
+      <!-- 摆放方向选择 -->
+      <div class="orient-row">
+        <span class="orient-label">${isEn ? 'Placement Mode:' : '摆放方式：'}</span>
+        <div class="orient-btns">
+          ${ORIENT_OPTIONS.map(o => `
+            <button class="orient-btn ${c.orient === o.key ? 'active' : ''}"
+              onclick="setOrient('${cid}','${o.key}')">${isEn ? (o.labelEn || o.label) : o.label}</button>
+          `).join('')}
+        </div>
+      </div>
+      <div class="orient-hint">${orientHint}</div>
+    </div>
+  `}).join('');
+}
+
+// ★ 专家模式状态
+let expertMode = false;
+const HEAVY_THRESHOLD = 25;     // kg，重货分界线（用于排序策略）
+const EXPERT_THRESHOLD = 500; // kg，超重货阈值（触发专家模式）
+
+function updateCargo(id, field, val) {
+  const c = cargoItems.find(x => String(x.id) === String(id));
+  if (!c) return;
+  
+  if (field === 'orient') c[field] = val;
+  else if (field === 'qty') c[field] = parseInt(val) || 1;
+  else {
+    const oldVal = c[field];
+    c[field] = parseFloat(val) || '';
+
+    // ★ 手动修改 L/W/H，清除该货物的涨方数据（涨方值已过期）
+    if ((field === 'L' || field === 'W' || field === 'H') && c._expL !== undefined) {
+      delete c._expL; delete c._expW; delete c._expH;
+      delete c._origL; delete c._origW; delete c._origH;
+      // 检查是否还有其他货物有涨方数据
+      const anyExpanded = cargoItems.some(x => x._expL !== undefined);
+      if (!anyExpanded) {
+        expandApplied = false;
+        const statusEl = document.getElementById('expandStatus');
+        if (statusEl) { statusEl.textContent = ''; statusEl.classList.remove('active'); }
+        const resetBtn = document.getElementById('btnExpandReset');
+        if (resetBtn) resetBtn.style.display = 'none';
+      }
+      renderCargoList();
+    }
+    
+    // ★ 重量超过500kg时，警告但允许，并自动触发专家模式
+    if (field === 'weight') {
+      const w = parseFloat(val) || 0;
+      if (w >= EXPERT_THRESHOLD && !expertMode) {
+        expertMode = true;
+        updateExpertModeUI();
+        const isEn = currentLang === 'en-US';
+        showAlert(isEn
+          ? `⚠️ Cargo weight ${w}kg exceeds ${EXPERT_THRESHOLD}kg. Expert mode activated.`
+          : `⚠️ 货物重量 ${w}kg 超过 ${EXPERT_THRESHOLD}kg，专家模式已自动开启。`);
+      }
+    }
+  }
+}
+
+// ★ 切换专家模式
+function toggleExpertMode() {
+  expertMode = !expertMode;
+  updateExpertModeUI();
+}
+
+// ★ 更新专家模式UI状态
+function updateExpertModeUI() {
+  const btn = document.getElementById('expertToggle');
+  const label = document.getElementById('expertLabel');
+  const isEn = currentLang === 'en-US';
+  
+  if (btn && label) {
+    if (expertMode) {
+      btn.style.background = 'rgba(255,193,7,0.3)';
+      btn.style.borderColor = '#ffc107';
+      btn.style.color = '#ffc107';
+      label.textContent = isEn ? '🔧 Expert ON' : '🔧 专家模式 ON';
+    } else {
+      btn.style.background = 'rgba(255,255,255,0.1)';
+      btn.style.borderColor = 'rgba(255,255,255,0.3)';
+      btn.style.color = 'white';
+      label.textContent = isEn ? '🔧 Expert' : '🔧 专家模式';
+    }
+  }
+  
+  // 更新语言切换时标签文字
+  updateExpertModeUI.langMap = updateExpertModeUI.langMap || {};
+  if (expertMode) {
+    updateExpertModeUI.langMap.zh = '🔧 专家模式 ON';
+    updateExpertModeUI.langMap.en = '🔧 Expert ON';
+  } else {
+    updateExpertModeUI.langMap.zh = '🔧 专家模式';
+    updateExpertModeUI.langMap.en = '🔧 Expert';
+  }
+}
+
+let alertTimeoutId = null;
+function showAlert(msg, persistent = false) {
+  const box = document.getElementById('alertBox');
+  // 取消之前的自动隐藏定时器
+  if (alertTimeoutId) {
+    clearTimeout(alertTimeoutId);
+    alertTimeoutId = null;
+  }
+  box.textContent = '⚠️ ' + msg;
+  box.style.display = 'block';
+  // 非持久化的弹窗才自动隐藏
+  if (!persistent) {
+    alertTimeoutId = setTimeout(() => {
+      box.style.display = 'none';
+      alertTimeoutId = null;
+    }, msg.length > 50 ? 8000 : 5000);
+  }
+}
+function hideAlert() {
+  document.getElementById('alertBox').style.display = 'none';
+}
+
+// ===================== 摆放方向旋转枚举 =====================
+// orient: 'free'  → 6种旋转（lwh所有排列）
+// orient: 'honly' → 底面(L×W)固定，允许水平转：(l,w,h),(w,l,h) 且高度=h原始值
+// orient: 'fixed' → 仅原始方向 [l,w,h]
+function getRotations(origL, origW, origH, orient) {
+  if (orient === 'fixed') {
+    return [[origL, origW, origH]];
+  }
+  if (orient === 'honly') {
+    // 底面朝下，高度固定为origH（不可翻转），水平可旋转
+    const rots = [
+      [origL, origW, origH],
+      [origW, origL, origH]
+    ];
+    // 去重
+    const seen = new Set();
+    const unique = [];
+    for (const r of rots) {
+      const k = r.join(',');
+      if (!seen.has(k)) { seen.add(k); unique.push(r); }
+    }
+    return unique;
+  }
+  // free: 6方向全旋转
+  const all = [
+    [origL, origW, origH], [origL, origH, origW],
+    [origW, origL, origH], [origW, origH, origL],
+    [origH, origL, origW], [origH, origW, origL]
+  ];
+  const seen = new Set();
+  const unique = [];
+  for (const r of all) {
+    const k = r.join(',');
+    if (!seen.has(k)) { seen.add(k); unique.push(r); }
+  }
+  // 优先高度小的方向（重心稳定）
+  return unique.sort((a, b) => a[2] - b[2]);
+}
+
+// ===================== 绘制货物图例（独立函数）=====================
+function renderCargoLegend(packed) {
+  try {
+    const container = document.getElementById('cargoLegend');
+    if (!container) {
+      return;  // 静默忽略：cargoLegend元素不存在时直接退出
+    }
+    
+    const isEn = currentLang === 'en-US';
+    container.innerHTML = '';
+    
+    if (!packed || packed.length === 0) {
+      container.innerHTML = `<span style="color:#888;font-size:13px;">${isEn ? 'Click "Calculate" to display' : '点击"计算装载方案"后显示'}</span>`;
+      return;
+    }
+    
+    // 按货物类型分组
+    const groups = {};
+    packed.forEach(box => {
+      const key = box.label || 'Unknown';
+      if (!groups[key]) {
+        groups[key] = { boxes: [], color: box.color };
+      }
+      groups[key].boxes.push(box);
+    });
+    
+    // 渲染图例
+    Object.entries(groups).forEach(([key, data]) => {
+      const { boxes, color } = data;
+      const hex = color.replace('#', '');
+      const r = parseInt(hex.substr(0, 2), 16);
+      const g = parseInt(hex.substr(2, 2), 16);
+      const b = parseInt(hex.substr(4, 2), 16);
+      const darkColor = new THREE.Color(r * 0.6, g * 0.6, b * 0.6);
+      
+      const item = document.createElement('div');
+      item.className = 'legend-item';
+      item.innerHTML = `
+        <span class="legend-color" style="background:${color};border:1px solid ${darkColor.getStyle()};"></span>
+        <span style="font-weight:600;">${key}</span>
+        <span style="color:#666;">📦${boxes.length}${isEn ? 'boxes' : '件'}</span>
+      `;
+      container.appendChild(item);
+    });
+    
+  } catch(e) {
+    // 静默忽略：图例渲染失败不影响主流程
+  }
+}
+
+// ===================== 箱子排序优化器 =====================
+// 定义多种排序策略（6个，删除冗余策略提速约1/3）
+const SORT_STRATEGIES = [
+  { id: 'vol_desc', name: '📦 体积降序（大箱优先）', nameEn: '📦 Volume Desc (Large First)', desc: '体积大的箱子先放，适合大多数情况', descEn: 'Large boxes first, suitable for most cases' },
+  { id: 'height_desc', name: '📏 高度降序（高箱优先）', nameEn: '📏 Height Desc (Tall First)', desc: '较高的箱子先放，优先利用垂直空间', descEn: 'Tall boxes first, prioritize vertical space' },
+  { id: 'weight_desc', name: '⚖️ 重量降序（重箱优先）', nameEn: '⚖️ Weight Desc (Heavy First)', desc: '重的箱子放底部，符合承重逻辑', descEn: 'Heavy boxes first, follows weight logic' },
+  { id: 'composite', name: '🔄 综合评分', nameEn: '🔄 Composite Score', desc: '综合考虑体积、高度、重量，取最优组合', descEn: 'Balance volume, height, weight for optimal result' },
+  { id: 'layer_first', name: '🏗️ 层优先策略', nameEn: '🏗️ Layer First', desc: '按高度分层，每层填满再填上层', descEn: 'Fill by height layers, one layer at a time' },
+  { id: 'width_height', name: '📐 宽高混合', nameEn: '📐 Width-Height Mix', desc: '宽×高面积大的先放，贴合度高', descEn: 'Larger W×H area first, better fit' },
+  { id: 'heavy_bottom', name: '🔧 重货沉底', nameEn: '🔧 Heavy Bottom', desc: '>25kg重货优先放底层，轻货在上', descEn: 'Heavy cargo (>25kg) first, light cargo on top' }
+];
+
+// 综合评分策略：体积×1.0 + (底面积/1000)×5 + 密度×10
+// 设计逻辑：体积主导(大箱优先) + 底面积次之(横向占位) + 密度辅助(重货放底层优化重心)
+function compositeScore(box) {
+  const vol = box.origL * box.origW * box.origH;
+  const baseArea = box.origL * box.origW;
+  const density = (box.unitWeight || 0) / vol * 1000000;
+  return vol * 1.0 + (baseArea / 1000) * 5 + density * 10;
+}
+
+// 层优先评分：根据高度分组
+function layerScore(box) {
+  const vol = box.origL * box.origW * box.origH;
+  const h = box.origH;
+  return -h * 1000000 + vol; // 高度优先，同高度按体积
+}
+
+// 宽高混合评分：宽×高面积
+function widthHeightScore(box) {
+  return box.origW * box.origH;
+}
+
+// 获取排序比较函数
+function getSortFunction(strategyId) {
+  switch(strategyId) {
+    case 'vol_desc': return (a, b) => (b.origL*b.origW*b.origH) - (a.origL*a.origW*a.origH);
+    case 'height_desc': return (a, b) => b.origH - a.origH;
+    case 'weight_desc': return (a, b) => (b.unitWeight||0) - (a.unitWeight||0);
+    case 'composite': return (a, b) => compositeScore(b) - compositeScore(a);
+    case 'layer_first': return (a, b) => layerScore(a) - layerScore(b);
+    case 'width_height': return (a, b) => widthHeightScore(b) - widthHeightScore(a);
+    // ★ 重货沉底策略：先按是否>25kg分组（重货优先），组内再按重量降序
+    case 'heavy_bottom': return (a, b) => {
+      const HEAVY_THRESHOLD = 25;
+      const aHeavy = (a.unitWeight||0) >= HEAVY_THRESHOLD ? 0 : 1;
+      const bHeavy = (b.unitWeight||0) >= HEAVY_THRESHOLD ? 0 : 1;
+      if (aHeavy !== bHeavy) return aHeavy - bHeavy; // 重货优先
+      return (b.unitWeight||0) - (a.unitWeight||0); // 同组内重量降序
+    };
+    default: return (a, b) => 0;
+  }
+}
+
+// 使用指定策略对箱子排序
+// 第一级：同品类排在一起；第二级：品类内按策略排序
+function sortBoxesWithStrategy(boxes, strategyId) {
+  const strategySort = getSortFunction(strategyId);
+  return [...boxes].sort((a, b) => {
+    // 第一级：同品类排在一起
+    if (a.name !== b.name) return a.name.localeCompare(b.name);
+    // 第二级：品类内按策略排序
+    return strategySort(a, b);
+  });
+}
+
+// 运行单策略的完整装箱计算（返回结果对象）
+// maxWeight: 载重上限(kg)，根据箱型动态传入
+// v56修复：默认不使用品类分组，保持与快速计算一致的装箱效率
+function runPackingWithStrategy(boxes, cL, cW, cH, strategyId, maxWeight = 22000) {
+  // 直接用策略排序，不做品类分组（与快速计算保持一致）
+  const strategySort = getSortFunction(strategyId);
+  const sorted = [...boxes].sort(strategySort);
+  return runMultiContainerPacking(sorted, cL, cW, cH, maxWeight);
+}
+
+// 多集装箱装载计算（给定已排序箱子）
+// maxWeight: 载重上限(kg)，根据箱型动态传入，默认20尺柜限重22吨
+function runMultiContainerPacking(sortedBoxes, cL, cW, cH, maxWeight = 22000) {
+  const containerVol = cL * cW * cH;
+  const results = [];
+  let remaining = [...sortedBoxes];
+  let idx = 0;
+  const MAX = 20; // 统一最大集装箱数量
+  
+  // 根据尺寸查找集装箱名称（用于智能优化的显示）
+  function getContainerInfo() {
+    const found = CONTAINERS.find(c => c.L === cL && c.W === cW && c.doorH === cH);
+    return found || { name: '自定义', short: '自定义', shortEn: 'Custom', id: 'custom' };
+  }
+
+  while (remaining.length > 0 && idx < MAX) {
+    // ★ 修复：先检查单品是否超重，超重则跳过该箱型不允许装箱
+    const overweightItems = remaining.filter(b => (b.unitWeight || 0) > maxWeight);
+    if (overweightItems.length > 0) {
+      // 单品超重：跳过这个单品，继续处理其他货物
+      const normalItems = remaining.filter(b => (b.unitWeight || 0) <= maxWeight);
+      if (normalItems.length === 0) {
+        // 所有货物都超重，无法装入此箱型
+        const containerInfo = getContainerInfo();
+        results.push({
+          containerNum: idx + 1,
+          containerName: containerInfo.name + ' [超重单品无法装载]',
+          containerShort: containerInfo.short,
+          containerShortEn: containerInfo.shortEn,
+          containerId: containerInfo.id,
+          packed: [],
+          unpacked: remaining,
+          usedVol: 0,
+          utilRate: 0,
+          totalWeight: 0,
+          isOverWeight: true
+        });
+        break;
+      }
+      // 用正常货物继续装箱，超重货物保留到下次循环
+      remaining = normalItems;
+    }
+
+    const res = extremePointPacking(remaining, cL, cW, cH, maxWeight);
+    const usedVol = res.packed.reduce((s, b) => s + b.pl*b.pw*b.ph, 0);
+    const totalWeight = res.packed.reduce((s, b) => s + (b.unitWeight||0), 0);
+    const isOverWeight = totalWeight > maxWeight;
+    const containerInfo = getContainerInfo();
+    
+    // ★ 修复：只有装了货物的柜子才创建，空柜不创建
+    if (res.packed.length > 0) {
+      results.push({
+        containerNum: idx + 1,
+        containerName: containerInfo.name,
+        containerShort: containerInfo.short,
+        containerShortEn: containerInfo.shortEn,
+        containerId: containerInfo.id,
+        packed: res.packed,
+        unpacked: res.unpacked,
+        usedVol: usedVol,
+        utilRate: (containerVol > 0 ? +((usedVol / containerVol) * 100).toFixed(1) : 0),
+        totalWeight: totalWeight,
+        isOverWeight: isOverWeight
+      });
+    }
+    
+    remaining = res.unpacked;
+    
+    // ★ 如果装不下任何货物，直接把剩余货物标记为无法装载，不再创建空柜
+    if (res.packed.length === 0 && remaining.length > 0) {
+      break;  // 退出循环，剩余货物无法装载
+    }
+    
+    idx++;
+  }
+  
+  return results;
+}
+
+// 评估装箱结果（用于比较策略优劣）
+// 评分逻辑：箱数越少越好（同箱数时利用率越高越好）
+// 注：此函数的score字段保留用于显示，实际排序在optimizeBoxOrder中按箱数→利用率进行
+function evaluateStrategyResults(results, containerVol) {
+  const totalPacked = results.reduce((s, r) => s + r.packed.length, 0);
+  const totalVol = results.reduce((s, r) => s + r.usedVol, 0);
+  const containerCount = results.length;
+  const avgUtil = (totalVol / (containerCount * containerVol) * 100).toFixed(1);
+  
+  // ★ 新增：计算稳定性评分（地面箱占比越高越稳定）
+  let groundBoxes = 0;
+  let totalBoxes = 0;
+  results.forEach(r => {
+    r.packed.forEach(b => {
+      totalBoxes++;
+      if (b.py < 1) groundBoxes++; // 底部y<1cm视为接地
+    });
+  });
+  const stabilityScore = totalBoxes > 0 ? (groundBoxes / totalBoxes * 100).toFixed(1) : 0;
+  
+  // 保留score字段用于显示（仅作参考）
+  // 实际排序逻辑见 optimizeBoxOrder 中的比较函数
+  const score = 0; // 占位，实际排序不使用此字段
+  
+  return { totalPacked, totalVol, containerCount, avgUtil, stabilityScore, score };
+}
+
+// 优化器主函数：尝试所有策略，返回最优方案
+// ★ 异步优化：逐个策略评估，避免阻塞UI
+// 回调方式：onProgress(cur, total, name) 和 onComplete(results)
+function optimizeBoxOrder(boxes, cL, cW, cH, maxWeight, onProgress, onComplete) {
+  const containerVol = cL * cW * cH;
+  const strategyResults = [];
+  let currentIndex = 0;
+
+  function processNext() {
+    if (currentIndex >= SORT_STRATEGIES.length) {
+      // 所有策略评估完毕，进入排序和选优
+      finishOptimization();
+      return;
+    }
+
+    const strategy = SORT_STRATEGIES[currentIndex];
+    const cur = currentIndex + 1;
+    const total = SORT_STRATEGIES.length;
+
+    // 更新进度（每次都调用，让UI有机会刷新）
+    if (onProgress) onProgress(cur, total, strategy.name);
+
+    try {
+      const results = runPackingWithStrategy(boxes, cL, cW, cH, strategy.id, maxWeight);
+      const eval = evaluateStrategyResults(results, containerVol);
+      strategyResults.push({
+        strategyId: strategy.id,
+        strategyName: strategy.name,
+        results: results,
+        ...eval
+      });
+    } catch(e) {
+      // 静默忽略：单策略失败不影响整体优化
+    }
+
+    currentIndex++;
+    // 用 setTimeout(..., 0) 让出主线程，使进度提示能刷新
+    setTimeout(processNext, 0);
+  }
+
+  function finishOptimization() {
+    try {
+    if (strategyResults.length === 0) {
+      if (onComplete) onComplete([]);
+      return;
+    }
+
+    // 按箱数少→多、利用率高→低排序
+    strategyResults.sort((a, b) => {
+      if (a.containerCount !== b.containerCount) {
+        return a.containerCount - b.containerCount;
+      }
+      return b.avgUtil - a.avgUtil;
+    });
+
+    // ★ 改回：对所有策略计算重心（重心计算毫秒级，不会拖慢速度）
+    const allStrategyGravity = [];
+
+    strategyResults.forEach(s => {
+      const withGroup = getWorstGravityLevel(s.results, cL, cW, cH);
+      const gravityWeight = withGroup.level === 'danger' ? 2 : withGroup.level === 'warn' ? 1 : 0;
+      allStrategyGravity.push({
+        strategyId: s.strategyId,
+        strategyName: s.strategyName,
+        results: s.results,
+        eval: { ...s },
+        withGroupGravity: withGroup,
+        gravityWeight: gravityWeight
+      });
+    });
+
+    // 多级排序
+    allStrategyGravity.sort((a, b) => {
+      if (a.eval.containerCount !== b.eval.containerCount) {
+        return a.eval.containerCount - b.eval.containerCount;
+      }
+      if (parseFloat(a.eval.avgUtil) !== parseFloat(b.eval.avgUtil)) {
+        return parseFloat(b.eval.avgUtil) - parseFloat(a.eval.avgUtil);
+      }
+      return a.gravityWeight - b.gravityWeight;
+    });
+
+    // 选最优
+    let bestOption = allStrategyGravity[0];
+    let allDanger = true;
+    for (const opt of allStrategyGravity) {
+      if (opt.withGroupGravity.level !== 'danger') {
+        bestOption = opt;
+        allDanger = false;
+        break;
+      }
+    }
+
+    // 如果重心可接受，再试一次无品类约束版本（只跑最优策略，不是所有）
+    if (!allDanger) {
+      try {
+        const noGroupResults = runPackingWithStrategyNoGroup(boxes, cL, cW, cH, bestOption.strategyId);
+        const noGroupGravity = getWorstGravityLevel(noGroupResults, cL, cW, cH);
+        if (noGroupGravity.level !== 'danger') {
+          const noGroupEval = evaluateStrategyResults(noGroupResults, containerVol);
+          bestOption.noGroupResults = noGroupResults;
+          bestOption.noGroupEval = noGroupEval;
+          bestOption.noGroupGravity = noGroupGravity;
+          bestOption.useNoGroup = true;
+        }
+      } catch(e) {
+        // 静默忽略：无分组评估失败不影响主流程
+      }
+    }
+
+    // 构建最终结果
+    let finalResult;
+    if (allDanger) {
+      bestOption.hasAllDanger = true;
+      bestOption.dangerWarning = currentLang === 'en-US'
+        ? '⚠️ All strategies result in dangerous center of gravity. Consider shipping remaining cargo as LCL.'
+        : '⚠️ 所有排序策略的重心分析均为危险。建议将剩余货物以散货形式出运（LCL拼箱）也许更经济。';
+      finalResult = bestOption.eval;
+      finalResult.results = bestOption.results;
+      finalResult.hasAllDanger = true;
+      finalResult.dangerWarning = bestOption.dangerWarning;
+    } else {
+      if (bestOption.useNoGroup) {
+        finalResult = bestOption.noGroupEval;
+        finalResult.results = bestOption.noGroupResults;
+        finalResult.releasedGroup = true;
+      } else {
+        finalResult = bestOption.eval;
+        finalResult.results = bestOption.results;
+      }
+    }
+    finalResult.strategyId = bestOption.strategyId;
+    finalResult.strategyName = bestOption.strategyName;
+
+    if (onComplete) onComplete([finalResult]);
+  } catch(e) {
+    if (onComplete) onComplete([{ 
+      error: true, 
+      message: e.message,
+      results: [] 
+    }]);
+  }
+}
+
+  // 启动异步处理
+  setTimeout(processNext, 0);
+}
+
+// ★ v56.1新增：计算重心偏移等级（全局函数，供外部调用）
+function getWorstGravityLevel(results, cL, cW, cH) {
+  let worstLevel = 'safe'; // safe < warn < danger
+  let worstMaxOff = 0;
+  let worstReasonCode = 'safe';
+  results.forEach(r => {
+    if (!r.packed || r.packed.length === 0) return;
+    const grav = estimateGravityLevel(r.packed, cL, cW, cH);
+    if (grav.level === 'danger') {
+      worstLevel = 'danger';
+      if (grav.maxOff >= worstMaxOff) { worstMaxOff = grav.maxOff; worstReasonCode = grav.reasonCode || 'gz_over_50'; }
+    } else if (grav.level === 'warn' && worstLevel !== 'danger') {
+      worstLevel = 'warn';
+      if (grav.maxOff >= worstMaxOff) { worstMaxOff = grav.maxOff; worstReasonCode = grav.reasonCode || 'off_between_5_and_10'; }
+    } else if (worstLevel === 'safe') {
+      worstMaxOff = Math.max(worstMaxOff, grav.maxOff);
+      worstReasonCode = grav.reasonCode || 'safe';
+    }
+  });
+  return { level: worstLevel, maxOff: worstMaxOff, reasonCode: worstReasonCode };
+}
+
+// v56.2_fixed新增：更新重心分析面板（显示每个集装箱独立数据）
+function updateGravityPanel(results, beforeResults, cL, cW, cH) {
+  const panel = document.getElementById('gravityPanel');
+  const contentDiv = document.getElementById('gravityContent');
+  const isEn = currentLang === 'en-US';
+  
+  if (!panel || !contentDiv) return;
+  
+  // 偏移状态样式
+  const statusColor = { safe: '#2e7d32', warn: '#ed6c02', danger: '#d32f2f' };
+  const statusLabel = {
+    safe: isEn ? '✓ Safe' : '✓ 正常',
+    warn: isEn ? '⚡ Warn' : '⚡ 偏重',
+    danger: isEn ? '⚠️ Danger' : '⚠️ 危险'
+  };
+  
+  // Z轴重心风险等级（相对集装箱高度比例，符合GB40163/CTU Code）
+  const zRiskColor = { low: '#2e7d32', medium: '#ed6c02', high: '#d32f2f' };
+  const zRiskLabel = { low: '↓ Low', medium: '↑ Medium', high: '⚠ High' };
+  
+  // 显示面板
+  panel.style.display = 'block';
+  panel.style.background = '#fff3e0';
+  panel.style.borderRadius = '8px';
+  panel.style.padding = '12px';
+
+  // 计算每个集装箱的重心
+  let html = '';
+  results.forEach((result, idx) => {
+    if (!result.packed || result.packed.length === 0) return;
+
+    const grav = estimateGravityLevel(result.packed, cL, cW, cH);
+    const { level, maxOff, gz, middleZoneRatio, middleZoneOK, reasonCode } = grav;
+    const zRisk = getZGravityRisk(gz || 0, cH);
+    // ★ 显示编号 + 箱型名称（英文界面用英文名）
+    const cont = CONTAINERS.find(c => c.id === result.containerId);
+    const contNameEn = cont ? (cont.nameEn || cont.name) : result.containerName;
+    const containerLabel = isEn
+      ? `Container ${idx + 1}${contNameEn ? ' (' + contNameEn + ')' : ''}`
+      : `集装箱${idx + 1}${result.containerName ? '（' + result.containerName + '）' : ''}`;
+    const boxesCount = result.packed.length;
+    
+    // 优化前同一集装箱的数据
+    const beforeResult = beforeResults && beforeResults[idx];
+    let beforeInfo = '';
+    if (beforeResult && beforeResult.packed && beforeResult.packed.length > 0) {
+      const beforeGrav = estimateGravityLevel(beforeResult.packed, cL, cW, cH);
+      const diff = maxOff - beforeGrav.maxOff;
+      const diffStr = diff > 0 ? ` (+${diff.toFixed(1)}%)` : diff < 0 ? ` (${diff.toFixed(1)}%)` : ' (=)';
+      beforeInfo = `<span style="color:#999;font-size:11px;"> | ${isEn ? 'Before' : '优化前'}: ${beforeGrav.maxOff.toFixed(1)}%${diffStr}</span>`;
+    }
+    
+    // ★ CTU Code中间区域载重比例
+    const zoneColor = middleZoneOK ? '#2e7d32' : '#d32f2f';
+    const zoneLabel = middleZoneOK 
+      ? (isEn ? 'Zone OK' : '区域OK') 
+      : (isEn ? 'Zone Warn' : '区域警告');
+    
+    html += `<div style="margin-bottom:6px;padding:4px 8px;background:${level === 'danger' ? '#ffebee' : level === 'warn' ? '#fff8e1' : '#e8f5e9'};border-radius:4px;">
+      <span style="font-weight:bold;">${containerLabel}</span>
+      <span style="color:${statusColor[level]};font-weight:bold;">${maxOff.toFixed(1)}%</span>
+      <span style="color:${statusColor[level]};">(${statusLabel[level]})</span>
+      <span style="color:#666;font-size:11px;">${boxesCount}${isEn ? ' boxes' : '箱'}</span>
+      <span style="color:${zRiskColor[zRisk]};font-size:11px;margin-left:6px;">| Z:${(gz||0).toFixed(0)}cm ${zRiskLabel[zRisk]}</span>
+      <span style="color:${zoneColor};font-size:11px;margin-left:6px;">| ${(middleZoneRatio*100).toFixed(0)}% ${zoneLabel}</span>
+      ${beforeInfo}
+    </div>`;
+  });
+  
+  contentDiv.innerHTML = html;
+}
+
+// v56.2_fixed新增：更新重心分析面板（快速计算后，显示每个集装箱独立数据）
+function updateGravityPanelQuick(results, cL, cW, cH) {
+  const panel = document.getElementById('gravityPanel');
+  const contentDiv = document.getElementById('gravityContent');
+  const isEn = currentLang === 'en-US';
+  
+  if (!panel || !contentDiv) return;
+  
+  // 偏移状态样式
+  const statusColor = { safe: '#2e7d32', warn: '#ed6c02', danger: '#d32f2f' };
+  const statusLabel = {
+    safe: isEn ? '✓ Safe' : '✓ 正常',
+    warn: isEn ? '⚡ Warn' : '⚡ 偏重',
+    danger: isEn ? '⚠️ Danger' : '⚠️ 危险'
+  };
+  
+  // Z轴重心风险等级（相对集装箱高度比例，符合GB40163/CTU Code）
+  const zRiskColor = { low: '#2e7d32', medium: '#ed6c02', high: '#d32f2f' };
+  const zRiskLabel = { low: '↓ Low', medium: '↑ Medium', high: '⚠ High' };
+  
+  // 显示面板
+  panel.style.display = 'block';
+  panel.style.background = '#fff3e0';
+  panel.style.borderRadius = '8px';
+  panel.style.padding = '12px';
+  
+  // 计算并显示每个集装箱的重心
+  let html = '';
+  results.forEach((result, idx) => {
+    if (!result.packed || result.packed.length === 0) return;
+
+    const grav = estimateGravityLevel(result.packed, cL, cW, cH);
+    const { level, maxOff, gz, middleZoneRatio, middleZoneOK, reasonCode } = grav;
+    const zRisk = getZGravityRisk(gz || 0, cH);
+    // ★ 显示编号 + 箱型名称（英文界面用英文名）
+    const cont = CONTAINERS.find(c => c.id === result.containerId);
+    const contNameEn = cont ? (cont.nameEn || cont.name) : result.containerName;
+    const containerLabel = isEn
+      ? `Container ${idx + 1}${contNameEn ? ' (' + contNameEn + ')' : ''}`
+      : `集装箱${idx + 1}${result.containerName ? '（' + result.containerName + '）' : ''}`;
+    const boxesCount = result.packed.length;
+    
+    // ★ 方案B：重心高度占比 = gz / cH × 100%
+    const heightRatio = cH > 0 ? (gz / cH * 100) : 0;
+    const heightRatioStr = heightRatio.toFixed(1) + '%';
+
+    // ★ CTU Code中间区域载重比例
+    const zoneColor = middleZoneOK ? '#2e7d32' : '#d32f2f';
+    const zoneLabel = middleZoneOK
+      ? (isEn ? 'Zone OK' : '区域OK')
+      : (isEn ? 'Zone Warn' : '区域警告');
+
+    html += `<div style="margin-bottom:6px;padding:4px 8px;background:${level === 'danger' ? '#ffebee' : level === 'warn' ? '#fff8e1' : '#e8f5e9'};border-radius:4px;">
+      <span style="font-weight:bold;">${containerLabel}</span>
+      <span style="color:${statusColor[level]};font-weight:bold;">${isEn ? 'COG Height: ' : '重心高度占比: '}${heightRatioStr}</span>
+      <span style="color:${statusColor[level]};">(${statusLabel[level]})</span>
+      <span style="color:#666;font-size:11px;">${boxesCount}${isEn ? ' boxes' : '箱'}</span>
+      <span style="color:${zRiskColor[zRisk]};font-size:11px;margin-left:6px;">| Z:${(gz||0).toFixed(0)}cm ${zRiskLabel[zRisk]}</span>
+      <span style="color:${zoneColor};font-size:11px;margin-left:6px;">| ${(middleZoneRatio*100).toFixed(0)}% ${zoneLabel}</span>
+    </div>`;
+  });
+  
+  // 如果没有内容，显示提示
+  if (!html) {
+    html = `<div style="padding:8px;color:#666;font-size:0.85rem;">
+      ${isEn ? 'No packed boxes data available.' : '无已装货物数据。'}
+    </div>`;
+  }
+  
+  contentDiv.innerHTML = html;
+}
+
+// ★ 估算重心危险等级（不依赖Three.js独立计算）
+// ★ 方案A修正版：用"已装货物实际中心"作为参考，避免空集装箱误导
+// ★ 新增：CTU Code中间区域载重比例检查
+function estimateGravityLevel(packed, cL, cW, cH) {
+  if (!packed || packed.length === 0) return { level: 'safe', maxOff: 0, gx: 0, gy: 0, gz: 0, middleZoneRatio: 1, middleZoneOK: true };
+
+  let totalW = 0, sumX = 0, sumY = 0, sumZ = 0;
+  let minX = Infinity, maxX = -Infinity;
+  let minY = Infinity, maxY = -Infinity;
+  let minZ = Infinity, maxZ = -Infinity;
+
+  packed.forEach(b => {
+    const w = (b.unitWeight > 0 ? b.unitWeight : b.pl * b.pw * b.ph / 1000);
+    totalW += w;
+    sumX += (b.px + b.pl / 2) * w;
+    sumZ += (b.py + b.ph / 2) * w;   // ★ 改为 sumZ：高度方向（行业规范Z=高度）
+    sumY += (b.pz + b.pw / 2) * w;   // ★ 改为 sumY：宽度方向（行业规范Y=宽度）
+
+    // 记录已装货物的实际范围
+    minX = Math.min(minX, b.px);
+    maxX = Math.max(maxX, b.px + b.pl);
+    minZ = Math.min(minZ, b.py);       // ★ 改为 minZ：高度方向
+    maxZ = Math.max(maxZ, b.py + b.ph);
+    minY = Math.min(minY, b.pz);       // ★ 改为 minY：宽度方向
+    maxY = Math.max(maxY, b.pz + b.pw);
+  });
+
+  if (totalW === 0) return { level: 'safe', middleZoneRatio: 1 };
+
+  const gx = sumX / totalW;
+  const gz = sumZ / totalW;   // ★ 重心高度（Z轴，行业规范）
+  const gy = sumY / totalW;   // ★ 重心宽度（Y轴，行业规范）
+
+  // ★ GB 40163-2021 第5.2.1.3条：重心高度 > 50% 集装箱高度，最高优先级直判 DANGER
+  if (cH > EPS && gz / cH > 0.50) {
+    const offX0 = cL > EPS ? Math.abs(gx - cL/2) / (cL/2) * 100 : 0;
+    const offZ0 = cH > EPS ? Math.abs(gz - cH/2) / (cH/2) * 100 : 0;
+    const offY0 = cW > EPS ? Math.abs(gy - cW/2) / (cW/2) * 100 : 0;
+    const middleZoneRatio0 = getMiddleZoneRatio(packed, cL);
+    return { level: 'danger', maxOff: Math.max(offX0, offY0, offZ0),
+             gx, gy, gz, middleZoneRatio: middleZoneRatio0, middleZoneOK: middleZoneRatio0 >= 0.6,
+             gbRedLine: true, reasonCode: 'gz_over_50' };  // gbRedLine 标记，供界面显示"GB红线"
+  }
+
+  // ★ 重心偏移%（IMO CTU Code标准）
+  const offX = cL > EPS ? Math.abs(gx - cL/2) / (cL/2) * 100 : 0;
+  const offZ = cH > EPS ? Math.abs(gz - cH/2) / (cH/2) * 100 : 0;  // ★ 高度偏移用 offZ
+  const offY = cW > EPS ? Math.abs(gy - cW/2) / (cW/2) * 100 : 0;  // ★ 宽度偏移用 offY
+
+  const maxOff = Math.max(offX, offY, offZ);
+
+  // ★ 阈值：5%/10%（IMO CTU Code标准）
+  // ★ 修正（DeepSeek建议）：offZ>=10 但 gz/cH<=0.5 → warn（仅上层偏重，非根本危险）
+  let level;
+  let reasonCode = '';
+  if (maxOff >= 10) {
+    if (offZ >= 10 && gz / cH <= 0.50) {
+      level = 'warn';
+      reasonCode = 'offz_over_10';  // 上半部分偏重
+    } else {
+      level = 'danger';
+      reasonCode = offX >= 10 ? 'off_xy_over_10' : offY >= 10 ? 'off_xy_over_10' : 'gz_over_50';
+    }
+  } else if (maxOff >= 5) {
+    level = 'warn';
+    reasonCode = 'off_between_5_and_10';
+  } else {
+    level = 'safe';
+    reasonCode = 'safe';
+  }
+
+  // ★ CTU Code中间区域载重比例检查（中间50%长度应承载≥60%总重）
+  const middleZoneRatio = getMiddleZoneRatio(packed, cL);
+  const middleZoneOK = middleZoneRatio >= 0.6;
+
+  // 如果中间区域载重不足，提升风险等级
+  if (!middleZoneOK && level === 'safe') {
+    level = 'warn';
+    reasonCode = 'middle_zone_under_60';
+  }
+
+  return { level, maxOff, gx, gy, gz, middleZoneRatio, middleZoneOK, reasonCode };
+}
+
+// ★ 重心建议字典（DeepSeek建议：不仅警告，更有操作建议）
+const GRAVITY_ADVICE = {
+  gz_over_50: {
+    zh: { what: '重心过高（超过集装箱高度50%，触及GB 40163-2021红线）', how: '降低堆叠高度，或减少上层货物重量' },
+    en: { what: 'COG too high (exceeds 50% of container height, GB 40163-2021 red line)', how: 'Reduce stacking height or lighten top cargo' }
+  },
+  off_xy_over_10: {
+    zh: { what: '货物偏在一侧或一端（X/Y方向偏移≥10%）', how: '将货物往集装箱中间移动，使左右/前后重量分布均衡' },
+    en: { what: 'Cargo off-center (X/Y offset ≥10%)', how: 'Shift cargo to container center to balance left/right or front/rear weight' }
+  },
+  offz_over_10: {
+    zh: { what: '上层货物偏重（Z方向偏移≥10%，但重心高度未超50%）', how: '将上层部分重货往下层转移，降低上层重心' },
+    en: { what: 'Top-heavy (Z offset ≥10%, but COG height ≤50%)', how: 'Move some top cargo to lower layers to lower the top COG' }
+  },
+  middle_zone_under_60: {
+    zh: { what: '两头重、中间轻（中间50%区域载重<60%总重）', how: '将部分重货往集装箱中间区域移动' },
+    en: { what: 'Heavy at ends, light in middle (middle 50% zone <60% of total weight)', how: 'Move some heavy cargo to the middle zone of the container' }
+  },
+  off_between_5_and_10: {
+    zh: { what: '重心轻微偏离中心（偏移5%~10%）', how: '条件允许时，将货物往集装箱中心稍作调整' },
+    en: { what: 'Slightly off-center (offset 5%~10%)', how: 'If possible, adjust cargo slightly toward container center' }
+  },
+  safe: {
+    zh: { what: '重心分布良好', how: '无需调整，保持当前装载方式' },
+    en: { what: 'COG distribution is good', how: 'No adjustment needed, keep current loading pattern' }
+  }
+};
+
+// 全局Z轴重心风险函数（相对集装箱高度比例，符合GB40163/CTU Code）
+function getZGravityRisk(gz, cH_mm) {
+  const h_cm = (cH_mm || 3000) / 10; // 集装箱高度(cm)，默认300cm
+  if (gz <= 0.5 * h_cm) return 'low';
+  if (gz <= 0.6 * h_cm) return 'medium';
+  return 'high';
+}
+
+// CTU Code/GB40163：中间50%长度区域应承载≥60%总重
+function getMiddleZoneRatio(packed, cL_mm) {
+  const cL_cm = (cL_mm || 12000) / 10; // 集装箱长度(cm)，默认1200cm
+  const zoneStart = cL_cm * 0.25; // 前25%位置
+  const zoneEnd = cL_cm * 0.75;   // 后75%位置（中间50%区域）
+  
+  let totalW = 0, zoneW = 0;
+  packed.forEach(b => {
+    const w = (b.unitWeight > 0 ? b.unitWeight : b.pl * b.pw * b.ph / 1000);
+    totalW += w;
+    // 货物与中间区域有重叠即计入
+    const boxStart = b.px;
+    const boxEnd = b.px + b.pl;
+    if (boxEnd > zoneStart && boxStart < zoneEnd) {
+      zoneW += w;
+    }
+  });
+  
+  return totalW > 0 ? zoneW / totalW : 0;
+}
+
+// ★ 专家模式风险评估面板
+function renderExpertRiskPanel(results, cL, cW, cH) {
+  const panel = document.getElementById('expertRiskPanel');
+  const statsDiv = document.getElementById('expertHeavyStats');
+  const pressureDiv = document.getElementById('expertPressureSection');
+  const mechanicsDiv = document.getElementById('expertMechanics');
+  const hintSpan = document.getElementById('expertModeHint');
+  const isEn = currentLang === 'en-US';
+  
+  // ★ 仅专家模式显示
+  if (!expertMode || !panel) {
+    panel.style.display = 'none';
+    return;
+  }
+  
+  panel.style.display = 'block';
+  
+  // 重货统计
+  let totalHeavy = 0, totalExtraHeavy = 0, totalWeight = 0;
+  let maxPressure = 0, maxPressureCargo = '';
+  let heavyDetails = [];
+  
+  results.forEach((r, idx) => {
+    if (!r.packed || r.packed.length === 0) return;
+    
+    r.packed.forEach(b => {
+      const w = b.unitWeight || 0;
+      totalWeight += w;
+      
+      if (w >= 500) {
+        totalExtraHeavy++;
+        // 计算对地压强 (kg/m²)
+        // ★ 修复：添加防护，防止 b.pl 或 b.pw 为 undefined 时产生 NaN
+        const pl = b.pl || b.L || b.origL || 0;
+        const pw = b.pw || b.W || b.origW || 0;
+        const area = (pl * pw) / 10000; // cm² → m²
+        if (area > 0) {
+          const pressure = w / area;
+          if (pressure > maxPressure) {
+            maxPressure = pressure;
+            maxPressureCargo = b.label || `Box ${idx+1}`;
+          }
+          heavyDetails.push({ name: b.label || `Box`, weight: w, pressure: (w/area).toFixed(0) });
+        }
+      } else if (w >= 25) {
+        totalHeavy++;
+      }
+    });
+  });
+  
+  // 更新提示文字
+  if (hintSpan) {
+    hintSpan.textContent = isEn ? 'Expert Mode Active' : '专家模式已启用';
+  }
+  
+  // 重货统计HTML
+  if (statsDiv) {
+    statsDiv.innerHTML = `
+      <div style="background:#fff;padding:8px 12px;border-radius:6px;font-size:0.85rem;">
+        <span style="color:#e65100;">🔧</span>
+        <b>${isEn ? 'Heavy' : '重货'}</b> >25kg:
+        <b style="color:#e65100;">${totalHeavy}</b> ${isEn ? 'pcs' : '件'}
+      </div>
+      <div style="background:#fff;padding:8px 12px;border-radius:6px;font-size:0.85rem;">
+        <span style="color:#d32f2f;">⚠️</span>
+        <b>${isEn ? 'Extra Heavy' : '超重货'}</b> >500kg:
+        <b style="color:#d32f2f;">${totalExtraHeavy}</b> ${isEn ? 'pcs' : '件'}
+      </div>
+      <div style="background:#fff;padding:8px 12px;border-radius:6px;font-size:0.85rem;">
+        <span style="color:#1565c0;">⚖️</span>
+        <b>${isEn ? 'Total Weight' : '总重量'}</b>:
+        <b>${(totalWeight/1000).toFixed(1)}t</b>
+      </div>
+    `;
+  }
+  
+  // 压强分析HTML
+  if (pressureDiv) {
+    if (totalExtraHeavy > 0) {
+      const floorLimit = 7000; // kg/m²
+      const overLimit = maxPressure > floorLimit;
+      pressureDiv.innerHTML = `
+        <div style="padding:10px;background:${overLimit ? '#ffebee' : '#e8f5e9'};border-radius:6px;font-size:0.85rem;">
+          <div style="font-weight:bold;color:${overLimit ? '#d32f2f' : '#2e7d32'};margin-bottom:6px;">
+            ${overLimit ? '❌ ' : '✅ '}${isEn ? 'Floor Pressure Analysis' : '对地压强分析'}
+          </div>
+          <div>${isEn ? 'Max pressure' : '最大压强'}: <b>${maxPressure.toFixed(0)} kg/m²</b></div>
+          <div>${isEn ? 'Floor limit' : '地板限值'}: <b>${floorLimit} kg/m²</b></div>
+          ${overLimit ? `<div style="color:#d32f2f;margin-top:6px;">⚠️ ${isEn ? 'Exceeds floor limit! Recommend using steel base or spreader beam.' : '超过地板限值！建议使用钢制底座或横梁分散压力。'}</div>` : ''}
+          ${heavyDetails.length > 0 ? `<div style="margin-top:6px;color:#666;font-size:0.8rem;">${isEn ? 'Extra heavy items:' : '超重货物：'} ${heavyDetails.map(h => `${h.name}(${h.weight}kg, ${h.pressure}kg/m²)`).join(', ')}</div>` : ''}
+        </div>
+      `;
+    } else {
+      pressureDiv.innerHTML = `
+        <div style="padding:10px;background:#e8f5e9;border-radius:6px;font-size:0.85rem;color:#2e7d32;">
+          ✅ ${isEn ? 'No extra heavy cargo (>1500kg). Floor pressure within limits.' : '无超重货物(>1500kg)。对地压强在安全范围内。'}
+        </div>
+      `;
+    }
+  }
+  
+  // 力学建议HTML
+  if (mechanicsDiv) {
+    const suggestions = [];
+
+    // 基于超重集装箱的建议（已在上方逐箱检测，此处移除无意义的"总重量>26.5t"判断）
+    // ★ 修复：删除了错误的 totalWeight > 26500 检查（应为逐箱判断，非总重判断）
+
+    // 基于重心高度建议（条件警告）
+    if (results.length > 0) {
+      const grav = estimateGravityLevel(results[0].packed, cL, cW, cH);
+      if (grav.gz && grav.gz > 100) {
+        suggestions.push({ type: 'warning', text: isEn ? '• Center of gravity is high (Z>100cm). Reduce height stacking or add bottom ballast.' : '• 重心偏高(Z>100cm)。建议降低堆高或底部增加配重。' });
+      }
+    }
+
+    // 基于超重货数量建议（条件警告）
+    if (totalExtraHeavy > 0) {
+      suggestions.push({ type: 'warning', text: isEn ? '• Extra heavy cargo requires mechanical handling. Plan unloading sequence accordingly.' : '• 超重货物需要机械装卸。请提前规划卸货顺序。' });
+      suggestions.push({ type: 'warning', text: isEn ? '• Use spreader beam or forklift for heavy cargo >500kg.' : '• 超重货物(>500kg)请使用吊具或叉车。' });
+    }
+
+    // 通用提示
+    suggestions.push({ type: 'tip', text: isEn ? '• Transit acceleration: Front 0.8g, Rear 0.5g, Lateral 0.5g' : '• 运输加速度：前0.8g，后0.5g，左右0.5g' });
+    suggestions.push({ type: 'tip', text: isEn ? '• Lashing point spacing should not exceed 2m.' : '• 绑扎点间距不超过2米。' });
+
+    mechanicsDiv.innerHTML = suggestions.map(s => `<div class="${s.type === 'warning' ? 'condition-warning' : 'general-tip'}" style="margin:4px 0;">${s.text}</div>`).join('');
+  }
+}
+
+// ★ 智能箱型推荐函数（顶级函数，供calculateMultiContainerForBaseline和calculateWithOptimization共用）
+// remainingVol: 剩余货物体积(cm³), remainingWeight: 剩余货物总重量(kg), currentContainer: 当前箱型(可为null)
+function getBestContainer(remainingVol, remainingWeight, currentContainer) {
+  // 过滤掉自定义箱型
+  const validContainers = CONTAINERS.filter(c => c.id !== 'custom');
+
+  // 计算每个箱型的容积
+  const containerVols = validContainers.map(c => ({
+    ...c,
+    volume: c.L * c.W * c.doorH / 1000000 // ★ 使用门高计算体积
+  }));
+
+  // ★ 重量感知：过滤掉载重不够的箱型
+  const weightOk = remainingWeight > 0
+    ? containerVols.filter(c => c.maxWeight >= remainingWeight)
+    : containerVols;
+
+  // 找到容积刚好能容纳剩余货物的箱型（浪费最少的）
+  let best = null;
+  let minWaste = Infinity;
+
+  for (const c of weightOk) {
+    if (c.volume >= remainingVol) {
+      const waste = c.volume - remainingVol;
+      if (waste < minWaste) {
+        minWaste = waste;
+        best = c;
+      }
+    }
+  }
+
+  // 如果没有能完全容纳的，选择最接近的较大箱型
+  if (!best) {
+    for (const c of weightOk) {
+      if (c.volume >= remainingVol * 0.7) { // 至少要能装70%
+        const waste = c.volume - remainingVol;
+        if (waste < minWaste) {
+          minWaste = waste;
+          best = c;
+        }
+      }
+    }
+  }
+
+  return best || (validContainers.length > 0 ? validContainers[0] : null);
+}
+
+// ★ v56.2_fixed新增：计算快速计算的baseline（用于重心对比）
+function calculateMultiContainerForBaseline(boxes, cL, cW, cH, maxWeight = 22000) {
+  const sorted = [...boxes].sort((a, b) => (b.origL*b.origW*b.origH) - (a.origL*a.origW*a.origH));
+  const containerVol = cL * cW * cH;
+  const results = [];
+  let remainingBoxes = [...sorted];
+  let containerIdx = 0;
+  const MAX_CONTAINERS = 20;
+
+  // 预计算最大箱型兜底
+  const largestCont = (() => {
+    const valid = CONTAINERS.filter(c => c.id !== 'custom');
+    return valid.reduce((b, c) => (c.L * c.W * c.doorH > b.L * b.W * b.doorH) ? c : b, valid[0]);
+  })();
+
+  while (remainingBoxes.length > 0 && containerIdx < MAX_CONTAINERS) {
+    // ★ 计算剩余货物总重量
+    const remainingWeight = remainingBoxes.reduce((s, b) => s + (b.unitWeight || 0), 0);
+
+    const cont = containerIdx === 0
+      ? { name: '40\'HC', L: cL, W: cW, doorH: cH, maxWeight: maxWeight || 26500 }
+      : getBestContainer(
+          remainingBoxes.reduce((s, b) => s + b.origL*b.origW*b.origH, 0),
+          remainingWeight,
+          null
+        ) || largestCont;
+    // ★ 使用箱型自身的限重（或传入的maxWeight兜底）
+    const effectiveMaxWeight = cont.maxWeight || maxWeight || 26500;
+    const result = extremePointPacking(remainingBoxes, cont.L, cont.W, cont.doorH, effectiveMaxWeight);
+    
+    if (result.packed.length > 0) {
+      result.containerName = cont.name;
+      results.push(result);
+      remainingBoxes = result.unpacked;
+      containerIdx++;
+      if (result.packed.length === 0) break;
+    } else {
+      // ★ 所有货物都超重，无法再装，强制把剩余货物放入当前集装箱（允许超重）
+      results.push({
+        containerNum: containerIdx + 1,
+        containerName: cont.name,
+        containerShort: cont.short || cont.name,
+        containerShortEn: cont.shortEn || cont.name,
+        containerId: cont.id || 'custom',
+        packed: remainingBoxes,
+        unpacked: [],
+        usedVol: remainingBoxes.reduce((s, b) => s + b.origL * b.origW * b.origH, 0),
+        utilRate: 0,
+        totalWeight: remainingBoxes.reduce((s, b) => s + (b.unitWeight || 0), 0),
+        isOverWeight: true
+      });
+      remainingBoxes = [];
+    }
+  }
+  return results;
+}
+
+// ★ 无品类分组的装箱计算（用于重心危险时重新计算）
+function runPackingWithStrategyNoGroup(boxes, cL, cW, cH, strategyId) {
+  // 直接用策略排序，不做品类分组
+  const strategySort = getSortFunction(strategyId);
+  const sorted = [...boxes].sort(strategySort);
+  return runMultiContainerPacking(sorted, cL, cW, cH);
+}
+
+// ===================== 计算入口 =====================
+function calculate() {
+  try {
+    // ★ 每次计算前清空旧结果，防止数据污染
+    allContainerResults = [];
+    calculateMultiContainer();
+    // ★ 直接用算法结果，无需推算
+    remainingItems = allContainerResults[allContainerResults.length - 1]?.unpacked || [];
+  } catch(e) {
+    showAlert('计算出错: ' + e.message);
+  }
+}
+
+// 优化装载计算（使用排序优化器）
+function calculateWithOptimization() {
+  try {
+    hideAlert();
+
+    // ★ 每次计算前清空旧结果，防止数据污染
+    allContainerResults = [];
+
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const isEn = currentLang === 'en-US';
+    
+    // 验证输入
+    for (let i = 0; i < cargoItems.length; i++) {
+      const c = cargoItems[i];
+      if (!c.L || !c.W || !c.H || c.L <= 0 || c.W <= 0 || c.H <= 0) {
+        showAlert(`${isEn ? 'Cargo' : '货物'} ${letters[i] || (i+1)} ${isEn ? 'dimensions incomplete. Please check!' : '的尺寸未填写完整，请检查！'}`);
+        return;
+      }
+    }
+    
+    const container = selectedContainer;
+    const cL = container.L, cW = container.W, cH = container.doorH;  // ★ 使用门高作为计算基准
+    // ★ 智能优化限重：根据箱型动态设置（中英文界面统一）
+    // 20GP: 17.5t | 45HC: 18.82t | 40GP/40HC: 19.2t
+    let maxWeight;
+    if (container.id === 'c20') {
+      maxWeight = 17500;  // 20GP: 17.5t
+    } else if (container.id === 'c45') {
+      maxWeight = 18820;  // 45HC: 18.82t
+    } else {
+      maxWeight = 19200;  // 40GP/40HC: 19.2t
+    }
+    
+    // 展开所有箱子
+    // ★ 构建两份数据：原始尺寸（给baseline用）+ 涨方后尺寸（给优化用）
+    let allBoxesOriginal = [];  // 原始尺寸，用于 calculateMultiContainerForBaseline（模拟快速计算）
+    let allBoxesExpanded = [];  // 涨方后尺寸，用于智能优化
+    
+    cargoItems.forEach((item, idx) => {
+      const origL = parseFloat(item.L), origW = parseFloat(item.W), origH = parseFloat(item.H);
+      const useL = (expandApplied && item._expL !== undefined) ? item._expL : origL;
+      const useW = (expandApplied && item._expW !== undefined) ? item._expW : origW;
+      const useH = (expandApplied && item._expH !== undefined) ? item._expH : origH;
+      
+      for (let q = 0; q < (parseInt(item.qty) || 1); q++) {
+        // 原始尺寸（baseline用）
+        allBoxesOriginal.push({
+          id: `${letters[idx] || idx}_${q}`,
+          label: item.name || `${isEn ? 'Cargo' : '货物'}${letters[idx] || (idx+1)}`,
+          origL: origL,
+          origW: origW,
+          origH: origH,
+          orient: item.orient,
+          color: item.color,
+          groupIdx: idx,
+          unitWeight: parseFloat(item.weight) || 0
+        });
+        // 涨方后尺寸（优化用）
+        allBoxesExpanded.push({
+          id: `${letters[idx] || idx}_${q}`,
+          label: item.name || `${isEn ? 'Cargo' : '货物'}${letters[idx] || (idx+1)}`,
+          origL: useL,
+          origW: useW,
+          origH: useH,
+          orient: item.orient,
+          color: item.color,
+          groupIdx: idx,
+          unitWeight: parseFloat(item.weight) || 0
+        });
+      }
+    });
+    
+    // ★ 进度显示改为按钮下方的专用区域（不用弹窗）
+    hideAlert(); // 先隐藏之前的弹窗
+    const progressDiv = document.getElementById('optimizationProgress');
+    if (progressDiv) {
+      progressDiv.style.display = 'block';
+      progressDiv.innerHTML = (isEn ? '🔄 Starting optimization, please wait...' : '🔄 开始优化，请稍候...');
+    }
+
+    // 执行优化（异步，带进度回调和完成回调）
+    // ★ 使用涨方后尺寸进行优化，用原始尺寸做baseline对比
+    optimizeBoxOrder(allBoxesExpanded, cL, cW, cH, maxWeight,
+      // onProgress(cur, total, name)
+      (cur, total, name) => {
+        const isEn = currentLang === 'en-US';
+        if (progressDiv) {
+          const pct = Math.round((cur / total) * 100);
+          progressDiv.innerHTML = `
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-weight:bold;">${isEn ? 'Optimizing' : '优化中'}</span>
+              <div style="flex:1;height:12px;background:#e0e0e0;border-radius:6px;overflow:hidden;">
+                <div style="width:${pct}%;height:100%;background:linear-gradient(90deg,#4CAF50,#8BC34A);border-radius:6px;transition:width 0.2s;"></div>
+              </div>
+              <span style="min-width:40px;">${pct}%</span>
+            </div>`;
+        }
+      },
+      // onComplete(bestResults)
+      (bestResults) => {
+        // ★ 隐藏进度显示区域
+        const progressDiv = document.getElementById('optimizationProgress');
+        if (progressDiv) progressDiv.style.display = 'none';
+
+        if (!bestResults || bestResults.length === 0) {
+          showAlert(isEn ? 'Optimization failed. Please check input data!' : '优化失败，请检查输入数据！');
+          return;
+        }
+
+        // 检查是否有来自finishOptimization的错误
+        if (bestResults[0] && bestResults[0].error) {
+          const errMsg = bestResults[0].message || 'Unknown error';
+          showAlert(isEn ? '❌ Optimization error: ' + errMsg : '❌ 优化错误：' + errMsg);
+          return;
+        }
+
+        // 使用最优策略
+        const best = bestResults[0];
+        allContainerResults = best.results || [];
+        // ★ 直接用算法结果
+        remainingItems = allContainerResults[allContainerResults.length - 1]?.unpacked || [];
+
+        // v56简化：只显示重心对比，不显示策略详情
+        // ★ baseline用原始尺寸（模拟快速计算），优化结果用涨方后尺寸
+        const quickResults = calculateMultiContainerForBaseline(allBoxesOriginal, cL, cW, cH, maxWeight);
+        const beforeGravity = getWorstGravityLevel(quickResults, cL, cW, cH);
+        const afterGravity = getWorstGravityLevel(best.results, cL, cW, cH);
+
+        // 计算改善百分比
+        const beforeOff = beforeGravity.maxOff || 0;
+        const afterOff = afterGravity.maxOff || 0;
+        const improvement = beforeOff > 0 ? ((beforeOff - afterOff) / beforeOff * 100).toFixed(1) : 0;
+        const improved = afterOff < beforeOff;
+
+        // 状态标签
+        const statusLabel = { safe: '✓ 正常', warn: '⚡ 偏重', danger: '⚠️ 危险' };
+        const beforeStatus = statusLabel[beforeGravity.level] || beforeGravity.level;
+        const afterStatus = statusLabel[afterGravity.level] || afterGravity.level;
+
+        let msg = `${isEn ? '✅ Optimization Complete!' : '✅ 优化完成！'}\n\n` +
+          `${isEn ? 'Gravity Center' : '重心分析'}：\n` +
+          `${isEn ? 'Before' : '优化前'}：${beforeOff.toFixed(1)}% (${beforeStatus})\n` +
+          `${isEn ? 'After' : '优化后'}：${afterOff.toFixed(1)}% (${afterStatus})\n`;
+
+        if (improved) {
+          msg += `\n${isEn ? '✓ Improved by' : '✓ 最大偏移改善'} ${improvement}%`;
+        } else if (best.hasAllDanger) {
+          msg += `\n${isEn
+            ? '⚠️ Consider LCL shipping for remaining cargo.'
+            : '⚠️ 剩余货物以散货形式出运(LCL)也许更经济。'}`;
+        }
+
+        // 显示优化结果（非持久化，5秒后自动隐藏）
+        showAlert(msg, false);
+
+        // 更新UI
+        currentViewContainer = 0;
+        packedBoxes = [];
+        allContainerResults.forEach(r => {
+          if (r.packed) packedBoxes.push(...r.packed);
+        });
+
+        renderMultiContainerTabs();
+        updateMultiContainerStats();
+        renderDetailTableMulti();
+        renderPackedScene(allContainerResults[0]?.packed || [], container);
+        renderCargoLegend(allContainerResults[0]?.packed || []);
+
+        // v56.2_fixed更新：显示每个集装箱的独立重心数据
+        updateGravityPanel(allContainerResults, quickResults, cL, cW, cH);
+        
+        // ★ 专家模式风险评估面板
+        renderExpertRiskPanel(allContainerResults, cL, cW, cH);
+      }
+    );
+    
+  } catch(e) {
+    showAlert((currentLang === 'en-US' ? 'Optimization error: ' : '优化计算出错: ') + e.message);
+  }
+}
+
+// ===================== 多集装箱装载计算 =====================
+function calculateMultiContainer() {
+  try {
+    hideAlert();
+
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const isEn = currentLang === 'en-US';
+    
+    // 验证输入
+    for (let i = 0; i < cargoItems.length; i++) {
+      const c = cargoItems[i];
+      if (!c.L || !c.W || !c.H || c.L <= 0 || c.W <= 0 || c.H <= 0) {
+        showAlert(`${isEn ? 'Cargo' : '货物'} ${letters[i] || (i+1)} ${isEn ? 'dimensions incomplete. Please check!' : '的尺寸未填写完整，请检查！'}`);
+        return;
+      }
+    }
+
+    const container = selectedContainer;
+    const cL = container.L, cW = container.W, cH = container.doorH;  // ★ 使用门高作为计算基准
+    const containerVol = cL * cW * cH;
+
+    // 展开所有箱子
+    let allBoxes = [];
+    cargoItems.forEach((item, idx) => {
+      for (let q = 0; q < (parseInt(item.qty) || 1); q++) {
+        allBoxes.push({
+          id: `${letters[idx] || idx}_${q}`,
+          label: item.name || `${isEn ? 'Cargo' : '货物'}${letters[idx] || (idx+1)}`,
+          origL: parseFloat(item.L),
+          origW: parseFloat(item.W),
+          origH: parseFloat(item.H),
+          orient: item.orient,
+          color: item.color,
+          groupIdx: idx,
+          unitWeight: parseFloat(item.weight) || 0
+        });
+      }
+    });
+
+    // 按体积降序排列（大箱先放）
+    allBoxes.sort((a, b) => (b.origL*b.origW*b.origH) - (a.origL*a.origW*a.origH));
+
+    // 存储所有集装箱结果
+    allContainerResults = [];
+    let remainingBoxes = [...allBoxes];
+    let containerIdx = 0;
+    const MAX_CONTAINERS = 20; // 最大集装箱数量
+    
+    // 当前使用的箱型（初始为用户选择的）
+    let currentContainerType = { ...container };
+    
+    // 循环装载直到所有货物装完或达到上限
+    while (remainingBoxes.length > 0 && containerIdx < MAX_CONTAINERS) {
+      // 根据剩余货物体积选择最佳箱型
+      const remainingVol = remainingBoxes.reduce((s, b) => s + (b.origL * b.origW * b.origH / 1000000), 0);
+      const currentVol = currentContainerType.L * currentContainerType.W * currentContainerType.doorH / 1000000;  // ★ 使用门高
+      const currentMaxWeight = currentContainerType.maxWeight || 26500;
+      
+      // ★ 修复：单品超限时自动升级到更大箱型
+      // 1. 检查单品重量是否超过当前箱型限重
+      const maxItemWeight = Math.max(...remainingBoxes.map(b => b.unitWeight || 0));
+      // 2. 检查单品尺寸是否超过当前箱型
+      const maxItemLen = Math.max(...remainingBoxes.map(b => b.origL || 0));
+      const maxItemWid = Math.max(...remainingBoxes.map(b => b.origW || 0));
+      const maxItemHgt = Math.max(...remainingBoxes.map(b => b.origH || 0));
+      // 3. 如果单品超重或超尺寸，升级到能容纳的箱型
+      if (maxItemWeight > currentMaxWeight || maxItemLen > currentContainerType.L || maxItemWid > currentContainerType.W || maxItemHgt > currentContainerType.doorH) {
+        const validContainers = CONTAINERS.filter(c => c.id !== 'custom');
+        // 过滤出能满足重量和尺寸要求的箱型
+        const suitable = validContainers.filter(c => {
+          const cMaxW = c.maxWeight || 22000;
+          // 如果单品超重，这个箱型必须能承受单品重量
+          if (maxItemWeight > currentMaxWeight && cMaxW < maxItemWeight) return false;
+          // 如果单品长度超限，这个箱型必须更长
+          if (maxItemLen > currentContainerType.L && (c.L || 0) < maxItemLen) return false;
+          // 如果单品宽度超限，这个箱型必须更宽
+          if (maxItemWid > currentContainerType.W && (c.W || 0) < maxItemWid) return false;
+          // 如果单品高度超限，这个箱型必须更高（用doorH比较）
+          if (maxItemHgt > currentContainerType.doorH && (c.doorH || 0) < maxItemHgt) return false;
+          return true;
+        });
+        // 选择满足条件的最小箱型
+        if (suitable.length > 0) {
+          suitable.sort((a, b) => ((a.L || 0) * (a.W || 0) * (a.doorH || 0)) - ((b.L || 0) * (b.W || 0) * (b.doorH || 0)));
+          if (suitable[0].id !== currentContainerType.id) {
+            currentContainerType = suitable[0];
+          }
+        }
+      }
+      
+      // 如果剩余货物明显小于当前箱型，且不是第一个集装箱，尝试更小的箱型
+      if (containerIdx > 0 && remainingVol < currentVol * 0.6) {
+        // ★ 修复：getBestContainer 需要3个参数 (remainingVol, remainingWeight, currentContainer)
+        const remainingWeight = remainingBoxes.reduce((s, b) => s + (b.unitWeight || 0), 0);
+        const suggested = getBestContainer(remainingVol, remainingWeight, currentContainerType);
+        // 只有当推荐箱型与当前箱型不同时才切换
+        if (suggested && suggested.id !== currentContainerType.id) {
+          currentContainerType = suggested;
+        }
+      }
+      
+      const result = extremePointPacking(remainingBoxes, currentContainerType.L, currentContainerType.W, currentContainerType.doorH, currentContainerType.maxWeight || 26500);  // ★ 使用门高
+      
+      // ★ 安全计算 utilRate 和 totalWeight，防止 NaN
+      const usedVolCalc = result.packed.reduce((s, b) => s + (b.pl || 0) * (b.pw || 0) * (b.ph || 0), 0);
+      const containerVol = (currentContainerType.L || 1) * (currentContainerType.W || 1) * (currentContainerType.doorH || 1);
+      const utilRateValue = usedVolCalc > 0 && containerVol > 0 ? ((usedVolCalc / containerVol) * 100).toFixed(1) : '0';
+      const totalWeightValue = result.packed.reduce((s, b) => s + (b.unitWeight || 0), 0);
+      
+      const containerResult = {
+        containerNum: containerIdx + 1,
+        containerName: currentContainerType.name || '集装箱',
+        containerShort: currentContainerType.short || '未知',
+        containerShortEn: currentContainerType.shortEn || 'Unknown',
+        containerId: currentContainerType.id || 'unknown',
+        packed: result.packed,
+        unpacked: result.unpacked,
+        usedVol: usedVolCalc,
+        utilRate: utilRateValue,
+        totalWeight: totalWeightValue
+      };
+      
+      allContainerResults.push(containerResult);
+      
+      // 剩余未装的货物
+      remainingBoxes = result.unpacked;
+      containerIdx++;
+      
+      // 如果这次没装入任何货物，停止循环（避免死循环）
+      if (result.packed.length === 0) break;
+    }
+
+    // 更新全局变量（当前查看第1个集装箱）
+    currentViewContainer = 0;
+    // ★ 修复：packedBoxes 收集所有集装箱的已装货物（用于未装箱面板）
+    packedBoxes = [];
+    allContainerResults.forEach(r => {
+      if (r.packed) packedBoxes.push(...r.packed);
+    });
+    
+    // 更新UI
+    renderMultiContainerTabs();
+    updateMultiContainerStats();
+    renderDetailTableMulti();
+    // ★ 3D场景只显示当前查看的集装箱
+    renderPackedScene(allContainerResults[0]?.packed || [], container);
+    renderCargoLegend(allContainerResults[0]?.packed || []);
+    
+    // v56.2_fixed更新：显示每个集装箱的独立重心数据（快速计算）
+    updateGravityPanelQuick(allContainerResults, cL, cW, cH);
+    
+    // ★ 专家模式风险评估面板
+    renderExpertRiskPanel(allContainerResults, cL, cW, cH);
+  } catch(e) {
+    const errMsg = (typeof currentLang !== 'undefined' && currentLang === 'en-US') 
+      ? 'Calculation error: ' : 'calculateMultiContainer出错: ';
+    showAlert(errMsg + e.message);
+  }
+}
+
+// 渲染多集装箱标签页
+function renderMultiContainerTabs() {
+  const container = document.getElementById('multiContainerTabs');
+  if (!container) return;
+  
+  const isEn = currentLang === 'en-US';
+  container.style.display = 'flex';
+  container.innerHTML = allContainerResults.map((r, idx) => {
+    const isActive = idx === currentViewContainer;
+    const containerName = isEn ? (r.containerShortEn || r.containerShort) : r.containerName;
+    // ★ 修复：使用 isFinite() 更严格地检查数字有效性
+    const totalWeightT = (r.totalWeight != null && isFinite(r.totalWeight)) ? (r.totalWeight / 1000).toFixed(1) : '0.0';
+    const weightUnit = isEn ? 't' : '吨';
+    const utilDisplay = (r.utilRate != null && isFinite(parseFloat(r.utilRate))) ? r.utilRate : '0';
+    return `<button class="container-tab ${isActive ? 'active' : ''}" onclick="switchContainer(${idx})">
+      📦 ${containerName} ${isEn ? '#' : ''}${r.containerNum}
+      <span class="tab-info">${r.packed.length}${isEn ? 'boxes' : '件'} · ${utilDisplay}% · ${totalWeightT}${weightUnit}</span>
+    </button>`;
+  }).join('');
+}
+
+// 切换查看的集装箱
+function switchContainer(idx) {
+  currentViewContainer = idx;
+  
+  // 更新标签页样式
+  document.querySelectorAll('.container-tab').forEach((tab, i) => {
+    tab.classList.toggle('active', i === idx);
+  });
+  
+  // 查看指定集装箱 - 使用该集装箱的实际尺寸
+  const result = allContainerResults[idx];
+  // ★ 不再覆盖 packedBoxes，保持所有柜子的已装货物（供未装箱面板使用）
+  const currentPacked = result.packed;
+  // 优先使用实际的集装箱尺寸，而不是用货物尺寸估算
+  const actualContainer = CONTAINERS.find(c => c.id === result.containerId);
+  // v56修复：如果找不到集装箱，使用标准40'HC尺寸而不是货物尺寸估算
+  const containerObj = actualContainer || {
+    L: selectedContainer.L,
+    W: selectedContainer.W,
+    H: selectedContainer.doorH  // ★ 使用门高作为计算基准
+  };
+  // ★ 只渲染当前柜子的货物
+  renderPackedScene(currentPacked, containerObj);
+  renderCargoLegend(allContainerResults[idx].packed);
+}
+
+// 更新多集装箱统计信息
+function updateMultiContainerStats() {
+  // ★ 可见调试条
+  const debugBar = document.getElementById('debugBar');
+  const debugInfo = document.getElementById('debugInfo');
+  if (debugBar && debugInfo) {
+    const count = allContainerResults.length;
+    const totalWt = allContainerResults.reduce((s, r) => s + (r.totalWeight || 0), 0);
+    debugInfo.textContent = '📊 ' + count + ' container(s) · Total weight: ' + (totalWt/1000).toFixed(1) + 't';
+    debugBar.style.display = 'block';
+  }
+
+  if (allContainerResults.length === 0) return;
+  
+  const isEn = currentLang === 'en-US';
+  
+  // 汇总统计
+  const totalPacked = allContainerResults.reduce((s, r) => s + r.packed.length, 0);
+  const totalInput = cargoItems.reduce((s, c) => s + (parseInt(c.qty) || 0), 0);
+  const totalVol = allContainerResults.reduce((s, r) => s + r.usedVol, 0);
+  
+  // 计算每个集装箱的实际容积总和
+  let totalVolAll = 0;
+  allContainerResults.forEach(r => {
+    const c = CONTAINERS.find(c => c.id === r.containerId);
+    if (c) {
+      totalVolAll += c.L * c.W * c.doorH;  // ★ 使用门高
+    } else {
+      totalVolAll += selectedContainer.L * selectedContainer.W * selectedContainer.doorH;  // ★ 使用门高
+    }
+  });
+  
+  const overallUtil = (totalVol / totalVolAll * 100).toFixed(1);
+  
+  // 更新统计卡片（使用可选链防止null崩溃）
+  const statUtilEl = document.getElementById('statUtil');
+  const utilBarEl = document.getElementById('utilBar');
+  const statPackedEl = document.getElementById('statPacked');
+  const statVolEl = document.getElementById('statVol');
+  if (statUtilEl) statUtilEl.textContent = overallUtil + '%';
+  if (utilBarEl) utilBarEl.style.width = Math.min(parseFloat(overallUtil), 100) + '%';
+  if (statPackedEl) statPackedEl.textContent = totalPacked;
+  if (statVolEl) statVolEl.textContent = (totalVol / 1e6).toFixed(2);
+  
+  // 更新标题显示集装箱数量和组合
+  const containerInfo = document.getElementById('selContainerInfo');
+  if (containerInfo) {
+    const containerCount = allContainerResults.length;
+    const remainingBoxes = allContainerResults[allContainerResults.length - 1]?.unpacked || [];
+    const remainingCount = remainingBoxes.length;
+    
+    // 统计箱型组合
+    const containerTypes = {};
+    allContainerResults.forEach(r => {
+      const shortName = isEn ? (r.containerShortEn || r.containerShort) : r.containerName;
+      containerTypes[shortName] = (containerTypes[shortName] || 0) + 1;
+    });
+    
+    const typeStr = Object.entries(containerTypes)
+      .map(([name, count]) => count > 1 ? `${name}×${count}` : name)
+      .join(' + ');
+    
+    containerInfo.innerHTML = `📦 ${isEn ? 'Need' : '共需'} <b>${containerCount}</b> ${isEn ? 'container(s)' : '个集装箱'}: ${typeStr}（${isEn ? 'viewing' : '查看'}${currentViewContainer + 1}${isEn ? '' : '号'}）`;
+  }
+  
+  // 载重校验（根据各箱型限重显示超重的集装箱）
+  let hasOverweight = false;
+  allContainerResults.forEach(r => {
+    const cont = CONTAINERS.find(c => c.id === r.containerId);
+    const limit = cont ? cont.maxWeight : PAYLOAD_LIMIT;
+    if (r.totalWeight > limit) hasOverweight = true;
+  });
+
+  const warnEl = document.getElementById('weightWarn');
+  const okEl = document.getElementById('weightOk');
+  if (hasOverweight) {
+    const overweightList = allContainerResults.filter(r => {
+      const cont = CONTAINERS.find(c => c.id === r.containerId);
+      const limit = cont ? cont.maxWeight : PAYLOAD_LIMIT;
+      return r.totalWeight > limit;
+    });
+    const overweightCount = overweightList.length;
+    const warnWeightValEl = document.getElementById('warnWeightVal');
+    if (warnWeightValEl) warnWeightValEl.textContent = isEn ? `${overweightCount} container(s) overweight` : `${overweightCount}个集装箱超重`;
+    if (warnEl) warnEl.style.display = 'block';
+    if (okEl) okEl.style.display = 'none';
+  } else {
+    // ★ 修复：添加 || 0 防护，防止 r.totalWeight 为 undefined 时产生 NaN
+    const totalWeight = allContainerResults.reduce((s, r) => s + (r.totalWeight || 0), 0);
+    const okWeightValEl = document.getElementById('okWeightVal');
+    if (okWeightValEl) okWeightValEl.textContent = totalWeight.toLocaleString();
+    if (okEl) okEl.style.display = 'block';
+    if (warnEl) warnEl.style.display = 'none';
+  }
+
+}
+
+// 渲染多集装箱明细表
+function renderDetailTableMulti() {
+  const container = document.getElementById('resultDetail');
+  if (!container) return;
+  
+  const isEn = currentLang === 'en-US';
+  
+  if (!allContainerResults || allContainerResults.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="big-icon">📦</div>
+        <p data-i18n="detail-calculating">${isEn ? 'Calculating...' : '计算中...'}</p>
+      </div>
+    `;
+    return;
+  }
+  
+  let allPackedBoxes = [];
+  allContainerResults.forEach((result, idx) => {
+    result.packed.forEach(box => {
+      allPackedBoxes.push({...box, containerNum: idx + 1});
+    });
+  });
+  
+  // 按集装箱分组统计
+  const groupStats = {};
+  allPackedBoxes.forEach(b => {
+    const key = b.containerNum + '_' + b.label;
+    if (!groupStats[key]) {
+      groupStats[key] = { label: b.label, containerNum: b.containerNum, count: 0, volume: 0, weight: 0, color: b.color };
+    }
+    groupStats[key].count++;
+    groupStats[key].volume += b.pl * b.pw * b.ph;
+    groupStats[key].weight += b.unitWeight;
+  });
+  
+  // 汇总统计
+  const totalPacked = allContainerResults.reduce((s, r) => s + r.packed.length, 0);
+  const totalInput = cargoItems.reduce((s, c) => s + (parseInt(c.qty) || 0), 0);
+  const totalVol = allContainerResults.reduce((s, r) => s + r.usedVol, 0);
+  const totalWeight = allContainerResults.reduce((s, r) => s + r.totalWeight, 0);
+  
+  // 渲染表格
+  const statsList = Object.values(groupStats);
+  
+  let html = `<table class="result-table">
+    <thead><tr>
+      <th>${isEn ? 'Cargo' : '货物'}</th>
+      <th>${isEn ? 'Container' : '集装箱'}</th>
+      <th>${isEn ? 'Packed' : '已装(件)'}</th>
+      <th>${isEn ? 'Volume(m³)' : '体积(m³)'}</th>
+      <th>${isEn ? 'Weight(kg)' : '重量(kg)'}</th>
+    </tr></thead><tbody>`;
+  
+  statsList.forEach(stat => {
+    html += `<tr>
+      <td><span class="color-dot" style="background:${stat.color || '#888'};margin-right:6px;"></span><b>${stat.label}</b></td>
+      <td>📦 ${stat.containerNum}${isEn ? '' : '号柜'}</td>
+      <td>${stat.count}</td>
+      <td>${(stat.volume / 1e6).toFixed(3)}</td>
+      <td>${stat.weight > 0 ? stat.weight.toFixed(1) : '—'}</td>
+    </tr>`;
+  });
+  
+  html += `</tbody></table>`;
+  
+  // 汇总信息
+  html += `<div style="margin-top:12px;padding:12px 14px;background:#e8f5e9;border-radius:8px;font-size:0.85rem;">
+    <div style="display:flex;flex-wrap:wrap;gap:16px;">
+      <div>📦 <b>${totalPacked}</b> / ${totalInput} ${isEn ? 'packed' : '件已装'}</div>
+      <div>📊 ${isEn ? 'Used Volume' : '利用体积'} <b>${(totalVol/1e6).toFixed(2)}</b> m³</div>
+      <div>⚖️ ${isEn ? 'Total Weight' : '总重量'} <b>${totalWeight.toFixed(0)}</b> kg</div>
+      <div>🚢 ${isEn ? 'Need' : '共需'} <b>${allContainerResults.length}</b> ${isEn ? 'container(s)' : '个集装箱'}</div>
+    </div>
+  </div>`;
+  
+  container.innerHTML = html;
+  
+  // 更新导出按钮状态
+  const exportBtn = document.getElementById('btnExportExcel');
+  if (exportBtn) {
+    const hasData = allContainerResults && allContainerResults.length > 0 && totalPacked > 0;
+    exportBtn.disabled = !hasData;
+    exportBtn.style.opacity = hasData ? '1' : '0.5';
+    exportBtn.style.cursor = hasData ? 'pointer' : 'not-allowed';
+  }
+}
+
+// ===================== Excel导出功能 =====================
+function exportToExcel() {
+  const isEn = currentLang === 'en-US';
+  
+  if (!allContainerResults || allContainerResults.length === 0) {
+    showAlert(isEn ? 'No data to export! Please calculate first.' : '没有可导出的数据！请先计算。');
+    return;
+  }
+  
+  // 收集所有已装箱数据
+  let allPackedBoxes = [];
+  allContainerResults.forEach((result, idx) => {
+    result.packed.forEach(box => {
+      allPackedBoxes.push({...box, containerNum: idx + 1});
+    });
+  });
+  
+  if (allPackedBoxes.length === 0) {
+    showAlert(isEn ? 'No boxes loaded to export!' : '没有已装货物可导出！');
+    return;
+  }
+  
+  // 按集装箱分组统计
+  const groupStats = {};
+  allPackedBoxes.forEach(b => {
+    const key = b.containerNum + '_' + b.label;
+    if (!groupStats[key]) {
+      groupStats[key] = { 
+        label: b.label, 
+        containerNum: b.containerNum, 
+        count: 0, 
+        volume: 0, 
+        weight: 0 
+      };
+    }
+    groupStats[key].count++;
+    groupStats[key].volume += b.pl * b.pw * b.ph;
+    groupStats[key].weight += b.unitWeight;
+  });
+  
+  // 汇总统计
+  const totalPacked = allContainerResults.reduce((s, r) => s + r.packed.length, 0);
+  const totalInput = cargoItems.reduce((s, c) => s + (parseInt(c.qty) || 0), 0);
+  const totalVol = allContainerResults.reduce((s, r) => s + r.usedVol, 0);
+  const totalWeight = allContainerResults.reduce((s, r) => s + r.totalWeight, 0);
+  
+  // Sheet 1: 分组统计
+  const statsList = Object.values(groupStats);
+  const statsData = [
+    [isEn ? 'Cargo' : '货物', isEn ? 'Container' : '集装箱', isEn ? 'Packed (pcs)' : '已装(件)', isEn ? 'Volume (m³)' : '体积(m³)', isEn ? 'Weight (kg)' : '重量(kg)']
+  ];
+  statsList.forEach(stat => {
+    statsData.push([
+      stat.label,
+      isEn ? 'Container ' + stat.containerNum : stat.containerNum + '号柜',
+      stat.count,
+      (stat.volume / 1e6).toFixed(4),
+      stat.weight > 0 ? stat.weight.toFixed(2) : '-'
+    ]);
+  });
+  
+  // Sheet 2: 明细数据
+  const detailData = [
+    [isEn ? 'Cargo' : '货物', isEn ? 'Container' : '集装箱', isEn ? 'Length (cm)' : '长(cm)', isEn ? 'Width (cm)' : '宽(cm)', isEn ? 'Height (cm)' : '高(cm)', isEn ? 'Position X' : '位置X', isEn ? 'Position Y' : '位置Y', isEn ? 'Position Z' : '位置Z', isEn ? 'Weight (kg)' : '重量(kg)']
+  ];
+  allPackedBoxes.forEach(box => {
+    detailData.push([
+      box.label,
+      isEn ? 'Container ' + box.containerNum : box.containerNum + '号柜',
+      box.pl,
+      box.pw,
+      box.ph,
+      box.px.toFixed(1),
+      box.py.toFixed(1),
+      box.pz.toFixed(1),
+      box.unitWeight > 0 ? box.unitWeight.toFixed(2) : '-'
+    ]);
+  });
+  
+  // Sheet 3: 汇总信息
+  const summaryData = [
+    [isEn ? 'Loading Summary Report' : '装载方案汇总报告'],
+    [''],
+    [isEn ? 'Total Containers' : '集装箱总数', allContainerResults.length],
+    [isEn ? 'Total Boxes Loaded' : '已装总件数', totalPacked],
+    [isEn ? 'Total Input' : '输入总件数', totalInput],
+    [isEn ? 'Packing Rate' : '装箱率', (totalPacked / totalInput * 100).toFixed(1) + '%'],
+    [isEn ? 'Used Volume' : '利用体积', (totalVol / 1e6).toFixed(2) + ' m³'],
+    [isEn ? 'Total Weight' : '总重量', totalWeight.toFixed(1) + ' kg'],
+  ];
+  
+  // 创建工作簿
+  const wb = XLSX.utils.book_new();
+  
+  // 添加 Sheet 1: 分组统计
+  const ws1 = XLSX.utils.aoa_to_sheet(statsData);
+  ws1['!cols'] = [{wch: 15}, {wch: 12}, {wch: 10}, {wch: 12}, {wch: 12}];
+  XLSX.utils.book_append_sheet(wb, ws1, isEn ? 'Summary' : '汇总统计');
+  
+  // 添加 Sheet 2: 明细
+  const ws2 = XLSX.utils.aoa_to_sheet(detailData);
+  ws2['!cols'] = [{wch: 12}, {wch: 12}, {wch: 10}, {wch: 10}, {wch: 10}, {wch: 10}, {wch: 10}, {wch: 10}, {wch: 10}];
+  XLSX.utils.book_append_sheet(wb, ws2, isEn ? 'Details' : '明细数据');
+  
+  // 添加 Sheet 3: 汇总报告
+  const ws3 = XLSX.utils.aoa_to_sheet(summaryData);
+  ws3['!cols'] = [{wch: 20}, {wch: 15}, {wch: 10}];
+  XLSX.utils.book_append_sheet(wb, ws3, isEn ? 'Report' : '报告');
+  
+  // ★ Sheet 4: 卸货顺序（重货先出，轻货后出）
+  // 排序规则：重货(≥25kg)按X升序（X小=靠近门口=先卸），轻货(<25kg)按X降序（X大=深处=后卸）
+  const HEAVY_THRESHOLD = 25;
+  const heavyBoxes = allPackedBoxes.filter(b => (b.unitWeight||0) >= HEAVY_THRESHOLD);
+  const lightBoxes = allPackedBoxes.filter(b => (b.unitWeight||0) < HEAVY_THRESHOLD);
+  heavyBoxes.sort((a, b) => a.px - b.px); // 重货：X小的先出
+  lightBoxes.sort((a, b) => b.px - a.px); // 轻货：X大的先出（从里往外）
+  const unloadSequence = [...heavyBoxes, ...lightBoxes];
+  
+  const unloadData = [
+    [isEn ? 'Unload Sequence Report' : '卸货顺序建议'],
+    [isEn ? 'Rule: Heavy cargo (≥25kg) unloaded first, then light cargo' : '规则：重货(≥25kg)先卸，轻货后卸'],
+    [''],
+    [isEn ? 'Seq' : '顺序', isEn ? 'Cargo' : '货物', isEn ? 'Container' : '集装箱', isEn ? 'Weight (kg)' : '重量(kg)', isEn ? 'Size L×W×H (cm)' : '尺寸 长×宽×高(cm)', isEn ? 'Position X' : '位置X', isEn ? 'Method' : '卸货方式', isEn ? 'Note' : '备注']
+  ];
+  unloadSequence.forEach((box, idx) => {
+    const isHeavy = (box.unitWeight||0) >= HEAVY_THRESHOLD;
+    const method = isHeavy ? (isEn ? '🔧 Mechanical' : '🔧 机械') : (isEn ? '📦 Manual' : '📦 人工');
+    const note = isHeavy ? (isEn ? 'Unload first (near door)' : '先卸（靠近门口）') : (isEn ? 'Unload last (from inside out)' : '后卸（从里往外）');
+    unloadData.push([
+      idx + 1,
+      box.label,
+      isEn ? 'Container ' + box.containerNum : box.containerNum + '号柜',
+      box.unitWeight > 0 ? box.unitWeight.toFixed(2) : '-',
+      (box.pl||box.origL||0) + '×' + (box.pw||box.origW||0) + '×' + (box.ph||box.origH||0),
+      box.px.toFixed(1),
+      method,
+      note
+    ]);
+  });
+  
+  const ws4 = XLSX.utils.aoa_to_sheet(unloadData);
+  ws4['!cols'] = [{wch: 6}, {wch: 12}, {wch: 12}, {wch: 12}, {wch: 18}, {wch: 10}, {wch: 12}, {wch: 20}];
+  XLSX.utils.book_append_sheet(wb, ws4, isEn ? 'Unload' : '卸货顺序');
+  
+  // 生成并下载
+  const fileName = (isEn ? 'LoadingPlan_' : '装载方案_') + new Date().toISOString().slice(0,10).replace(/-/g, '') + '.xlsx';
+  XLSX.writeFile(wb, fileName);
+  
+  showAlert(isEn ? '✅ Excel exported successfully!' : '✅ Excel导出成功！');
+}
+
+// ===================== 三维装箱算法（极值点法 Extreme Point Heuristic）=====================
+// 坐标定义：
+//   X轴 = 集装箱纵深方向（X=0是柜内最深处，X=cL是柜门方向）
+//   Z轴 = 集装箱宽度方向
+//   Y轴 = 集装箱高度方向（上下）
+// 关键修复：
+//   1. 放置箱子后，移除被占据的旧极值点
+//   2. 添加新极值点前，验证其不在任何箱子内部
+//   3. 使用更小的EPS容差避免浮点漂移
+// extremePointPacking：极点装箱算法
+// maxWeight: 最大载重限制(kg)，超出时停止装箱（快速计算用Payload，智能优化用19.2t）
+function extremePointPacking(boxes, cL, cW, cH, maxWeight = Infinity) {
+  let extremePoints = [{x:0, y:0, z:0}];
+  let packed = [];
+  let unpacked = [];
+  let totalWeight = 0;  // ★ 新增：跟踪已装货物总重量
+
+  // 使用0.5cm容差（更精确）
+  const EPS = 0.5;
+
+  // 检查一个点是否在任何已放置箱子内部（严格检查）
+  function isInsideAnyBox(px, py, pz) {
+    for (const b of packed) {
+      // 点必须在箱子边界**内部**，不能是表面或边界附近
+      if (px > b.px + EPS && px < b.px + b.pl - EPS &&
+          py > b.py + EPS && py < b.py + b.ph - EPS &&
+          pz > b.pz + EPS && pz < b.pz + b.pw - EPS) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // 检查一个点是否在某箱子顶面上（可作为支撑面）
+  // 参数：点坐标 (px, pz) 和候选箱子 b
+  function isOnTopOfBox(px, pz, b, epY) {
+    return px > b.px - EPS && px < b.px + b.pl + EPS &&
+           pz > b.pz - EPS && pz < b.pz + b.pw + EPS &&
+           Math.abs(epY - (b.py + b.ph)) < EPS;
+  }
+
+  for (const box of boxes) {
+    const rotations = getRotations(box.origL, box.origW, box.origH, box.orient);
+    let placed = false;
+
+    // 优化排序：按贴合度分数排序（优先选择与已有箱子接触面大的点）
+    // 同时考虑位置：更靠里/靠下/靠边的点优先
+    const scoredEPs = extremePoints.map(ep => {
+      // 基础位置分数
+      let posScore = (cL - ep.x) * 10000 + (cW - ep.z) * 100 + (cH - ep.y);
+      // 贴合度加成：在已有箱子附近
+      let fitBonus = 0;
+      for (const b of packed) {
+        if (Math.abs(ep.x - (b.px + b.pl)) < 2) fitBonus += 100; // 贴靠右侧面
+        if (Math.abs(ep.z - (b.pz + b.pw)) < 2) fitBonus += 100; // 贴靠前面
+        if (ep.y < 1) fitBonus += 50; // 贴近底部
+      }
+      return { ep, score: posScore + fitBonus };
+    });
+    
+    const sortedEPs = scoredEPs
+      .sort((a, b) => b.score - a.score)
+      .map(item => item.ep);
+
+  outerLoop:
+  for (const ep of sortedEPs) {
+      // 跳过在箱子内部的极值点（防止悬空）
+      if (isInsideAnyBox(ep.x, ep.y, ep.z)) continue;
+
+      // 如果点在箱子顶面上，py应该等于箱子顶面y
+      let baseY = ep.y;
+      for (const b of packed) {
+        if (isOnTopOfBox(ep.x, ep.z, b, ep.y)) {
+          baseY = Math.max(baseY, b.py + b.ph);
+        }
+      }
+
+      for (const rot of rotations) {
+        const [l, w, h] = rot;
+        const px = ep.x;
+        const py = baseY; // 使用修正后的y坐标
+        const pz = ep.z;
+
+        // 边界检查
+        if (px + l > cL + EPS || py + h > cH + EPS || pz + w > cW + EPS) continue;
+        // 重叠检查
+        if (hasOverlap(packed, px, pz, py, l, w, h)) continue;
+        
+        // ★ 重量检查：不超过限重才放置
+        const boxWeight = box.unitWeight || 0;
+        if (totalWeight + boxWeight > maxWeight) continue;
+
+        // 成功放置！
+        const placedBox = {
+          ...box, pl: l, pw: w, ph: h,
+          px: px, py: py, pz: pz
+        };
+        packed.push(placedBox);
+        totalWeight += boxWeight;  // ★ 更新已装总重量
+
+        // ===== 核心修复：移除被箱子占据的极值点 =====
+        const newBoxMinX = px, newBoxMaxX = px + l;
+        const newBoxMinY = py, newBoxMaxY = py + h;
+        const newBoxMinZ = pz, newBoxMaxZ = pz + w;
+
+        extremePoints = extremePoints.filter(ep => {
+          // 移除被新箱子占据的点（箱子内部的点无效）
+          if (ep.x > newBoxMinX - EPS && ep.x < newBoxMaxX + EPS &&
+              ep.y > newBoxMinY - EPS && ep.y < newBoxMaxY + EPS &&
+              ep.z > newBoxMinZ - EPS && ep.z < newBoxMaxZ + EPS) {
+            return false;
+          }
+          return true;
+        });
+
+        // 优化新极值点生成策略：只添加最有价值的点
+        const newEPs = [
+          // 主要候选点：三个方向的前沿
+          {x: px + l, y: py, z: pz, priority: 3},      // 右侧面前沿
+          {x: px, y: py + h, z: pz, priority: 3},     // 顶面（从后面看）
+          {x: px, y: py, z: pz + w, priority: 3},     // 前面前沿
+          // 角点：顶面四个角
+          {x: px + l, y: py + h, z: pz, priority: 2},
+          {x: px + l, y: py, z: pz + w, priority: 2},
+          {x: px, y: py + h, z: pz + w, priority: 2},
+          {x: px + l, y: py + h, z: pz + w, priority: 1}, // 顶前右角
+          // 额外点：底面角点（填补底部空隙）
+          {x: px + l, y: py, z: pz + w, priority: 1}
+        ];
+
+        // 过滤并添加有效的新极值点（带边界预检查）
+        for (const nep of newEPs) {
+          // 边界检查：只接受在集装箱内部的点
+          if (nep.x < cL + EPS && nep.y < cH + EPS && nep.z < cW + EPS &&
+              nep.x > -EPS && nep.y > -EPS && nep.z > -EPS) {
+            // 检查不在任何箱子内部
+            if (!isInsideAnyBox(nep.x, nep.y, nep.z)) {
+              extremePoints.push(nep);
+            }
+          }
+        }
+
+        extremePoints = deduplicatePoints(extremePoints);
+        placed = true;
+        break outerLoop;
+      }
+    }
+    if (!placed) {
+      unpacked.push(box);
+    }
+  }
+
+  return { packed, unpacked };
+}
+
+
+function hasOverlap(packed, x, z, y, l, w, h) {
+  const OLAP_EPS = 0.1; // 重叠检测专用容差
+  for (const b of packed) {
+    if (x < b.px + b.pl - OLAP_EPS && x + l > b.px + OLAP_EPS &&
+        z < b.pz + b.pw - OLAP_EPS && z + w > b.pz + OLAP_EPS &&
+        y < b.py + b.ph - OLAP_EPS && y + h > b.py + OLAP_EPS) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// 增强版极值点去重：智能合并接近的点
+function deduplicatePoints(pts) {
+  if (pts.length === 0) return pts;
+  
+  // 按坐标排序，便于合并
+  const sorted = [...pts].sort((a, b) => {
+    const dx = a.x - b.x;
+    if (Math.abs(dx) > 1) return dx;
+    const dz = a.z - b.z;
+    if (Math.abs(dz) > 1) return dz;
+    return a.y - b.y;
+  });
+  
+  const result = [];
+  const EPS_MERGE = 5; // 5cm内视为同一点
+  
+  for (const p of sorted) {
+    let isDupe = false;
+    for (const r of result) {
+      if (Math.abs(p.x - r.x) < EPS_MERGE && 
+          Math.abs(p.y - r.y) < EPS_MERGE && 
+          Math.abs(p.z - r.z) < EPS_MERGE) {
+        isDupe = true;
+        // 保留y值更小的点（更低的位置更适合放置）
+        if (p.y < r.y) {
+          r.x = p.x;
+          r.y = p.y;
+          r.z = p.z;
+        }
+        break;
+      }
+    }
+    if (!isDupe) {
+      result.push({x: p.x, y: p.y, z: p.z});
+    }
+  }
+  
+  return result;
+}
+
+// ===================== Three.js 3D渲染 =====================
+// ===================== 重心对比分析 =====================
+let gravityBefore = null;  // 普通计算后的重心数据
+let gravityAfter  = null;  // 智能优化后的重心数据
+
+// 计算单个集装箱的重心（★ 变量名已修正：gz=高度，gy=宽度，符合行业规范）
+function calcGravityCenter(packed, container) {
+  if (!packed || packed.length === 0) return null;
+  let totalW = 0, sumX = 0, sumY = 0, sumZ = 0;
+  packed.forEach(b => {
+    const w = (b.unitWeight > 0 ? b.unitWeight : b.pl * b.pw * b.ph / 1000);
+    totalW += w;
+    sumX += (b.px + b.pl / 2) * w;
+    sumZ += (b.py + b.ph / 2) * w;   // ★ 改为 sumZ：高度方向（Z轴）
+    sumY += (b.pz + b.pw / 2) * w;   // ★ 改为 sumY：宽度方向（Y轴）
+  });
+  if (totalW === 0) return null;
+  const gx = sumX / totalW;
+  const gz = sumZ / totalW;   // ★ 重心高度（Z轴）
+  const gy = sumY / totalW;   // ★ 重心宽度（Y轴）
+  const cx = container.L / 2;
+  const cz = container.H / 2;   // ★ 高度中心用 cz（对应 gz）
+  const cy = container.W / 2;   // ★ 宽度中心用 cy（对应 gy）
+  const offX = +((gx - cx) / cx * 100).toFixed(1);
+  const offZ = +((gz - cz) / cz * 100).toFixed(1);  // ★ 高度偏移用 offZ
+  const offY = +((gy - cy) / cy * 100).toFixed(1);  // ★ 宽度偏移用 offY
+  const maxOff = Math.max(Math.abs(offX), Math.abs(offY), Math.abs(offZ));
+  // v56.1选项A重心阈值：参考IMO CTU Code（5%-10%），适配海运+多式联运
+  const level = maxOff < 5 ? 'safe' : maxOff < 10 ? 'warn' : 'danger';
+  return { gx, gy, gz, cx, cy, cz, offX, offY, offZ, maxOff: +maxOff.toFixed(1), level, cL: container.L, cW: container.W, cH: container.H };
+}
+
+// 生成安全等级badge
+function _gcBadge(level, isEn, gbRedLine) {
+  const map = {
+    safe:   { zh: '✓ 正常', en: '✓ Normal' },
+    warn:   { zh: '⚡ 偏重', en: '⚡ Offset' },
+    danger: { zh: '⚠️ 危险', en: '⚠️ Danger' }
+  };
+  const txt = isEn ? map[level].en : map[level].zh;
+  const redLine = gbRedLine
+    ? `<span class="gc-badge danger" style="margin-left:4px;font-size:10px;">${isEn ? '🇨🇳 GB Red Line' : '🇨🇳 GB国标红线'}</span>`
+    : '';
+  return `<span class="gc-badge ${level}">${txt}</span>${redLine}`;
+}
+
+// 生成单列重心数据HTML（方案B：显示重心高度占比）
+function _gcCol(g, isEn) {
+  const heightRatio = g.cH > 0 ? (g.gz / g.cH * 100).toFixed(1) : '0.0';
+  const advice = g.reasonCode && GRAVITY_ADVICE[g.reasonCode];
+  const lang = isEn ? 'en' : 'zh';
+  return `
+    <div class="gc-row"><span class="lbl">${isEn ? 'COG Height Ratio' : '重心高度占比'}</span><span class="val neutral">${heightRatio}%</span></div>
+    <div class="gc-row"><span class="lbl">${isEn ? 'Depth Offset(X)' : '深度偏移(X)'}</span><span class="val neutral">${g.offX > 0 ? '+' : ''}${g.offX}%</span></div>
+    <div class="gc-row"><span class="lbl">${isEn ? 'Width Offset(Y)' : '宽度偏移(Y)'}</span><span class="val neutral">${g.offY > 0 ? '+' : ''}${g.offY}%</span></div>
+    <div class="gc-row"><span class="lbl">${isEn ? 'Height Offset(Z)' : '高度偏移(Z)'}</span><span class="val neutral">${g.offZ > 0 ? '+' : ''}${g.offZ}%</span></div>
+    ${_gcBadge(g.level, isEn, g.gbRedLine)}
+    ${advice ? `<div class="gc-row advice"><span class="lbl">${isEn ? 'What & why' : '问题所在'}</span><span class="val">${advice[lang].what}</span></div>
+    <div class="gc-row advice"><span class="lbl">${isEn ? 'How to fix' : '操作建议'}</span><span class="val">${advice[lang].how}</span></div>` : ''}`;
+}
+
+// 生成对比列：高亮改善/恶化方向（方案B：显示重心高度占比）
+function _gcColCompare(before, after, isEn) {
+  function valClass(b, a) {
+    const diff = Math.abs(a) - Math.abs(b);
+    return diff < -0.1 ? 'improved' : diff > 0.1 ? 'worsened' : 'neutral';
+  }
+  function arrow(b, a) {
+    const diff = Math.abs(a) - Math.abs(b);
+    return diff < -0.1 ? '↓' : diff > 0.1 ? '↑' : '→';
+  }
+  const beforeHeightRatio = before.cH > 0 ? (before.gz / before.cH * 100).toFixed(1) : '0.0';
+  const afterHeightRatio = after.cH > 0 ? (after.gz / after.cH * 100).toFixed(1) : '0.0';
+  const heightDiff = parseFloat(afterHeightRatio) - parseFloat(beforeHeightRatio);
+  const heightArrow = heightDiff < -0.1 ? '↓' : heightDiff > 0.1 ? '↑' : '→';
+  const heightClass = heightDiff < -0.1 ? 'improved' : heightDiff > 0.1 ? 'worsened' : 'neutral';
+
+  const advice = after.reasonCode && GRAVITY_ADVICE[after.reasonCode];
+  const lang = isEn ? 'en' : 'zh';
+
+  return `
+    <div class="gc-row"><span class="lbl">${isEn ? 'COG Height Ratio' : '重心高度占比'}</span><span class="val ${heightClass}">${afterHeightRatio}% ${heightArrow}</span></div>
+    <div class="gc-row"><span class="lbl">${isEn ? 'Depth Offset(X)' : '深度偏移(X)'}</span><span class="val ${valClass(before.offX, after.offX)}">${after.offX > 0 ? '+' : ''}${after.offX}% ${arrow(before.offX, after.offX)}</span></div>
+    <div class="gc-row"><span class="lbl">${isEn ? 'Width Offset(Y)' : '宽度偏移(Y)'}</span><span class="val ${valClass(before.offY, after.offY)}">${after.offY > 0 ? '+' : ''}${after.offY}% ${arrow(before.offY, after.offY)}</span></div>
+    <div class="gc-row"><span class="lbl">${isEn ? 'Height Offset(Z)' : '高度偏移(Z)'}</span><span class="val ${valClass(before.offZ, after.offZ)}">${after.offZ > 0 ? '+' : ''}${after.offZ}% ${arrow(before.offZ, after.offZ)}</span></div>
+    ${_gcBadge(after.level, isEn, after.gbRedLine)}
+    ${advice ? `<div class="gc-row advice"><span class="lbl">${isEn ? 'What & why' : '问题所在'}</span><span class="val">${advice[lang].what}</span></div>
+    <div class="gc-row advice"><span class="lbl">${isEn ? 'How to fix' : '操作建议'}</span><span class="val">${advice[lang].how}</span></div>` : ''}`;
+}
+
+// 绘制2D俯视重心图（Canvas）
+function _drawGravityMap(canvasId, before, after) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const pad = 22;
+  ctx.clearRect(0, 0, W, H);
+
+  const g = after || before;
+  const scaleX = (W - pad * 2) / g.cL;
+  const scaleZ = (H - pad * 2) / g.cW;
+
+  // 集装箱外框
+  ctx.strokeStyle = '#90a4ae';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(pad, pad, g.cL * scaleX, g.cW * scaleZ);
+
+  // 中心点
+  const cx = pad + g.cx * scaleX;
+  const cz = pad + g.cz * scaleZ;
+  ctx.strokeStyle = '#cfd8dc';
+  ctx.setLineDash([4, 3]);
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(cx, pad); ctx.lineTo(cx, H - pad); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(pad, cz); ctx.lineTo(W - pad, cz); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // 中心小叉
+  ctx.strokeStyle = '#90a4ae';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(cx-5, cz-5); ctx.lineTo(cx+5, cz+5); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx+5, cz-5); ctx.lineTo(cx-5, cz+5); ctx.stroke();
+
+  // 优化前重心点（灰红色）
+  if (before) {
+    const bx = pad + before.gx * scaleX;
+    const bz = pad + before.gz * scaleZ;
+    ctx.beginPath();
+    ctx.arc(bx, bz, 6, 0, Math.PI * 2);
+    ctx.fillStyle = '#ef9a9a';
+    ctx.fill();
+    ctx.strokeStyle = '#e53935';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.fillStyle = '#e53935';
+    ctx.font = '9px Arial';
+    ctx.fillText('B', bx + 8, bz - 4);
+  }
+
+  // 优化后重心点（绿色）+ 轨迹箭头
+  if (after && before) {
+    const ax = pad + after.gx * scaleX;
+    const az = pad + after.gz * scaleZ;
+    const bx = pad + before.gx * scaleX;
+    const bz = pad + before.gz * scaleZ;
+
+    // 轨迹线+箭头
+    ctx.strokeStyle = '#43a047';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 3]);
+    ctx.beginPath(); ctx.moveTo(bx, bz); ctx.lineTo(ax, az); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // 箭头头部
+    const angle = Math.atan2(az - bz, ax - bx);
+    ctx.fillStyle = '#43a047';
+    ctx.beginPath();
+    ctx.moveTo(ax, az);
+    ctx.lineTo(ax - 8 * Math.cos(angle - 0.4), az - 8 * Math.sin(angle - 0.4));
+    ctx.lineTo(ax - 8 * Math.cos(angle + 0.4), az - 8 * Math.sin(angle + 0.4));
+    ctx.closePath();
+    ctx.fill();
+
+    // 优化后点
+    ctx.beginPath();
+    ctx.arc(ax, az, 6, 0, Math.PI * 2);
+    ctx.fillStyle = '#a5d6a7';
+    ctx.fill();
+    ctx.strokeStyle = '#2e7d32';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.fillStyle = '#2e7d32';
+    ctx.font = '9px Arial';
+    ctx.fillText('A', ax + 8, az - 4);
+  } else if (after) {
+    const ax = pad + after.gx * scaleX;
+    const az = pad + after.gz * scaleZ;
+    ctx.beginPath();
+    ctx.arc(ax, az, 6, 0, Math.PI * 2);
+    ctx.fillStyle = '#a5d6a7';
+    ctx.fill();
+    ctx.strokeStyle = '#2e7d32';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+
+  // 轴标
+  ctx.fillStyle = '#9e9e9e';
+  ctx.font = '9px Arial';
+  ctx.fillText('← Z Width →', pad, H - 4);
+  ctx.save();
+  ctx.translate(10, H / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText('← X Depth →', 0, 0);
+  ctx.restore();
+}
+
+// 渲染重心对比区
+function renderGravityCompare(mode) {
+  const wrap = document.getElementById('gravityCompare');
+  if (!wrap) return;
+  const isEn = currentLang === 'en-US';
+
+  if (mode === 'before') {
+    // 只显示普通计算结果
+    const g = gravityBefore;
+    if (!g) { wrap.style.display = 'none'; return; }
+    wrap.style.display = 'block';
+    wrap.innerHTML = `
+      <div class="gc-title">⚖️ ${isEn ? 'Center of Gravity' : '重心分析'}</div>
+      <div class="gc-cards">
+        <div class="gc-card only">
+          <div class="gc-card-title">${isEn ? 'CURRENT' : '当前装载'}</div>
+          ${_gcCol(g, isEn)}
+        </div>
+      </div>
+      <div class="gc-map-wrap">
+        <div class="gc-map-title">${isEn ? 'Top View — Center of Gravity Position' : '俯视图 — 重心位置（Z-X平面）'}</div>
+        <canvas id="gcCanvas" width="260" height="130"></canvas>
+        <div class="gc-legend">
+          <span><svg width="10" height="10"><circle cx="5" cy="5" r="4" fill="#a5d6a7" stroke="#2e7d32" stroke-width="1"/></svg> ${isEn ? 'Gravity' : '重心'}</span>
+        </div>
+      </div>`;
+    _drawGravityMap('gcCanvas', null, g);
+
+  } else if (mode === 'both') {
+    // 对比显示
+    const b = gravityBefore, a = gravityAfter;
+    if (!a) { wrap.style.display = 'none'; return; }
+    wrap.style.display = 'block';
+    const improvement = b ? (b.maxOff - a.maxOff).toFixed(1) : null;
+    const improvLine = improvement !== null
+      ? `<div style="text-align:center;font-size:12px;margin-top:4px;color:${+improvement > 0 ? '#43a047' : '#e53935'}">
+          ${+improvement > 0 ? `↓ ${isEn ? 'Max deviation reduced by' : '最大偏移改善'} ${improvement}%` : `↑ ${isEn ? 'Max deviation increased by' : '最大偏移增加'} ${Math.abs(improvement)}%`}
+         </div>` : '';
+    wrap.innerHTML = `
+      <div class="gc-title">⚖️ ${isEn ? 'Center of Gravity — Before vs After Optimization' : '重心对比 — 优化前 vs 优化后'}</div>
+      <div class="gc-cards">
+        ${b ? `<div class="gc-card before">
+          <div class="gc-card-title">${isEn ? 'BEFORE' : '优化前'}</div>
+          ${_gcCol(b, isEn)}
+        </div>` : ''}
+        <div class="gc-card after">
+          <div class="gc-card-title">${isEn ? 'AFTER' : '优化后'}</div>
+          ${b ? _gcColCompare(b, a, isEn) : _gcCol(a, isEn)}
+        </div>
+      </div>
+      ${improvLine}
+      <div class="gc-map-wrap" style="margin-top:10px;">
+        <div class="gc-map-title">${isEn ? 'Top View — Gravity Shift Trajectory' : '俯视图 — 重心移动轨迹（Z-X平面）'}</div>
+        <canvas id="gcCanvas" width="260" height="130"></canvas>
+        <div class="gc-legend">
+          <span><svg width="10" height="10"><circle cx="5" cy="5" r="4" fill="#ef9a9a" stroke="#e53935" stroke-width="1"/></svg> ${isEn ? 'Before(B)' : '优化前(B)'}</span>
+          <span><svg width="10" height="10"><circle cx="5" cy="5" r="4" fill="#a5d6a7" stroke="#2e7d32" stroke-width="1"/></svg> ${isEn ? 'After(A)' : '优化后(A)'}</span>
+          <span style="color:#43a047">→ ${isEn ? 'Trajectory' : '轨迹'}</span>
+        </div>
+      </div>`;
+    _drawGravityMap('gcCanvas', b, a);
+  }
+}
+
+function initThree() {
+  const canvas = document.getElementById('three-canvas');
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xf1f8e9);
+
+  camera = new THREE.PerspectiveCamera(35, canvas.clientWidth / canvas.clientHeight, 0.1, 50000);
+  // 扩大显示：相机更近，视角更居中
+  camera.position.set(600, 400, 900);
+  camera.lookAt(600, 135, 117); // 看向集装箱中心
+
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+  renderer.shadowMap.enabled = true;
+
+  const ambient = new THREE.AmbientLight(0xffffff, 0.7);
+  scene.add(ambient);
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  dirLight.position.set(1000, 2000, 1000);
+  scene.add(dirLight);
+
+  canvas.addEventListener('mousedown', e => {
+    isDragging = true; prevMouse = {x: e.clientX, y: e.clientY};
+  });
+  canvas.addEventListener('mouseup', () => isDragging = false);
+  canvas.addEventListener('mouseleave', () => isDragging = false);
+  canvas.addEventListener('mousemove', onMouseMove);
+  canvas.addEventListener('wheel', onWheel, {passive: true});
+
+  canvas.addEventListener('touchstart', e => {
+    isDragging = true;
+    prevMouse = {x: e.touches[0].clientX, y: e.touches[0].clientY};
+  });
+  canvas.addEventListener('touchend', () => isDragging = false);
+  canvas.addEventListener('touchmove', e => {
+    if (!isDragging) return;
+    const dx = e.touches[0].clientX - prevMouse.x;
+    const dy = e.touches[0].clientY - prevMouse.y;
+    rotateCamera(dx, dy);
+    prevMouse = {x: e.touches[0].clientX, y: e.touches[0].clientY};
+  });
+
+  animate();
+}
+
+// cameraTheta=0：相机从柜门方向（X轴正方向外侧）往里看
+// 视角含义：用户站在柜门外，透过柜门看箱内装货情况
+let cameraTheta = Math.PI, cameraPhi = 0.38, cameraRadius = 1500;
+
+function onMouseMove(e) {
+  if (!isDragging) return;
+  const dx = e.clientX - prevMouse.x;
+  const dy = e.clientY - prevMouse.y;
+  rotateCamera(dx, dy);
+  prevMouse = {x: e.clientX, y: e.clientY};
+}
+
+function rotateCamera(dx, dy) {
+  cameraTheta -= dx * 0.005;
+  cameraPhi = Math.max(0.05, Math.min(Math.PI/2 - 0.05, cameraPhi - dy * 0.005));
+  updateCameraPos();
+}
+
+function onWheel(e) {
+  cameraRadius = Math.max(300, Math.min(8000, cameraRadius + e.deltaY * 1.5));
+  updateCameraPos();
+}
+
+function updateCameraPos() {
+  const cx = selectedContainer.L / 2;
+  const cy = selectedContainer.doorH / 2;  // ★ 使用门高定位相机Y轴中心
+  const cz = selectedContainer.W / 2;
+  // 相机围绕集装箱中心旋转
+  // theta=π 时，相机在X轴正方向外侧（柜门外），往负X方向看进去
+  camera.position.set(
+    cx + cameraRadius * Math.sin(cameraPhi) * Math.cos(cameraTheta),
+    cy + cameraRadius * Math.cos(cameraPhi),
+    cz + cameraRadius * Math.sin(cameraPhi) * Math.sin(cameraTheta)
+  );
+  camera.lookAt(cx, cy, cz);
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  renderer.render(scene, camera);
+}
+
+function renderEmptyScene() {
+  clearScene();
+  if (selectedContainer) drawContainerFrame(selectedContainer, 0x4caf50, 0.15);
+  updateCameraPos();
+}
+
+function clearScene() {
+  // 清理 Three.js 场景
+  while (scene.children.length > 0) {
+    const obj = scene.children[0];
+    if (obj.geometry) obj.geometry.dispose();
+    scene.remove(obj);
+  }
+  labelSprites = [];
+  
+  // 清理图例容器
+  document.getElementById('cargoLegend').innerHTML = '';
+  const ambient = new THREE.AmbientLight(0xffffff, 0.7);
+  scene.add(ambient);
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  dirLight.position.set(1000, 2000, 1000);
+  scene.add(dirLight);
+  const grid = new THREE.GridHelper(3000, 30, 0xb2dfdb, 0xe0e0e0);
+  grid.position.set(selectedContainer.L/2, 0, selectedContainer.W/2);
+  scene.add(grid);
+}
+
+function drawContainerFrame(c, color, opacity) {
+  // 集装箱主体（半透明，方便透视内部）
+  const geo = new THREE.BoxGeometry(c.L, c.H, c.W);
+  const mat = new THREE.MeshPhongMaterial({
+    color: color || 0x4caf50,
+    transparent: true,
+    opacity: opacity !== undefined ? opacity : 0.06,
+    side: THREE.BackSide
+  });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.set(c.L/2, c.H/2, c.W/2);
+  scene.add(mesh);
+
+  // 集装箱边框线（绿色，实线）
+  const edges = new THREE.EdgesGeometry(geo);
+  const lineMat = new THREE.LineBasicMaterial({ color: 0x1b5e20, linewidth: 3 });
+  const wireframe = new THREE.LineSegments(edges, lineMat);
+  wireframe.position.set(c.L/2, c.H/2, c.W/2);
+  scene.add(wireframe);
+
+  // 集装箱八条角柱（黑色粗线，更醒目）
+  const cornerMat = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 5 });
+  const cornerPoints = [
+    // 底部四条垂直边
+    [0, 0, 0], [0, c.H, 0],
+    [c.L, 0, 0], [c.L, c.H, 0],
+    [c.L, 0, c.W], [c.L, c.H, c.W],
+    [0, 0, c.W], [0, c.H, c.W],
+  ];
+  const cornerGeo = new THREE.BufferGeometry().setFromPoints(cornerPoints.flatMap(p => [
+    new THREE.Vector3(p[0], p[1], p[2])
+  ]));
+  const cornerLines = new THREE.LineSegments(cornerGeo, cornerMat);
+  scene.add(cornerLines);
+
+  // 尺寸标注（在集装箱外围显示尺寸）
+  const dimLabel = makeTextSprite(`${c.L}cm × ${c.W}cm × ${c.H}cm`, 0x555555);
+  dimLabel.scale.set(200, 50, 1);
+  dimLabel.position.set(c.L/2, -40, c.W/2);
+  scene.add(dimLabel);
+
+  // 柜门标识：在 X=cL 处画一个绿色半透明面，代表柜门位置
+  const doorGeo = new THREE.PlaneGeometry(c.W, c.H);
+  const doorMat = new THREE.MeshBasicMaterial({
+    color: 0x81c784,
+    transparent: true,
+    opacity: 0.25,
+    side: THREE.DoubleSide
+  });
+  const door = new THREE.Mesh(doorGeo, doorMat);
+  // PlaneGeometry 默认朝 Z 轴，需旋转 90° 使其朝 X 轴
+  door.rotation.y = Math.PI / 2;
+  door.position.set(c.L, c.H/2, c.W/2);
+  scene.add(door);
+
+  // 柜门文字标签
+  const doorLabel = makeTextSprite('柜门 🚪', 0x1b5e20);
+  doorLabel.scale.set(180, 54, 1);
+  doorLabel.position.set(c.L + 30, c.H * 0.85, c.W / 2);
+  scene.add(doorLabel);
+
+  // 深处标识
+  const innerLabel = makeTextSprite('柜内深处', 0x888888);
+  innerLabel.scale.set(160, 48, 1);
+  innerLabel.position.set(-30, c.H * 0.85, c.W / 2);
+  scene.add(innerLabel);
+
+  // 地面箭头：从 X=0（深处）→ X=cL（柜门），示意装货方向
+  const arrowDir = new THREE.Vector3(1, 0, 0);
+  const arrowOrigin = new THREE.Vector3(c.L * 0.1, 5, c.W / 2);
+  const arrowHelper = new THREE.ArrowHelper(
+    arrowDir, arrowOrigin, c.L * 0.8,
+    0x66bb6a, c.L * 0.08, c.L * 0.04
+  );
+  scene.add(arrowHelper);
+}
+
+// ===================== 3D 渲染 =====================
+function renderPackedScene(packed, container) {
+  const EPS = 0.5; // 浮点容差
+  clearScene();
+
+  // ===== 第1步：绘制集装箱框架 =====
+  drawContainerFrame(container);
+
+  // 添加集装箱地面网格
+  const gridHelper = new THREE.GridHelper(Math.max(container.L, container.W), 10, 0xaaaaaa, 0xdddddd);
+  gridHelper.position.set(container.L/2, 0, container.W/2);
+  scene.add(gridHelper);
+
+  // 添加集装箱边界线（绿色粗线）
+  const boundaryMat = new THREE.LineBasicMaterial({ color: 0x00aa00, linewidth: 3 });
+  const boundaryPoints = [
+    new THREE.Vector3(0, 0, 0), new THREE.Vector3(container.L, 0, 0),
+    new THREE.Vector3(container.L, 0, 0), new THREE.Vector3(container.L, 0, container.W),
+    new THREE.Vector3(container.L, 0, container.W), new THREE.Vector3(0, 0, container.W),
+    new THREE.Vector3(0, 0, container.W), new THREE.Vector3(0, 0, 0),
+    new THREE.Vector3(0, container.H, 0), new THREE.Vector3(container.L, container.H, 0),
+    new THREE.Vector3(container.L, container.H, 0), new THREE.Vector3(container.L, container.H, container.W),
+    new THREE.Vector3(container.L, container.H, container.W), new THREE.Vector3(0, container.H, container.W),
+    new THREE.Vector3(0, container.H, container.W), new THREE.Vector3(0, container.H, 0),
+    new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, container.H, 0),
+    new THREE.Vector3(container.L, 0, 0), new THREE.Vector3(container.L, container.H, 0),
+    new THREE.Vector3(container.L, 0, container.W), new THREE.Vector3(container.L, container.H, container.W),
+    new THREE.Vector3(0, 0, container.W), new THREE.Vector3(0, container.H, container.W),
+  ];
+  const boundaryGeo = new THREE.BufferGeometry().setFromPoints(boundaryPoints);
+  const boundaryLines = new THREE.LineSegments(boundaryGeo, boundaryMat);
+  scene.add(boundaryLines);
+
+  // ===== 第2步：显示每个独立箱子 =====
+  // 按货物类型分组用于图例统计
+  const groups = {};
+  packed.forEach(box => {
+    const key = box.label || '未知';
+    if (!groups[key]) {
+      groups[key] = {
+        boxes: [],
+        color: box.color || '#888888'
+      };
+    }
+    groups[key].boxes.push(box);
+  });
+
+  // ===== 显示每个独立箱子 =====
+  Object.entries(groups).forEach(([key, group], idx) => {
+    const boxes = group.boxes;
+    let originalColor = '#888888';
+    if (typeof group.color === 'string' && group.color.startsWith('#')) {
+      originalColor = group.color.toLowerCase();
+    } else if (typeof group.color === 'number') {
+      originalColor = '#' + group.color.toString(16).padStart(6, '0');
+    }
+    const baseColor = new THREE.Color(originalColor);
+    const darkColor = baseColor.clone().multiplyScalar(0.5);
+
+    // 计算总体积
+    const totalVolume = boxes.reduce((sum, b) => sum + b.pl * b.ph * b.pw, 0);
+    const containerVolume = container.L * container.W * container.H;
+    const volumePercent = ((totalVolume / containerVolume) * 100).toFixed(1);
+
+    // ===== 渲染每个独立箱子 =====
+    boxes.forEach(box => {
+      const geo = new THREE.BoxGeometry(box.pl, box.ph, box.pw);
+      const mat = new THREE.MeshPhongMaterial({
+        color: baseColor,
+        shininess: 30,
+        specular: 0x333333
+      });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.set(box.px + box.pl/2, box.py + box.ph/2, box.pz + box.pw/2);
+      scene.add(mesh);
+
+      // 边框
+      const edges = new THREE.EdgesGeometry(geo);
+      const lineMat = new THREE.LineBasicMaterial({ color: darkColor, linewidth: 1 });
+      const wf = new THREE.LineSegments(edges, lineMat);
+      wf.position.copy(mesh.position);
+      scene.add(wf);
+    });
+    // 图例渲染已移至独立函数 renderCargoLegend()
+  });
+
+  // ===== 第4步：更新调试面板 =====
+  let allValid = true;
+  let debugLines = [];
+
+  packed.forEach((box, i) => {
+    const maxX = box.px + box.pl;
+    const maxY = box.py + box.ph;
+    const maxZ = box.pz + box.pw;
+
+    const checkX = maxX <= container.L + EPS ? '✓' : '✗';
+    const checkY = maxY <= container.H + EPS ? '✓' : '✗';
+    const checkZ = maxZ <= container.W + EPS ? '✓' : '✗';
+    const valid = (checkX === '✓') && (checkY === '✓') && (checkZ === '✓');
+
+    if (!valid) allValid = false;
+
+    const xStyle = checkX === '✓' ? 'color:#2e7d32' : 'color:#c62828;font-weight:bold;background:#ffebee;padding:1px 4px;border-radius:3px;';
+    const yStyle = checkY === '✓' ? 'color:#2e7d32' : 'color:#c62828;font-weight:bold;background:#ffebee;padding:1px 4px;border-radius:3px;';
+    const zStyle = checkZ === '✓' ? 'color:#2e7d32' : 'color:#c62828;font-weight:bold;background:#ffebee;padding:1px 4px;border-radius:3px;';
+    const borderStatus = `<span style="${xStyle}">X${checkX} ${maxX.toFixed(0)}/${container.L}</span> <span style="${yStyle}">Y${checkY} ${maxY.toFixed(0)}/${container.H}</span> <span style="${zStyle}">Z${checkZ} ${maxZ.toFixed(0)}/${container.W}</span>`;
+    debugLines.push({
+      idx: i + 1,
+      label: box.label,
+      dim: `${box.pl}×${box.ph}×${box.pw}`,
+      pos: `(${box.px.toFixed(0)},${box.py.toFixed(0)},${box.pz.toFixed(0)})`,
+      border: borderStatus,
+      valid: valid
+    });
+  });
+
+  // 更新调试面板
+  let debugDiv = document.getElementById('debugInfo');
+  if (!debugDiv) {
+    debugDiv = document.createElement('div');
+    debugDiv.id = 'debugInfo';
+    document.body.appendChild(debugDiv);
+  }
+
+  const headerStyle = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;';
+  const rowStyle = 'display:flex;gap:8px;align-items:center;padding:3px 0;border-bottom:1px solid #eee;';
+
+  debugDiv.innerHTML = `
+    <div style="${headerStyle}">
+      <span style="color:#333;font-weight:bold;">📐 边界检查 · 集装箱 ${container.L}×${container.W}×${container.H}cm</span>
+      <button onclick="document.getElementById('debugInfo').style.display='none'" style="background:#f44336;color:white;border:none;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:11px;">关闭</button>
+    </div>
+    <div style="font-size:10px;color:#666;margin-bottom:6px;">格式: 位置 — 每项[实际值/最大值]</div>
+    ${debugLines.map(l => `
+      <div style="${rowStyle}${l.valid ? '' : 'background:#ffebee'};font-size:11px;">
+        <span style="width:22px;color:${l.valid ? '#2e7d32' : '#c62828'};font-weight:bold;font-size:14px;">${l.valid ? '✓' : '✗'}</span>
+        <span style="width:18px;color:#666;">#${l.idx}</span>
+        <span style="width:45px;color:#1565c0;font-weight:600;">${l.label}</span>
+        <span style="width:85px;color:#555;">${l.dim}</span>
+        <span style="width:80px;color:#888;font-size:10px;">${l.pos}</span>
+        <span style="flex:1;">${l.border}</span>
+      </div>
+    `).join('')}
+    <div style="margin-top:10px;padding-top:8px;border-top:2px solid #ddd;font-weight:bold;color:${allValid ? '#2e7d32' : '#c62828'};background:${allValid ? '#e8f5e9' : '#ffebee'};padding:8px;border-radius:4px;text-align:center;">
+      ${allValid ? '✓ 所有货物在边界内' : '✗ 存在越界货物！请检查红色标记项'}
+    </div>
+  `;
+  debugDiv.style.display = 'none'; // 默认隐藏调试面板
+  debugDiv.style.cssText = 'display:none;position:fixed;bottom:10px;left:10px;background:rgba(255,255,255,0.97);padding:14px;border:2px solid #333;border-radius:8px;font-size:11px;max-height:350px;overflow:auto;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.3);font-family:Consolas,monospace;min-width:580px;';
+
+  cameraRadius = Math.max(container.L, container.W, container.H) * 1.0;
+  updateCameraPos();
+}
+
+function makeTextSprite(text, color) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 200; canvas.height = 60;
+  const ctx = canvas.getContext('2d');
+  
+  // 确保 color 是有效的十六进制字符串
+  let hex = '#888888';
+  if (typeof color === 'string' && color.startsWith('#')) {
+    hex = color.length >= 7 ? color : '#' + color.substring(1).padStart(6, '0');
+  } else if (typeof color === 'number') {
+    hex = '#' + color.toString(16).padStart(6, '0');
+  }
+  
+  ctx.fillStyle = hex + '33';
+  ctx.beginPath();
+  ctx.roundRect(4, 4, 192, 52, 8);
+  ctx.fill();
+  ctx.strokeStyle = hex;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 22px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, 100, 30);
+  const texture = new THREE.CanvasTexture(canvas);
+  const mat = new THREE.SpriteMaterial({ map: texture, transparent: true });
+  const sprite = new THREE.Sprite(mat);
+  sprite.scale.set(150, 45, 1);
+  return sprite;
+}
+
+function resetCamera() {
+  // 复位到柜门外正面视角
+  cameraTheta = Math.PI; cameraPhi = 0.38;
+  cameraRadius = Math.max(selectedContainer.L, selectedContainer.W, selectedContainer.doorH) * 1.0; // 更近的视角 ★ 使用门高
+  updateCameraPos();
+}
+
+window.addEventListener('resize', () => {
+  const canvas = document.getElementById('three-canvas');
+  renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+  camera.aspect = canvas.clientWidth / canvas.clientHeight;
+  camera.updateProjectionMatrix();
+});
+
+init();
+
+(function(){
+  // 引入不蒜子统计
+  var bsz = document.createElement('script');
+  bsz.async = true;
+  bsz.src = '//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+  var s = document.getElementsByTagName('script')[0];
+  s.parentNode.insertBefore(bsz, s);
+})();
+
+</script>
+
+
+<script>
+function toggleHelpDropdown(event) {
+  event.stopPropagation();
+  document.getElementById('helpDropdown').classList.toggle('show');
+}
+document.addEventListener('click', function() {
+  var d = document.getElementById('helpDropdown');
+  if (d) d.classList.remove('show');
+});
+function toggleHelpDropdown(event) {
+  event.stopPropagation();
+  var d = document.getElementById('helpDropdown');
+  if (d) d.classList.toggle('show');
+}
+
+function updateHelpDropdownText() {
+  const t = document.getElementById('helpBtnText');
+  const q = document.getElementById('quickTutorialText');
+  const f = document.getElementById('fullManualText');
+  const isEn = document.documentElement.lang === 'en';
+  if (t) t.textContent = isEn ? 'HELP' : '帮助';
+  if (q) q.textContent = isEn ? 'Quick Tutorial' : '快速教程';
+  if (f) f.textContent = isEn ? 'Full Manual' : '完整手册';
+}
+</script>
+
+</body>
+
+<footer class="disclaimer">
+  <span class="main-text">Results are estimates. Verify actual loading capacity before shipping.</span>
+  <br>
+  <span class="byline">© 2026 Victor Mao. All rights reserved.</span>
+  <span id="busuanzi_container_site_pv" style="margin-left:20px;color:#888;">
+    👁 访问量 <span id="busuanzi_value_site_pv"></span> 次
+  </span>
+</footer>
+
+
+</html>
