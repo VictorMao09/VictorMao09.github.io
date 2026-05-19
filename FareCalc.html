@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>运费计算器</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @media (prefers-color-scheme: dark) {
+      html {
+        color-scheme: dark;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 py-12 px-4">
+  <div class="max-w-2xl mx-auto">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+      <h1 class="text-3xl font-bold text-center mb-2 text-gray-800 dark:text-white">
+        运费计算器
+      </h1>
+      <p class="text-center text-gray-500 dark:text-gray-400 mb-8">
+        根据尺寸、重量和数量计算运费
+      </p>
+
+      <form id="calculator-form" class="space-y-6">
+        <!-- 数据输入 -->
+        <div class="space-y-4">
+          <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-200 border-b border-gray-200 dark:border-gray-700 pb-2">
+            数据输入
+          </h2>
+          <div class="grid grid-cols-3 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
+                长（a, cm）
+              </label>
+              <input
+                type="number"
+                id="length"
+                name="length"
+                step="0.1"
+                min="0"
+                placeholder="请输入"
+                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
+                required
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
+                宽（b, cm）
+              </label>
+              <input
+                type="number"
+                id="width"
+                name="width"
+                step="0.1"
+                min="0"
+                placeholder="请输入"
+                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
+                required
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
+                高（c, cm）
+              </label>
+              <input
+                type="number"
+                id="height"
+                name="height"
+                step="0.1"
+                min="0"
+                placeholder="请输入"
+                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
+                required
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- 毛重 -->
+        <div>
+          <label class="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
+            毛重 (m, kg)
+          </label>
+          <input
+            type="number"
+            id="weight"
+            name="weight"
+            step="0.01"
+            min="0"
+            placeholder="请输入毛重"
+            class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
+            required
+          />
+        </div>
+
+        <!-- 箱数和单价 -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
+              箱数 (n)
+            </label>
+            <input
+              type="number"
+              id="quantity"
+              name="quantity"
+              step="1"
+              min="1"
+              placeholder="请输入箱数"
+              class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
+              required
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
+              单价 (P0, 元/kg)
+            </label>
+            <input
+              type="number"
+              id="price"
+              name="price"
+              step="0.01"
+              min="0"
+              placeholder="请输入单价"
+              class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
+              required
+            />
+          </div>
+        </div>
+
+        <!-- 托盘类型选择 -->
+        <div class="space-y-4">
+          <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-200 border-b border-gray-200 dark:border-gray-700 pb-2">
+            选择托盘类型（可多选）
+          </h2>
+          <div class="grid grid-cols-3 gap-4">
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" id="pallet-euro" name="pallet-euro" value="euro" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500" />
+              <span class="text-sm text-gray-600 dark:text-gray-300">欧标托盘 (EPAL/EUR)</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" id="pallet-china" name="pallet-china" value="china" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500" />
+              <span class="text-sm text-gray-600 dark:text-gray-300">国标主力款</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" id="pallet-us" name="pallet-us" value="us" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500" />
+              <span class="text-sm text-gray-600 dark:text-gray-300">美标主流 (48"×40")</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 自定义托盘 -->
+        <div class="space-y-4">
+          <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-200 border-b border-gray-200 dark:border-gray-700 pb-2">
+            自定义托盘（可选）
+          </h2>
+          <label class="flex items-center space-x-2 cursor-pointer">
+            <input type="checkbox" id="custom-pallet-enable" name="custom-pallet-enable" value="custom" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500" />
+            <span class="text-sm text-gray-600 dark:text-gray-300">启用自定义托盘</span>
+          </label>
+          <div id="custom-pallet-inputs" class="hidden grid grid-cols-3 gap-4 mt-3">
+            <div>
+              <label class="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
+                长（cm）
+              </label>
+              <input
+                type="number"
+                id="custom-length"
+                name="custom-length"
+                step="0.1"
+                min="0"
+                placeholder="请输入"
+                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
+                宽（cm）
+              </label>
+              <input
+                type="number"
+                id="custom-width"
+                name="custom-width"
+                step="0.1"
+                min="0"
+                placeholder="请输入"
+                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
+                高（cm）
+              </label>
+              <input
+                type="number"
+                id="custom-height"
+                name="custom-height"
+                step="0.1"
+                min="0"
+                placeholder="请输入"
+                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- 限重和限高输入 -->
+        <div class="space-y-4">
+          <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-200 border-b border-gray-200 dark:border-gray-700 pb-2">
+            托盘限重和限高
+          </h2>
+          <div class="grid grid-cols-4 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
+                欧标
+              </label>
+              <input
+                type="number"
+                id="limit-euro"
+                name="limit-euro"
+                step="1"
+                min="0"
+                placeholder="限重kg"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all mb-2"
+              />
+              <input
+                type="number"
+                id="height-euro"
+                name="height-euro"
+                step="0.1"
+                min="0"
+                value="183"
+                placeholder="限高cm"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
+                国标
+              </label>
+              <input
+                type="number"
+                id="limit-china"
+                name="limit-china"
+                step="1"
+                min="0"
+                placeholder="限重kg"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all mb-2"
+              />
+              <input
+                type="number"
+                id="height-china"
+                name="height-china"
+                step="0.1"
+                min="0"
+                value="183"
+                placeholder="限高cm"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
+                美标
+              </label>
+              <input
+                type="number"
+                id="limit-us"
+                name="limit-us"
+                step="1"
+                min="0"
+                placeholder="限重kg"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all mb-2"
+              />
+              <input
+                type="number"
+                id="height-us"
+                name="height-us"
+                step="0.1"
+                min="0"
+                value="183"
+                placeholder="限高cm"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
+                自定义
+              </label>
+              <input
+                type="number"
+                id="limit-custom"
+                name="limit-custom"
+                step="1"
+                min="0"
+                placeholder="限重kg"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all mb-2"
+              />
+              <input
+                type="number"
+                id="height-custom"
+                name="height-custom"
+                step="0.1"
+                min="0"
+                value="183"
+                placeholder="限高cm"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- 计算按钮 -->
+        <button
+          type="submit"
+          class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg"
+        >
+          计算运费
+        </button>
+      </form>
+
+      <!-- 计算结果 -->
+      <div id="result" class="hidden mt-8 space-y-4">
+        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+          <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+            计算结果
+          </h3>
+          
+          <div id="error-message" class="hidden bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg mb-4">
+          </div>
+
+          <div id="calculation-details" class="space-y-3 text-sm">
+            <div class="flex justify-between items-center">
+              <span class="text-gray-600 dark:text-gray-300">尺寸排序后:</span>
+              <span id="sorted-dimensions" class="font-medium text-gray-800 dark:text-white"></span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-600 dark:text-gray-300">体积重量:</span>
+              <span id="volume-weight" class="font-medium text-gray-800 dark:text-white"></span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-600 dark:text-gray-300">实际毛重:</span>
+              <span id="actual-weight" class="font-medium text-gray-800 dark:text-white"></span>
+            </div>
+            <div id="minimum-weight-note" class="hidden bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 text-yellow-700 dark:text-yellow-300 px-3 py-2 rounded text-sm">
+              <span class="font-semibold">ℹ️ 最低计费规则生效:</span> 体积重量和毛重都小于12kg，按12kg计算
+            </div>
+            <div class="flex justify-between items-center border-t border-gray-300 dark:border-gray-600 pt-3">
+              <span class="text-gray-600 dark:text-gray-300">计费重量:</span>
+              <span id="chargeable-weight" class="font-semibold text-gray-800 dark:text-white"></span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-600 dark:text-gray-300">单价:</span>
+              <span id="unit-price" class="font-medium text-gray-800 dark:text-white"></span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-600 dark:text-gray-300">箱数:</span>
+              <span id="box-quantity" class="font-medium text-gray-800 dark:text-white"></span>
+            </div>
+            <div class="flex justify-between items-center border-t border-gray-300 dark:border-gray-600 pt-3">
+              <span class="text-gray-600 dark:text-gray-300">总运费:</span>
+              <span id="total-freight" class="font-bold text-2xl text-blue-600 dark:text-blue-400"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+          <p class="text-sm text-blue-700 dark:text-blue-300">
+            <span class="font-semibold">计算规则:</span><br>
+            1. 尺寸自动按 a≤b≤c 顺序排序<br>
+            2. 体积重量 = 长 × 宽 × 高 ÷ 6000<br>
+            3. 计费重量 = max{体积重量, 毛重}（最低12kg）<br>
+            4. 总运费 = 计费重量 × 箱数 × 单价<br>
+            5. 若 (长+宽)×2 + 高 > 260，显示错误
+          </p>
+        </div>
+      </div>
+
+      <!-- 装柜计算结果 -->
+      <div id="loading-result" class="hidden mt-8 space-y-4">
+        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+          <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+            装柜计算
+          </h3>
+          <div id="loading-details" class="space-y-4 text-sm">
+          </div>
+        </div>
+        <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+          <p class="text-sm text-green-700 dark:text-green-300">
+            <span class="font-semibold">装柜计算说明:</span><br>
+            计算在不同规格托盘上可以摆放多少箱货物（默认高度183cm）
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-center text-gray-500 dark:text-gray-400 text-sm mt-6 space-y-2">
+      <p>提示: 若 (长+宽)×2 + 高 > 260，将显示错误提示</p>
+      <p>This program is designed by VictorMao</p>
+    </div>
+  </div>
+
+  <script>
+    // 装柜计算函数
+    function calculateLoading(palletWidth, palletLength, palletHeight, boxLength, boxWidth, boxHeight) {
+      // 计算两种基本摆放方式
+      const way1 = Math.floor(palletWidth / boxWidth) * Math.floor(palletLength / boxLength) *
+                   Math.floor(palletHeight / boxHeight);
+      const way2 = Math.floor(palletWidth / boxLength) * Math.floor(palletLength / boxWidth) *
+                   Math.floor(palletHeight / boxHeight);
+
+      const maxCount = Math.max(way1, way2);
+      const bestWay = way1 >= way2 ? '方式1' : '方式2';
+
+      return {
+        way1,
+        way2,
+        max: maxCount,
+        bestWay
+      };
+    }
+
+    // 添加计算逻辑
+    const form = document.getElementById('calculator-form');
+    const resultDiv = document.getElementById('result');
+    const loadingResultDiv = document.getElementById('loading-result');
+    const errorMessage = document.getElementById('error-message');
+    const calculationDetails = document.getElementById('calculation-details');
+    const loadingDetails = document.getElementById('loading-details');
+    const customPalletEnable = document.getElementById('custom-pallet-enable');
+    const customPalletInputs = document.getElementById('custom-pallet-inputs');
+
+    // 自定义托盘显示/隐藏
+    customPalletEnable.addEventListener('change', function() {
+      if (customPalletEnable.checked) {
+        customPalletInputs.classList.remove('hidden');
+      } else {
+        customPalletInputs.classList.add('hidden');
+      }
+    });
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      // 获取输入值
+      const a = parseFloat(document.getElementById('length').value);
+      const b = parseFloat(document.getElementById('width').value);
+      const c = parseFloat(document.getElementById('height').value);
+      const m = parseFloat(document.getElementById('weight').value);
+      const n = parseFloat(document.getElementById('quantity').value);
+      const p0 = parseFloat(document.getElementById('price').value);
+
+      // 按照a <= b <=c的顺序重新排序，赋值给新变量a1 b1 c1
+      const dimensions = [a, b, c].sort(function(x, y) { return x - y; });
+      const a1 = dimensions[0];
+      const b1 = dimensions[1];
+      const c1 = dimensions[2];
+
+      // 检查报错条件（使用排序后的值）
+      const circumference = (a1 + b1) * 2 + c1;
+      const hasError = circumference > 260;
+
+      // 计算体积重量（使用排序后的值）
+      const volumeWeight = (a1 * b1 * c1) / 6000;
+
+      // 计算计费重量（取最大值），但最低按12kg计算
+      const normalChargeableWeight = Math.max(volumeWeight, m);
+      const applyMinimumWeight = volumeWeight < 12 && m < 12;
+
+      // 计算两种运费
+      const normalFreight = normalChargeableWeight * n * p0;
+      const minimumFreight = 12 * n * p0;
+
+      // 显示结果区域
+      resultDiv.classList.remove('hidden');
+
+      // 显示或隐藏错误信息
+      if (hasError) {
+        errorMessage.classList.remove('hidden');
+        errorMessage.textContent = '⚠️ 警告: (长+宽)×2 + 高 = ' + circumference.toFixed(2) + ' cm > 260 cm，请检查尺寸是否正确！';
+      } else {
+        errorMessage.classList.add('hidden');
+      }
+
+      // 始终显示计算详情
+      calculationDetails.classList.remove('hidden');
+
+      // 更新计算详情
+      document.getElementById('sorted-dimensions').textContent = '长=' + a1 + 'cm, 宽=' + b1 + 'cm, 高=' + c1 + 'cm';
+      document.getElementById('volume-weight').textContent = volumeWeight.toFixed(2) + ' kg';
+      document.getElementById('actual-weight').textContent = m.toFixed(2) + ' kg';
+      document.getElementById('unit-price').textContent = '¥' + p0.toFixed(2) + '/kg';
+      document.getElementById('box-quantity').textContent = n + ' 箱';
+
+      // 根据是否触发最低计费规则显示不同的计费重量和运费
+      const minimumWeightNote = document.getElementById('minimum-weight-note');
+      if (applyMinimumWeight) {
+        // 显示两种计费方式的结果
+        minimumWeightNote.classList.remove('hidden');
+        document.getElementById('chargeable-weight').textContent = normalChargeableWeight.toFixed(2) + ' kg (实际) / 12 kg (最低)';
+        document.getElementById('total-freight').textContent = '¥' + normalFreight.toFixed(2) + ' (实际) / ¥' + minimumFreight.toFixed(2) + ' (最低)';
+      } else {
+        // 只显示正常计费结果
+        minimumWeightNote.classList.add('hidden');
+        document.getElementById('chargeable-weight').textContent = normalChargeableWeight.toFixed(2) + ' kg';
+        document.getElementById('total-freight').textContent = '¥' + normalFreight.toFixed(2);
+      }
+
+      // 计算并显示装柜结果
+      // 获取选中的托盘类型
+      const selectedPallets = [];
+
+      // 检查标准托盘是否被选中
+      if (document.getElementById('pallet-euro').checked) {
+        const limit = parseFloat(document.getElementById('limit-euro').value) || Infinity;
+        const height = parseFloat(document.getElementById('height-euro').value) || 183;
+        selectedPallets.push({
+          name: '欧标托盘 (EPAL/EUR)',
+          width: 120,
+          length: 80,
+          height: height,
+          limit: limit
+        });
+      }
+
+      if (document.getElementById('pallet-china').checked) {
+        const limit = parseFloat(document.getElementById('limit-china').value) || Infinity;
+        const height = parseFloat(document.getElementById('height-china').value) || 183;
+        selectedPallets.push({
+          name: '国标主力款',
+          width: 120,
+          length: 100,
+          height: height,
+          limit: limit
+        });
+      }
+
+      if (document.getElementById('pallet-us').checked) {
+        const limit = parseFloat(document.getElementById('limit-us').value) || Infinity;
+        const height = parseFloat(document.getElementById('height-us').value) || 183;
+        selectedPallets.push({
+          name: '美标主流 (48"×40")',
+          width: 121.9,
+          length: 101.6,
+          height: height,
+          limit: limit
+        });
+      }
+
+      // 检查自定义托盘是否被选中
+      if (customPalletEnable.checked) {
+        const customLength = parseFloat(document.getElementById('custom-length').value);
+        const customWidth = parseFloat(document.getElementById('custom-width').value);
+        const customHeight = parseFloat(document.getElementById('custom-height').value);
+        const limit = parseFloat(document.getElementById('limit-custom').value) || Infinity;
+        const height = parseFloat(document.getElementById('height-custom').value) || 183;
+        
+        if (customLength && customWidth) {
+          selectedPallets.push({
+            name: '自定义托盘',
+            width: customWidth,
+            length: customLength,
+            height: height,
+            limit: limit
+          });
+        }
+      }
+
+      // 显示或隐藏装柜结果区域
+      if (selectedPallets.length > 0) {
+        loadingResultDiv.classList.remove('hidden');
+        
+        // 清空并重新生成装柜结果
+        loadingDetails.innerHTML = '';
+        
+        selectedPallets.forEach(function(pallet) {
+          // 计算装柜数量（使用排序后的尺寸）
+          const result = calculateLoading(pallet.width, pallet.length, pallet.height, b1, a1, c1);
+          
+          // 计算总重量
+          const totalWeight = result.max * m;
+          const isOverWeight = totalWeight > pallet.limit;
+          
+          const palletDiv = document.createElement('div');
+          palletDiv.className = 'border border-gray-300 dark:border-gray-600 rounded-lg p-4';
+          
+          let html = '<div class="font-semibold text-gray-800 dark:text-white mb-2">' + pallet.name + ' - ' + pallet.width + '×' + pallet.length + '×' + pallet.height + ' cm</div>';
+          html += '<div class="grid grid-cols-2 gap-2 text-gray-600 dark:text-gray-300">';
+          html += '<div>方式1 (宽×长×高): <span class="font-medium">' + result.way1 + ' 箱</span></div>';
+          html += '<div>方式2 (长×宽×高): <span class="font-medium">' + result.way2 + ' 箱</span></div>';
+          html += '</div>';
+          html += '<div class="mt-2 text-green-600 dark:text-green-400 font-semibold">';
+          html += '最大摆放: ' + result.max + ' 箱 (' + result.bestWay + ')' + (result.bestWay === '方式1' ? ' ✓' : '');
+          html += '</div>';
+          html += '<div class="mt-1 text-gray-500 dark:text-gray-400 text-xs">';
+          html += '总重量: ' + totalWeight.toFixed(2) + ' kg';
+          if (!isFinite(pallet.limit)) {
+            html += ' (不限重)';
+          } else if (isOverWeight) {
+            html += ' <span class="text-red-600 dark:text-red-400 font-semibold">(超重! 建议最多' + Math.floor(pallet.limit / m) + '箱)</span>';
+          } else {
+            html += ' / ' + pallet.limit + ' kg';
+          }
+          html += '</div>';
+          
+          palletDiv.innerHTML = html;
+          loadingDetails.appendChild(palletDiv);
+        });
+      } else {
+        loadingResultDiv.classList.add('hidden');
+      }
+    });
+  </script>
+</body>
+</html>

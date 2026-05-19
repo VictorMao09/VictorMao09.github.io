@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>装多多 - 使用教程 Help Guide</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%);
+      min-height: 100vh;
+      color: #333;
+      line-height: 1.6;
+    }
+    .lang-bar {
+      position: fixed;
+      top: 16px;
+      right: 20px;
+      z-index: 100;
+    }
+    .lang-btn {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 8px 16px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #333;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transition: all 0.2s;
+    }
+    .lang-btn:hover {
+      background: #4ecdc4;
+      color: #fff;
+      border-color: #4ecdc4;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 60px 20px 40px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .logo { font-size: 3.5rem; margin-bottom: 12px; }
+    .slogan {
+      font-size: 1.4rem;
+      color: #4ecdc4;
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: 2px;
+    }
+    .slogan strong {
+      font-size: 1.6rem;
+    }
+    h1 {
+      font-size: 2.5rem;
+      background: linear-gradient(135deg, #2c3e50, #4ecdc4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 12px;
+    }
+    .brand {
+      color: #2e7d32;
+      font-weight: 700;
+      font-size: 2.5rem;
+      background: linear-gradient(135deg, #2c3e50, #4ecdc4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .subtitle {
+      font-size: 1.2rem;
+      color: #666;
+    }
+    
+    /* 产品优势模块 */
+    .features-section {
+      margin-bottom: 50px;
+    }
+    .features-title {
+      font-size: 1.5rem;
+      color: #2c3e50;
+      margin-bottom: 20px;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .feature-card {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 16px;
+      padding: 24px 16px;
+      text-align: center;
+      transition: all 0.3s;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      border-color: #4ecdc4;
+      box-shadow: 0 8px 24px rgba(78,205,196,0.2);
+    }
+    .feature-icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .feature-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #2c3e50;
+      margin-bottom: 8px;
+    }
+    .feature-desc {
+      font-size: 0.85rem;
+      color: #666;
+      line-height: 1.5;
+    }
+    
+    .steps {
+      display: grid;
+      gap: 24px;
+    }
+    .step {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 16px;
+      padding: 28px;
+      display: flex;
+      gap: 24px;
+      transition: all 0.3s;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    }
+    .step:hover {
+      transform: translateX(8px);
+      border-color: #4ecdc4;
+      box-shadow: 0 8px 32px rgba(78,205,196,0.2);
+    }
+    .step-num {
+      flex-shrink: 0;
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, #4ecdc4, #44a08d);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #fff;
+    }
+    .step-content { flex: 1; }
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .step-icon { font-size: 1.5rem; }
+    .step-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #2c3e50;
+    }
+    .step-desc {
+      color: #555;
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+    .step-desc ul {
+      margin: 12px 0;
+      padding-left: 20px;
+    }
+    .step-desc li {
+      margin: 8px 0;
+    }
+    .step-desc b {
+      color: #4ecdc4;
+      font-weight: 600;
+    }
+    .entry-prompt {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin: 20px auto;
+      padding: 16px 24px;
+      background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+      border: 2px solid #ff9800;
+      border-radius: 12px;
+      max-width: 700px;
+    }
+    .entry-prompt p {
+      margin: 0;
+      font-size: 0.95rem;
+      color: #e65100;
+      font-weight: 500;
+    }
+    .entry-btn {
+      padding: 8px 20px;
+      background: linear-gradient(135deg, #ff9800, #f57c00);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.3s;
+      white-space: nowrap;
+    }
+    .entry-btn:hover {
+      background: linear-gradient(135deg, #f57c00, #ef6c00);
+      transform: translateY(-1px);
+    }
+    .tips-section {
+      margin-top: 50px;
+      padding: 32px;
+      background: linear-gradient(135deg, #e8f8f5, #d1f2eb);
+      border-radius: 16px;
+      border: 1px solid #a3d9c5;
+    }
+    .tips-title {
+      font-size: 1.5rem;
+      color: #2c7a5b;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .tip-item {
+      display: flex;
+      gap: 16px;
+      margin: 16px 0;
+      padding: 16px;
+      background: rgba(255,255,255,0.6);
+      border-radius: 12px;
+    }
+    .tip-icon { font-size: 1.5rem; }
+    .tip-text { color: #2c3e50; font-size: 1rem; }
+    .tip-text b { color: #2c7a5b; }
+    footer {
+      text-align: center;
+      margin-top: 50px;
+      padding: 24px;
+      color: #888;
+      font-size: 0.9rem;
+    }
+    @media (max-width: 768px) {
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .step { flex-direction: column; }
+      .step-num { width: 48px; height: 48px; font-size: 1.2rem; }
+      h1 { font-size: 1.8rem; }
+      .features-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="lang-bar">
+    <button class="lang-btn" onclick="toggleLang()">🌐 EN / 中文</button>
+  </div>
+
+  <div class="container">
+    <header>
+      <div class="logo">📦</div>
+      <p class="slogan" id="mainSlogan">多装快省盈利来</p>
+      <h1 id="mainTitle">装多多 <span class="brand" id="brandName"></span></h1>
+      <p class="subtitle" id="mainSubtitle">Smart Container Loading Calculator</p>
+    </header>
+
+    <!-- 产品优势模块 -->
+    <div class="features-section">
+      <h2 class="features-title" id="featuresTitle">✨ 核心优势 Core Advantages</h2>
+      <div class="features-grid" id="featuresGrid">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <div class="steps" id="stepsContainer">
+      <!-- Steps will be rendered by JavaScript -->
+    </div>
+
+    <div class="tips-section">
+      <div class="tips-title" id="tipsTitle">💡 使用小技巧</div>
+      <div id="tipsContainer">
+        <!-- Tips will be rendered by JavaScript -->
+      </div>
+    </div>
+
+    <footer>
+      <p>© 2026 Victor Mao · 装多多</p>
+      <p><a href="https://VictorMao09.github.io" target="_blank">VictorMao's Github Homepage</a></p>
+    </footer>
+  </div>
+
+  <script>
+    let isCN = true;
+
+    // 产品优势数据
+    const featuresData = [
+      {
+        icon: '💰',
+        nameCN: '降本增效小工具',
+        nameEN: 'Pack Smarter, Save More',
+        descCN: '提高装货量<br>摊薄单件商品运输成本',
+        descEN: 'Maximize load, minimize cost<br>Drive down per-unit logistics cost'
+      },
+      {
+        icon: '⚡',
+        nameCN: '智能优化策略',
+        nameEN: '9 Optimization Strategies',
+        descCN: '体积/高度/重量/综合/层优先...<br>自动选最优',
+        descEN: 'Volume / Height / Weight / Layer-first...<br>Automatically picks the best'
+      },
+      {
+        icon: '📐',
+        nameCN: '智能识别可利用空间',
+        nameEN: 'Smart Space Detection',
+        descCN: '层层堆叠<br>提高集装箱容积率',
+        descEN: 'Detect every gap<br>Maximize container utilization'
+      },
+      {
+        icon: '🚢',
+        nameCN: '多箱联合配置',
+        nameEN: 'Auto Container Assignment',
+        descCN: '系统自动分配集装箱数量<br>灵活应对货量',
+        descEN: 'Auto-assigns containers<br>Based on your cargo volume'
+      },
+      {
+        icon: '🎮',
+        nameCN: '3D可视化预览',
+        nameEN: '3D Packing Preview',
+        descCN: '实时预览装箱效果<br>空间利用率一览无余',
+        descEN: 'Real-time 3D preview<br>See your packing at a glance'
+      },
+      {
+        icon: '🎯',
+        nameCN: '重心平衡分析',
+        nameEN: 'CG Analysis',
+        descCN: '实时计算重心位置<br>评估装载安全性',
+        descEN: 'Real-time center of gravity<br>Assess your loading safety'
+      },
+      {
+        icon: '📥📤',
+        nameCN: '轻松操作',
+        nameEN: 'Easy Import & Export',
+        descCN: 'Excel粘贴导入<br>可执行方案一键输出',
+        descEN: 'Paste from Excel<br>Export ready-to-use packing plans'
+      },
+      {
+        icon: '⚙️',
+        nameCN: '广泛适配自定义',
+        nameEN: 'Flexible & Customizable',
+        descCN: '灵活适配集装箱/托盘/面包车等<br>各类装载空间',
+        descEN: 'Works with containers, pallets,<br>vans & custom spaces'
+      },
+      {
+        icon: '📐',
+        nameCN: '一键涨方决策对比',
+        nameEN: 'One-Tap Expand with Compare',
+        descCN: '容差补偿三档可选<br>实时对比保障决策落地',
+        descEN: 'Three tolerance presets, one tap<br>Compare data to validate plan feasibility'
+      }
+    ];
+
+    const stepsData = [
+      {
+        num: '1',
+        icon: '🚢',
+        titleCN: '选择集装箱类型',
+        titleEN: 'Step 1: Select Container Type',
+        descCN: '在页面顶部选择合适的集装箱：',
+        descEN: 'Select the right container at the top of the page:',
+        itemsCN: [
+          '<b>20尺平柜</b> - 适合货物量较少 (≈33m³)',
+          '<b>40尺平柜</b> - 中等货物量 (≈67m³)',
+          '<b>40尺高柜</b> - 货物量较大，推荐使用 (≈76m³)',
+          '<b>45尺高柜</b> - 最大容量 (≈86m³)',
+          '<b>自定义</b> - 输入自己的集装箱内径尺寸'
+        ],
+        itemsEN: [
+          '<b>20ft GP</b> - Less cargo (≈33m³)',
+          '<b>40ft GP</b> - Medium cargo (≈67m³)',
+          '<b>40ft HC</b> - More cargo, recommended (≈76m³)',
+          '<b>45ft HC</b> - Maximum capacity (≈86m³)',
+          '<b>Custom</b> - Enter your own dimensions'
+        ]
+      },
+      {
+        num: '2',
+        icon: '📦',
+        titleCN: '输入货物数据',
+        titleEN: 'Step 2: Enter Cargo Data',
+        descCN: '在"货物规格输入"区域添加货物：',
+        descEN: 'Add your cargo in the "Cargo Input" area:',
+        itemsCN: [
+          '点击 <b>"＋ 添加货物"</b> 逐个输入',
+          '或点击 <b>"📋 粘贴数据"</b> 从Excel直接粘贴',
+          '每种货物需要填写：长、宽、高（cm）、重量（kg）、件数'
+        ],
+        itemsEN: [
+          'Click <b>"+ Add Cargo"</b> for single entry',
+          'Or click <b>"📋 Paste Data"</b> to paste from Excel',
+          'Fill in: Length, Width, Height (cm), Weight (kg), Piece Count'
+        ]
+      },
+      {
+        num: '3',
+        icon: '🧮',
+        titleCN: '点击计算装载',
+        titleEN: 'Step 3: Calculate Packing',
+        descCN: '确认数据后开始计算：',
+        descEN: 'Click to start calculation:',
+        itemsCN: [
+          '点击 <b>"🚀 开始装载计算"</b> 按钮',
+          '系统自动分配需要的集装箱数量',
+          '<b>AI秒算最优装载方案</b>',
+          '智能优化器会尝试9种策略，取最优结果'
+        ],
+        itemsEN: [
+          'Click <b>"🚀 Calculate"</b> button',
+          'System auto-allocates containers',
+          '<b>AI-powered instant optimal packing</b>',
+          'Smart Optimizer tests 9 strategies for best result'
+        ]
+      },
+      {
+        num: '4',
+        icon: '🎮',
+        titleCN: '查看3D装载结果',
+        titleEN: 'Step 4: View 3D Packing Result',
+        descCN: '计算完成后查看3D可视化：',
+        descEN: 'View 3D visualization after calculation:',
+        itemsCN: [
+          '<b>旋转视角</b>：鼠标左键拖拽',
+          '<b>缩放大小</b>：滚轮滚动',
+          '<b>平移画面</b>：鼠标右键拖拽',
+          '货物颜色与左侧图例一一对应'
+        ],
+        itemsEN: [
+          '<b>Rotate</b>: Left mouse drag',
+          '<b>Zoom</b>: Mouse wheel',
+          '<b>Pan</b>: Right mouse drag',
+          'Cargo colors match the legend on the left'
+        ]
+      },
+      {
+        num: '5',
+        icon: '📋',
+        titleCN: '检查货物分组与重心',
+        titleEN: 'Step 5: Check Cargo Groups & Center of Gravity',
+        descCN: '在明细面板查看详细数据：',
+        descEN: 'Check detailed data in the detail panel:',
+        itemsCN: [
+          '点击 <b>分组标题</b> 展开/折叠查看详情',
+          '统计每种货物的件数、体积、重量',
+          '查看 <b>重心分析</b> - 评估装载平衡性',
+          '安全阈值：偏移&lt;20%正常，20-35%偏重，&gt;35%危险'
+        ],
+        itemsEN: [
+          'Click <b>group header</b> to expand/collapse',
+          'Statistics: quantity, volume, weight per cargo',
+          'View <b>Center of Gravity</b> - assess balance',
+          'Threshold: &lt;20% OK, 20-35% heavy, &gt;35% dangerous'
+        ]
+      },
+      {
+        num: '6',
+        icon: '⚡',
+        titleCN: '智能优化与导出',
+        titleEN: 'Step 6: Smart Optimize & Export',
+        descCN: '进一步优化并导出数据：',
+        descEN: 'Optimize further and export data:',
+        itemsCN: [
+          '点击 <b>"🔄 智能优化"</b> 测试更多策略',
+          '点击 <b>"📥 导出Excel"</b> 一键下载可执行方案',
+          'Excel包含3个工作表：汇总、明细、报告'
+        ],
+        itemsEN: [
+          'Click <b>"🔄 Smart Optimize"</b> to test more strategies',
+          'Click <b>"📥 Export Excel"</b> to download executable plan',
+          'Excel has 3 sheets: Summary, Details, Report'
+        ]
+      }
+    ];
+
+    const tipsData = [
+      {
+        icon: '🔄',
+        textCN: '<b>极简模式</b>：可选择"仅水平旋转"，减少计算时间',
+        textEN: '<b>Simple Mode</b>: Choose "Horizontal only" to save time'
+      },
+      {
+        icon: '🚢',
+        textCN: '<b>多集装箱</b>：系统自动根据货物量分配需要的集装箱数量',
+        textEN: '<b>Multi-container</b>: System auto-allocates containers based on cargo volume'
+      },
+      {
+        icon: '💾',
+        textCN: '<b>数据保留</b>：刷新页面后，上次输入的货物数据会自动保留',
+        textEN: '<b>Data persistence</b>: Cargo data is retained after page refresh'
+      },
+      {
+        icon: '🌐',
+        textCN: '<b>语言切换</b>：右上角可随时切换中/英文界面',
+        textEN: '<b>Language toggle</b>: Switch EN/CN anytime at top right'
+      },
+      {
+        icon: '📏',
+        textCN: '<b>尺寸容差智能补偿</b>：抛货测量值常小于外箱实际尺寸。「📐 一键涨方」内置三档容差（<b>+0.5 / +1 / +1.5 cm</b>），补偿自动执行，数据零重复，点「还原」即可恢复',
+        textEN: '<b>Dimensional Tolerance Compensation</b>: Measured bulky cargo dimensions often fall short. <b>📐 Expand Dims</b> presets (<b>+0.5 / +1 / +1.5 cm</b>) — no manual adjustment needed. Reset to original for comparison easily'
+      }
+    ];
+
+    function renderPage() {
+      const container = document.getElementById('stepsContainer');
+      const tipsContainer = document.getElementById('tipsContainer');
+      const featuresGrid = document.getElementById('featuresGrid');
+      
+      // Render features
+      featuresGrid.innerHTML = featuresData.map(f => `
+        <div class="feature-card">
+          <div class="feature-icon">${f.icon}</div>
+          <div class="feature-name">${isCN ? f.nameCN : f.nameEN}</div>
+          <div class="feature-desc">${isCN ? f.descCN : f.descEN}</div>
+        </div>
+      `).join('');
+      
+      // Update features title
+      document.getElementById('featuresTitle').textContent = isCN ? 
+        '✨ 核心优势 Core Advantages' : 
+        '✨ Core Advantages 核心优势';
+
+      // Render steps
+      container.innerHTML = stepsData.map((step, i) => `
+        <div class="step">
+          <div class="step-num">${step.num}</div>
+          <div class="step-content">
+            <div class="step-header">
+              <span class="step-icon">${step.icon}</span>
+              <span class="step-title">${isCN ? step.titleCN : step.titleEN}</span>
+            </div>
+            <div class="step-desc">
+              <p>${isCN ? step.descCN : step.descEN}</p>
+              <ul>
+                ${(isCN ? step.itemsCN : step.itemsEN).map(item => `<li>${item}</li>`).join('')}
+              </ul>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      // Render tips
+      tipsContainer.innerHTML = tipsData.map(tip => `
+        <div class="tip-item">
+          <span class="tip-icon">${tip.icon}</span>
+          <span class="tip-text">${isCN ? tip.textCN : tip.textEN}</span>
+        </div>
+      `).join('');
+
+      // Update header
+      document.getElementById('mainSlogan').innerHTML = isCN ? '多装快省盈利来' : '<strong>LOAD MAX</strong>';
+      document.getElementById('mainTitle').innerHTML = isCN ? '装多多 使用教程' : '装多多 <span class="brand">FIT WISE</span> - User Guide';
+      document.getElementById('mainSubtitle').textContent = isCN ?
+        '智能集装箱装载计算器 - 操作指南' :
+        'Smart Container Loading Calculator - Operation Guide';
+      document.getElementById('tipsTitle').innerHTML = isCN ? '💡 使用小技巧' : '💡 Usage Tips';
+    }
+
+    function toggleLang() {
+      isCN = !isCN;
+      document.documentElement.lang = isCN ? 'zh-CN' : 'en';
+      renderPage();
+    }
+
+    // Initial render
+    renderPage();
+  </script>
+</body>
+</html>

@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>装多多 / LOAD MAX · 双语用户手册</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'PingFang SC', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #eef2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .manual-container {
+            max-width: 1100px;
+            width: 100%;
+            background: white;
+            border-radius: 40px;
+            box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 28px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2edf2;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .lang-switch {
+            display: flex;
+            gap: 12px;
+        }
+
+        .lang-btn {
+            background: #eef3f9;
+            border: none;
+            padding: 8px 24px;
+            border-radius: 60px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.85rem;
+            color: #1a4e6e;
+        }
+
+        .lang-btn.active {
+            background: #1f6392;
+            color: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .nav-controls {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .nav-btn {
+            background: white;
+            border: 1px solid #cde0e8;
+            padding: 6px 18px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: #1f6392;
+            transition: 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: #eef3f9;
+            border-color: #1f6392;
+        }
+
+        .page-indicator {
+            font-size: 0.85rem;
+            color: #577a8c;
+            background: #f0f5f9;
+            padding: 4px 12px;
+            border-radius: 40px;
+        }
+
+        .content-area {
+            padding: 32px 36px;
+            min-height: 500px;
+            background: white;
+        }
+
+        .page-content {
+            animation: fade 0.3s ease;
+        }
+
+        @keyframes fade {
+            from { opacity: 0; transform: translateX(10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #1A5F7A, #0F3B4A);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 16px;
+        }
+
+        h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #1A5F7A;
+            border-left: 5px solid #2c9b6e;
+            padding-left: 16px;
+            margin: 20px 0 16px;
+        }
+
+        h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c5a6e;
+            margin: 16px 0 8px;
+        }
+
+        .grid-2 {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        .card {
+            background: #f9fafc;
+            border-radius: 24px;
+            padding: 18px 20px;
+            flex: 1;
+            border: 1px solid #e3edf2;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #eef3f9;
+            padding: 4px 14px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #1f6392;
+            margin-bottom: 12px;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin: 12px 0;
+        }
+        .feature-list li {
+            margin-bottom: 8px;
+            display: flex;
+            gap: 8px;
+            align-items: baseline;
+        }
+
+        .compare-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin: 20px 0;
+        }
+        .compare-card {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 18px 20px;
+            border: 1px solid #dee9ef;
+        }
+
+        .footer-note {
+            background: #eef3f9;
+            padding: 12px 20px;
+            border-radius: 32px;
+            font-size: 0.8rem;
+            color: #235b6e;
+            margin: 20px 0;
+        }
+
+        hr {
+            margin: 20px 0;
+            border: none;
+            height: 1px;
+            background: #e0ecf2;
+        }
+
+        @media (max-width: 700px) {
+            .content-area { padding: 24px 20px; }
+            .compare-row { grid-template-columns: 1fr; }
+            .toolbar { flex-direction: column; align-items: stretch; }
+        }
+    </style>
+</head>
+<body>
+<div class="manual-container">
+    <div class="toolbar">
+        <div class="lang-switch">
+            <button class="lang-btn active" data-lang="zh">🇨🇳 中文</button>
+            <button class="lang-btn" data-lang="en">🇬🇧 English</button>
+        </div>
+        <div class="nav-controls">
+            <button class="nav-btn" id="prevBtn">◀ 上一页</button>
+            <span class="page-indicator" id="pageIndicator">1 / 1</span>
+            <button class="nav-btn" id="nextBtn">下一页 ▶</button>
+        </div>
+    </div>
+    <div class="content-area" id="contentArea">
+        <!-- 动态渲染 -->
+    </div>
+</div>
+
+<script>
+    // ---------- 中英文手册内容 (每个章节一个对象) ----------
+    const chapters = [
+        { // 页1: 产品概述
+            zh: `
+                <div class="page-content">
+                    <h1>📦 装多多 FIT WISE</h1>
+                    <p style="font-size:1.05rem; color:#2c5a6e;">智能装载优化系统 · 极值点算法 · 多策略择优 · 自定义空间 · 重心安全</p>
+                    <div class="grid-2">
+                        <div class="card">
+                            <div class="badge">核心定位</div>
+                            <p>不只是集装箱工具，更是<strong>通用空间规划助手</strong>：外贸整柜、货车拼车、仓库库位、搬家装箱、居家储物。</p>
+                        </div>
+                        <div class="card">
+                            <div class="badge">技术架构</div>
+                            <p>纯HTML/JS单文件，零安装、零后端、跨平台（Win/macOS/移动端）。中英文双语一键切换。</p>
+                        </div>
+                    </div>
+                    <div class="footer-note">✨ 核心能力：极值点贪心算法 · 双计算模式 · 专家模式+卸货顺序指导页 · 自定义装载空间</div>
+                </div>
+            `,
+            en: `
+                <div class="page-content">
+                    <h1>LOAD MAX · 装多多 FIT WISE</h1>
+                    <p style="font-size:1.05rem; color:#2c5a6e;">Smart Container Loading Calculator - Operation Guide</p>
+                    <div class="grid-2">
+                        <div class="card">
+                            <div class="badge">Core Purpose</div>
+                            <p>Not just for containers — a <strong>universal space planner</strong>: FCL, LTL trucks, warehouse slots, moving boxes, home storage.</p>
+                        </div>
+                        <div class="card">
+                            <div class="badge">Tech Architecture</div>
+                            <p>Single-file HTML/JS, zero install, no backend, cross‑platform (Windows/macOS/mobile). One‑click bilingual interface.</p>
+                        </div>
+                    </div>
+                    <div class="footer-note">✨ Core capabilities: Extreme Point Greedy Algorithm · Two Calculation Modes · Expert Mode + Unloading Sequence Sheet · Custom Loading Space</div>
+                </div>
+            `
+        },
+        { // 页2: 自定义空间功能 (英文已按用户要求修改)
+            zh: `
+                <div class="page-content">
+                    <h2>⚙️ 自定义装载空间 —— 无限拓展</h2>
+                    <div class="grid-2">
+                        <div class="card"><h3>📏 任意长宽高</h3><p>输入厘米尺寸，算法自动适配。<br>适用：货车车厢、仓库库位、搬家纸箱、居家柜体。</p></div>
+                        <div class="card"><h3>⚖️ 限重自由设定</h3><p>支持吨/公斤，极值点算法、重心分析、专家模式全部兼容。</p></div>
+                    </div>
+                    <div class="footer-note">💡 自定义模式下，智能优化、快速计算、专家模式同样可用，让一套算法服务无数场景。</div>
+                </div>
+            `,
+            en: `
+                <div class="page-content">
+                    <h2>⚙️ Custom Loading Space</h2>
+                    <div class="card" style="margin-bottom: 20px;">
+                        <p><strong>Enter your space dimensions and weight limit.</strong><br>
+                        Each cargo dimension (L/W/H) must be ≤ the values below.<br>
+                        Items exceeding these limits will be skipped during packing.</p>
+                        <ul class="feature-list">
+                            <li>📏 <strong>Length × Width × Height (cm):</strong> user input</li>
+                            <li>⚖️ <strong>Max Weight (kg):</strong> user input</li>
+                        </ul>
+                        <p>✅ Works for: truck bodies, warehouse slots, moving cartons, home closets.</p>
+                    </div>
+                    <div class="footer-note">💡 All algorithms (Express / Smart Optimize / Expert Mode) fully support custom spaces.</div>
+                </div>
+            `
+        },
+        { // 页3: 双计算模式
+            zh: `
+                <div class="page-content">
+                    <h2>🚀 双计算模式 · 按需选择</h2>
+                    <div class="compare-row">
+                        <div class="compare-card"><h3>⚡ 快速计算</h3><ul class="feature-list"><li>✅ 1种排序（体积降序）</li><li>✅ 速度 <1秒</li><li>✅ 限重：海运/中国大陆通用</li><li>✅ 重心显示，手动专家面板</li></ul><div class="badge">适用：快速报价、常规货</div></div>
+                        <div class="compare-card"><h3>🧠 智能优化 🔥推荐</h3><ul class="feature-list"><li>✅ 多种策略并行择优</li><li>✅ 限重：美线合规(17.5/19.2/18.82T)</li><li>✅ 主动优化重心+改善对比</li><li>✅ 自动输出专家风险评估</li><li>✅ 进度条反馈</li></ul><div class="badge">速度3~8秒 · 更优箱数+重心</div></div>
+                    </div>
+                    <div class="footer-note">💡 两种模式均支持自定义空间，智能优化推荐用于正式配载/重货/美线多式联运。</div>
+                </div>
+            `,
+            en: `
+                <div class="page-content">
+                    <h2>🚀 Two Calculation Modes</h2>
+                    <div class="compare-row">
+                        <div class="compare-card"><h3>⚡ Quick Calculate</h3><ul class="feature-list"><li>✅ 1 sorting strategy (volume desc)</li><li>✅ Speed <1 sec</li><li>✅ Weight limits: ocean/China general</li><li>✅ CG display, manual expert panel</li></ul><div class="badge">Use: quick quote, regular cargo</div></div>
+                        <div class="compare-card"><h3>🧠 Smart Optimize 🔥Recommended</h3><ul class="feature-list"><li>✅ Multiple strategies auto‑selected</li><li>✅ Weight limits: US multimodal (17.5/19.2/18.82T)</li><li>✅ Active CG optimization + improvement shown</li><li>✅ Auto expert risk panel</li><li>✅ Progress bar</li></ul><div class="badge">3~8 sec · fewer containers & better CG</div></div>
+                    </div>
+                    <div class="footer-note">💡 Both modes work with custom spaces. Smart Optimize recommended for production plans, heavy cargo, US inland.</div>
+                </div>
+            `
+        },
+        { // 页4: 专家模式 + 卸货顺序指导页
+            zh: `
+                <div class="page-content">
+                    <h2>🔧 专家模式 · 重货安全 + 卸货顺序指导页</h2>
+                    <div class="grid-2">
+                        <div class="card"><h3>⚖️ 重货分析</h3><ul class="feature-list"><li>✔ 单件≥500kg自动触发</li><li>✔ 重心高度占比 + 国标红线</li><li>✔ 对地压强评估 (＞1500kg)</li><li>✔ 力学建议(红/灰区分)</li></ul></div>
+                        <div class="card"><h3>📄 独立「卸货顺序指导页」</h3><p>Excel导出时额外生成工作表，依据<strong>重货先出、重心稳定</strong>给出每箱推荐的卸货顺序，避免翻倒，提升现场安全与效率。</p></div>
+                    </div>
+                    <div class="footer-note">💡 即使没有超重货物，手动开启专家模式也可预览重心和压强风险。</div>
+                </div>
+            `,
+            en: `
+                <div class="page-content">
+                    <h2>🔧 Expert Mode & Unloading Sequence Sheet</h2>
+                    <div class="grid-2">
+                        <div class="card"><h3>⚖️ Heavy cargo analysis</h3><ul class="feature-list"><li>✔ Auto‑trigger when any piece ≥500kg</li><li>✔ CG height ratio + national standard reference</li><li>✔ Floor pressure assessment (≥1500kg)</li><li>✔ Mechanical advice (red/grey distinction)</li></ul></div>
+                        <div class="card"><h3>📄 Unloading Sequence Sheet</h3><p>An extra worksheet in Excel export. Shows recommended unloading order per container based on <strong>heavy pieces first & CG stability</strong>. Reduces on‑site risk and increases efficiency.</p></div>
+                    </div>
+                    <div class="footer-note">💡 Even without heavy cargo, manually activating Expert Mode lets you preview CG and pressure risks.</div>
+                </div>
+            `
+        },
+        { // 页5: 工程思维（门高基准 + 一键涨方）
+            zh: `
+                <div class="page-content">
+                    <h2>📐 工程思维 · 门高基准 + 一键涨方</h2>
+                    <div class="grid-2">
+                        <div class="card"><h3>🚪 门高作为计算基准</h3><p>使用集装箱/车厢门高而非内高，确保理论排布能落地，避免“装不进柜”。</p></div>
+                        <div class="card"><h3>📦 一键涨方（尺寸容差补偿）</h3><p>Compact +0.5 / Standard +1.0 / Loose +1.5 cm，补偿纸箱变形。推荐先涨方再智能优化。</p></div>
+                    </div>
+                    <div class="footer-note">✨ 工作流：自定义空间 → 选涨方(Standard) → 智能优化 → 现场可执行方案</div>
+                </div>
+            `,
+            en: `
+                <div class="page-content">
+                    <h2>📐 Engineering Baseline: Door Height + One‑Tap Expand</h2>
+                    <div class="grid-2">
+                        <div class="card"><h3>🚪 Door height as calculation baseline</h3><p>Uses door height (not internal height) to guarantee feasibility on site — prevents “fits in theory but not in reality”.</p></div>
+                        <div class="card"><h3>📦 One‑Tap Expand (dimensional tolerance)</h3><p>Compact +0.5 / Standard +1.0 / Loose +1.5 cm to compensate box deformation. Recommended workflow: Expand → Smart Optimize.</p></div>
+                    </div>
+                    <div class="footer-note">✨ Recommended workflow: set custom space → apply Standard expansion → run Smart Optimize → site‑ready plan.</div>
+                </div>
+            `
+        },
+        { // 页6: 3D可视化 + Excel导出
+            zh: `
+                <div class="page-content">
+                    <h2>🎮 3D可视化 & 📥 Excel导出</h2>
+                    <div class="grid-2">
+                        <div class="card"><h3>3D视图</h3><p>拖拽旋转/缩放/平移，多箱标签切换，线框模式，货物颜色图例。</p></div>
+                        <div class="card"><h3>Excel导出</h3><p>汇总统计、明细数据、报告，<strong>专家模式额外生成“卸货顺序指导页”</strong>。</p></div>
+                    </div>
+                    <div class="footer-note">💡 3D视图帮助预判装箱冲突，Excel数据直接交付现场作业。</div>
+                </div>
+            `,
+            en: `
+                <div class="page-content">
+                    <h2>🎮 3D Visualization & 📥 Excel Export</h2>
+                    <div class="grid-2">
+                        <div class="card"><h3>3D View</h3><p>Drag/rotate/zoom/pan, multi‑container tabs, wireframe mode, color legend.</p></div>
+                        <div class="card"><h3>Excel Export</h3><p>Summary, Details, Report, plus <strong>Unloading Sequence Sheet</strong> when Expert Mode is active.</p></div>
+                    </div>
+                    <div class="footer-note">💡 3D view helps foresee conflicts; Excel data ready for on‑site execution.</div>
+                </div>
+            `
+        },
+        { // 页7: 使用技巧与常见问题
+            zh: `
+                <div class="page-content">
+                    <h2>💡 使用技巧 & 常见问题</h2>
+                    <div class="grid-2">
+                        <div class="card"><h3>✔️ 技巧</h3><ul class="feature-list"><li>自定义+智能优化：先输空间，再跑智能优化。</li><li>涨方+专家模式：易变形货物先用Standard涨方，再开专家模式。</li><li>英文界面+导出：一键切换，直接发给海外客户。</li></ul></div>
+                        <div class="card"><h3>❓ FAQ</h3><ul class="feature-list"><li><strong>智能优化为什么慢？</strong> 多种策略择优，换更优箱数。</li><li><strong>重心安全值？</strong> 高度占比＜50%安全。</li><li><strong>对地压强超标？</strong> 加垫板或调整位置。</li><li><strong>门高基准？</strong> 确保实际装柜可行。</li></ul></div>
+                    </div>
+                </div>
+            `,
+            en: `
+                <div class="page-content">
+                    <h2>💡 Tips & FAQ</h2>
+                    <div class="grid-2">
+                        <div class="card"><h3>✔️ Tips</h3><ul class="feature-list"><li>Custom + Smart Optimize: set your space first, then run Smart Optimize.</li><li>Expand + Expert Mode: apply Standard expansion for easily deformed cartons, then activate Expert Mode.</li><li>English interface + Export: one click, share with overseas customers.</li></ul></div>
+                        <div class="card"><h3>❓ FAQ</h3><ul class="feature-list"><li><strong>Why is Smart Optimize slower?</strong> Tests multiple strategies to give fewer containers and better CG.</li><li><strong>Safe CG height?</strong> Height ratio <50% is safe per national standard.</li><li><strong>Floor pressure too high?</strong> Add dunnage or reposition cargo.</li><li><strong>Door height baseline?</strong> Ensures actual loading feasibility.</li></ul></div>
+                    </div>
+                </div>
+            `
+        }
+    ];
+
+    let currentLang = 'zh';   // 'zh' or 'en'
+    let currentIndex = 0;
+    const total = chapters.length;
+
+    function render() {
+        const contentDiv = document.getElementById('contentArea');
+        const data = chapters[currentIndex];
+        if (data) {
+            const html = currentLang === 'zh' ? data.zh : data.en;
+            contentDiv.innerHTML = html;
+        }
+        document.getElementById('pageIndicator').innerText = `${currentIndex+1} / ${total}`;
+    }
+
+    function setLang(lang) {
+        currentLang = lang;
+        // 更新按钮样式
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            if (btn.getAttribute('data-lang') === lang) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+        render();
+    }
+
+    function nextPage() {
+        if (currentIndex + 1 < total) {
+            currentIndex++;
+            render();
+        }
+    }
+
+    function prevPage() {
+        if (currentIndex - 1 >= 0) {
+            currentIndex--;
+            render();
+        }
+    }
+
+    // 绑定事件
+    document.getElementById('prevBtn').addEventListener('click', prevPage);
+    document.getElementById('nextBtn').addEventListener('click', nextPage);
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const lang = btn.getAttribute('data-lang');
+            setLang(lang);
+        });
+    });
+
+    // 初始渲染
+    render();
+</script>
+</body>
+</html>
