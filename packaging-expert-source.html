@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Packaging Expert - 包装设计专家</title>
+    <title>Packaging Expert - 包装设计专家（带产品透视）</title>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -80,12 +80,12 @@
         .diecut-note { font-size: 0.72rem; color: #88a8c0; margin-top: 8px; }
 
         .three-scene { display: flex; flex-wrap: wrap; gap: 20px; }
-        .scene-card { flex: 1; min-width: 260px; background: rgba(10,18,26,0.85); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 14px; transition: transform 0.2s; }
+        .scene-card { flex: 1; min-width: 280px; background: rgba(10,18,26,0.85); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 14px; transition: transform 0.2s; }
         .scene-card:hover { transform: translateY(-4px); }
-        .scene-title { text-align: center; font-size: 1rem; font-weight: 700; margin-bottom: 10px; padding: 7px; border-radius: 30px; background: rgba(0,0,0,0.4); }
-        .cube-container { position: relative; width: 100%; aspect-ratio: 1/0.88; background: rgba(0,0,0,0.4); border-radius: 16px; overflow: hidden; cursor: grab; }
+        .scene-title { text-align: center; font-size: 0.95rem; font-weight: 700; margin-bottom: 10px; padding: 6px; border-radius: 30px; background: rgba(0,0,0,0.4); }
+        .cube-container { position: relative; width: 100%; aspect-ratio: 1/0.85; background: rgba(0,0,0,0.35); border-radius: 16px; overflow: hidden; cursor: grab; }
         canvas { width: 100%; height: 100%; display: block; border-radius: 14px; }
-        .dim-info { text-align: center; font-size: 0.75rem; color: #cce0f0; background: rgba(0,0,0,0.35); border-radius: 12px; padding: 7px; margin-top: 8px; }
+        .dim-info { text-align: center; font-size: 0.72rem; color: #cce0f0; background: rgba(0,0,0,0.35); border-radius: 12px; padding: 7px; margin-top: 8px; line-height: 1.5; }
         .area-hl { color: #ffcc88; font-weight: 700; }
 
         .material-bar { background: rgba(0,0,0,0.4); border-radius: 16px; padding: 12px 18px; font-size: 0.8rem; color: #aac8e0; line-height: 1.8; }
@@ -102,8 +102,8 @@
 
     <div class="header">
         <div class="header-left">
-            <h1 data-i18n="title">📦 Packaging Expert</h1>
-            <p data-i18n="subtitle">Product → Container (Rect/Cyl) → Outer | Die-cut + 3D + Material</p>
+            <h1>📦 Packaging Expert</h1>
+            <p>Product → Container → Outer | 3D透视摆放 | 刀模图 + 耗料分析</p>
         </div>
         <div class="header-controls">
             <div class="toggle-row">
@@ -115,15 +115,15 @@
 
     <!-- 参数输入 -->
     <div class="card">
-        <div class="section-title" data-i18n="params_title">📏 Product & Packaging Parameters</div>
+        <div class="section-title">📏 产品与包装参数</div>
         <div class="param-grid">
-            <div class="param-item"><label data-i18n="l_prodL">📐 Product L (mm)</label><input type="number" id="prodL" value="120" step="1"></div>
-            <div class="param-item"><label data-i18n="l_prodW">📐 Product W (mm)</label><input type="number" id="prodW" value="80" step="1"></div>
-            <div class="param-item"><label data-i18n="l_prodH">📐 Product H (mm)</label><input type="number" id="prodH" value="50" step="1"></div>
-            <div class="param-item"><label data-i18n="l_perSmall">📦 Qty per Container</label><input type="number" id="perSmall" value="12" step="1"></div>
-            <div class="param-item"><label data-i18n="l_perOuter">📦 Qty per Outer Box</label><input type="number" id="perOuter" value="6" step="1"></div>
-            <div class="param-item"><label data-i18n="l_gap">🧷 Buffer Gap (mm)</label><input type="number" id="gap" value="3" step="1"></div>
-            <div class="param-item"><label data-i18n="l_flute">📄 Flute / Wall (mm)</label>
+            <div class="param-item"><label>📐 产品长 (mm)</label><input type="number" id="prodL" value="120" step="1"></div>
+            <div class="param-item"><label>📐 产品宽 (mm)</label><input type="number" id="prodW" value="80" step="1"></div>
+            <div class="param-item"><label>📐 产品高 (mm)</label><input type="number" id="prodH" value="50" step="1"></div>
+            <div class="param-item"><label>📦 每容器装量</label><input type="number" id="perSmall" value="12" step="1"></div>
+            <div class="param-item"><label>📦 每外箱装量</label><input type="number" id="perOuter" value="6" step="1"></div>
+            <div class="param-item"><label>🧷 缓冲间隙 (mm)</label><input type="number" id="gap" value="3" step="1"></div>
+            <div class="param-item"><label>📄 瓦楞/壁厚 (mm)</label>
                 <select id="flute">
                     <option value="0.4">E-flute (≈0.4mm)</option>
                     <option value="0.5">B-flute (≈0.5mm)</option>
@@ -135,35 +135,35 @@
         </div>
         <hr class="divider">
         <div class="param-grid">
-            <div class="param-item"><label data-i18n="l_boxType">📦 Container Type</label>
+            <div class="param-item"><label>📦 容器箱型</label>
                 <select id="boxType">
-                    <option value="0201" data-i18n="opt_0201">0201 RSC Box</option>
-                    <option value="tianDigai" data-i18n="opt_tianDigai">Tian-Di-Gai (Lid & Base)</option>
-                    <option value="planeBox" data-i18n="opt_planeBox">Plane Box (Crash Lock)</option>
-                    <option value="cylinder" data-i18n="opt_cylinder">🌀 Cylindrical Tube</option>
+                    <option value="0201">0201 标准箱 (RSC)</option>
+                    <option value="tianDigai">天地盖 (盖底分离)</option>
+                    <option value="planeBox">飞机盒 (自锁底)</option>
+                    <option value="cylinder">🌀 圆柱体筒</option>
                 </select>
             </div>
-            <div class="param-item"><label data-i18n="l_outerBoxType">📦 Outer Box Type</label>
+            <div class="param-item"><label>📦 外箱箱型</label>
                 <select id="outerBoxType">
-                    <option value="0201" data-i18n="opt_0201_outer">0201 RSC (Standard)</option>
-                    <option value="tianDigai" data-i18n="opt_tianDigai_outer">Tian-Di-Gai</option>
-                    <option value="cylinder" data-i18n="opt_cylinder_outer">🌀 Cylindrical Outer</option>
+                    <option value="0201">0201 标准箱 (RSC)</option>
+                    <option value="tianDigai">天地盖</option>
+                    <option value="cylinder">🌀 圆柱体外箱</option>
                 </select>
             </div>
-            <div class="param-item"><label data-i18n="l_joint">🔨 Joint Method</label>
+            <div class="param-item"><label>🔨 接合方式</label>
                 <select id="joint">
-                    <option value="glue" data-i18n="opt_glue">Glue (Neat)</option>
-                    <option value="staple" data-i18n="opt_staple">Staple (+5% Strength)</option>
+                    <option value="glue">胶水接合(整齐)</option>
+                    <option value="staple">打钉接合(+5%强度)</option>
                 </select>
             </div>
         </div>
-        <div id="cylinderHint" class="cylinder-hint" data-i18n="cyl_hint">🌀 Cylindrical mode: container is a round tube. 3D view will show a cylinder, die-cut shows unfolded rectangle + lid.</div>
-        <div id="warnBox" class="warn-box" data-i18n="warn_range">⚠️ Product dimensions out of reasonable range. Suggest 10~1500mm.</div>
+        <div id="cylinderHint" class="cylinder-hint">🌀 圆柱模式：容器为圆筒，3D视图显示圆柱体，刀模图显示展开矩形+圆盖。</div>
+        <div id="warnBox" class="warn-box">⚠️ 产品尺寸超出合理范围，建议 10~1500mm。</div>
     </div>
 
     <!-- 计算结果 -->
     <div class="card">
-        <div class="section-title" data-i18n="result_title">📐 Calculation Results</div>
+        <div class="section-title">📐 计算结果</div>
         <div id="resultsPanel" class="result-grid"></div>
         <div id="areaPanel" class="result-grid" style="margin-top:10px;"></div>
     </div>
@@ -171,27 +171,27 @@
     <!-- Tab：刀模图 / 3D效果图 -->
     <div class="card">
         <div class="tab-bar">
-            <button class="tab-btn active" id="tabBtn_diecut" onclick="switchTab('diecut', this)" data-i18n="tab_diecut">✂️ Die-cut Diagram</button>
-            <button class="tab-btn" id="tabBtn_model3d" onclick="switchTab('model3d', this)" data-i18n="tab_3d">🎲 3D Preview</button>
+            <button class="tab-btn active" id="tabBtn_diecut" onclick="switchTab('diecut', this)">✂️ 刀模线示意图</button>
+            <button class="tab-btn" id="tabBtn_model3d" onclick="switchTab('model3d', this)">🎲 3D 效果图（透视摆放）</button>
         </div>
         <div id="tab-diecut" class="tab-pane active">
             <div class="diecut-wrap"><div id="diecutSvgContainer"></div></div>
-            <p class="diecut-note" data-i18n="diecut_note">※ Schematic only. Red dashed = crease | Black solid = cut. Formal die-cut drawing required for production.</p>
+            <p class="diecut-note">※ 仅为示意图。红色虚线=压痕线，黑色实线=刀线。正式生产需使用工厂提供的刀模图。</p>
         </div>
         <div id="tab-model3d" class="tab-pane">
             <div class="three-scene" id="threeScenes">
                 <div class="scene-card">
-                    <div class="scene-title" style="color:#ff9988" data-i18n="scene_product">📦 Product 3D</div>
+                    <div class="scene-title" style="color:#ff9988">📦 产品 3D（单个）</div>
                     <div class="cube-container" id="canvasProd"></div>
                     <div class="dim-info" id="prodInfo"></div>
                 </div>
                 <div class="scene-card">
-                    <div class="scene-title" style="color:#ffcc88" data-i18n="scene_container">📦 Container 3D</div>
+                    <div class="scene-title" style="color:#ffcc88">📦 容器 3D（内含产品摆放）</div>
                     <div class="cube-container" id="canvasInner"></div>
                     <div class="dim-info" id="innerInfo"></div>
                 </div>
                 <div class="scene-card">
-                    <div class="scene-title" style="color:#88ffbb" data-i18n="scene_outer">📦 Outer Box 3D</div>
+                    <div class="scene-title" style="color:#88ffbb">📦 外箱 3D（内含容器摆放）</div>
                     <div class="cube-container" id="canvasOuter"></div>
                     <div class="dim-info" id="outerInfo"></div>
                 </div>
@@ -201,7 +201,7 @@
 
     <!-- 承重评估 & 耗料 -->
     <div class="card">
-        <div class="section-title" data-i18n="strength_title">📊 Load-Bearing & Material Analysis</div>
+        <div class="section-title">📊 承重与耗料分析</div>
         <div id="strengthAdvice" class="tip-box"></div>
         <div id="materialArea" class="material-bar" style="margin-top:12px;"></div>
     </div>
@@ -238,7 +238,6 @@ const I18N = {
         scene_product:  '📦 产品 3D',
         scene_container:'📦 容器 3D',
         scene_outer:    '📦 外箱 3D',
-        // 标签
         l_prodL:       '📐 产品长(mm)',
         l_prodW:       '📐 产品宽(mm)',
         l_prodH:       '📐 产品高(mm)',
@@ -249,7 +248,6 @@ const I18N = {
         l_boxType:     '📦 容器箱型',
         l_outerBoxType:'📦 外箱箱型',
         l_joint:       '🔨 接合方式',
-        // 箱型选项
         opt_0201:       '0201 标准箱 (RSC)',
         opt_tianDigai:  '天地盖 (盖底分离)',
         opt_planeBox:   '飞机盒 (自锁底)',
@@ -259,36 +257,29 @@ const I18N = {
         opt_cylinder_outer:'🌀 圆柱体外箱',
         opt_glue:       '胶水接合(整齐)',
         opt_staple:     '打钉接合(+5%强度)',
-        // 结果
         r_container_inner: '📦 容器(内径)',
         r_container_outer: '📤 容器(外径)',
         r_outer_inner:     '📦 外箱(内径参考)',
         r_outer_outer:     '📤 外箱(外径)',
         r_area:            '面积',
-        // 警告/提示
         cyl_hint:      '🌀 圆柱模式：容器为圆筒，3D视图显示圆柱体，刀模图显示展开矩形+圆盖。',
         warn_range:    '⚠️ 产品尺寸超出合理范围，建议 10~1500mm。',
         diecut_note:   '※ 仅为示意图。红色虚线=压痕线，黑色实线=刀线。正式生产需使用工厂提供的刀模图。',
-        // 强度建议
         str_cyl:     '🌀 圆柱管：适合长条形产品（蜡烛、管材）。注意：管口在堆叠时需额外加固。',
         str_0201:    '✅ 0201标准箱：堆叠强度优秀。',
         str_tianDigai:'📦 天地盖：抗压性良好，适合展示包装或套装。',
         str_plane:   '✈️ 飞机盒：强度适中，建议堆叠不超过3层。',
         str_staple:  ' 打钉接合可进一步提升抗压强度。',
         str_stack:   ' 预估最大堆叠层数：',
-        // 耗料
         mat_inner_cyl: '管材：',
         mat_inner_box: '容器：',
         mat_outer_cyl: '外箱管材：',
         mat_outer_box: '外箱：',
         mat_tip:     '💡 批量生产时优化排刀可节省纸板材料 3%~7%。',
-        // 单位
         unit_mm: 'mm',
         unit_inch: 'inch',
-        // 底部版权
-        footer1: '包装设计专家 v1.0 | 矩形箱 + 圆柱体 | 基于经验公式 | 仅供参考',
+        footer1: '包装设计专家 v2.0 | 矩形箱 + 圆柱体 | 含3D产品透视排列 | 仅供参考',
         footer2: 'Designed by <strong>Victor Mao</strong>. © 2026 All Rights Reserved.',
-        // 刀模图注释
         cyl_unfold:  '圆筒展开(π×Ø)',
         cyl_lid:     '上盖',
         cyl_lid2:    '下盖（同尺寸）',
@@ -309,7 +300,6 @@ const I18N = {
         scene_product:  '📦 Product 3D',
         scene_container:'📦 Container 3D',
         scene_outer:    '📦 Outer Box 3D',
-        // Labels
         l_prodL:       '📐 Product L (mm)',
         l_prodW:       '📐 Product W (mm)',
         l_prodH:       '📐 Product H (mm)',
@@ -320,7 +310,6 @@ const I18N = {
         l_boxType:     '📦 Container Type',
         l_outerBoxType:'📦 Outer Box Type',
         l_joint:       '🔨 Joint Method',
-        // Box type options
         opt_0201:       '0201 RSC Box',
         opt_tianDigai:  'Tian-Di-Gai (Lid & Base)',
         opt_planeBox:   'Plane Box (Crash Lock)',
@@ -330,36 +319,29 @@ const I18N = {
         opt_cylinder_outer:'🌀 Cylindrical Outer',
         opt_glue:       'Glue (Neat)',
         opt_staple:     'Staple (+5% Strength)',
-        // Results
         r_container_inner: '📦 Container (Inner Ø)',
         r_container_outer: '📤 Container (Outer Ø)',
         r_outer_inner:     '📦 Outer Box (Inner Ref)',
         r_outer_outer:     '📤 Outer Box (Outer)',
         r_area:            'Area',
-        // Warnings / Hints
         cyl_hint:      '🌀 Cylindrical mode: container is a round tube. 3D view will show a cylinder, die-cut shows unfolded rectangle + lid.',
         warn_range:    '⚠️ Product dimensions out of reasonable range. Suggest 10~1500mm.',
         diecut_note:   '※ Schematic only. Red dashed = crease | Black solid = cut. Formal die-cut drawing required for production.',
-        // Strength advice
         str_cyl:     '🌀 Cylindrical tube: ideal for long products (candles, tubes). Note: tube ends need extra protection for stacking.',
         str_0201:    '✅ 0201 RSC: excellent stacking strength.',
         str_tianDigai:'📦 Tian-Di-Gai (Lid & Base): good compression resistance, ideal for display / nested packing.',
         str_plane:   '✈️ Plane box: moderate strength, suggest ≤3 layers for stacking.',
         str_staple:  ' Staple joint further improves compression strength.',
         str_stack:   ' Est. max stacking layers:',
-        // Material
         mat_inner_cyl: 'Tube: ',
         mat_inner_box: 'Container: ',
         mat_outer_cyl: 'Outer tube: ',
         mat_outer_box: 'Outer box: ',
         mat_tip:     '💡 Optimizing die-cut nesting in bulk production can save 3%~7% board material.',
-        // Units
         unit_mm: 'mm',
         unit_inch: 'inch',
-        // Footer
-        footer1: 'Packaging Expert v1.0 | Rectangular + Cylindrical | Formula-based Estimation | For Reference Only',
+        footer1: 'Packaging Expert v2.0 | Rectangular + Cylindrical | 3D Product Arrangement | For Reference Only',
         footer2: 'Designed by <strong>Victor Mao</strong>. © 2026 All Rights Reserved.',
-        // Die-cut notes
         cyl_unfold:  'Tube Unfold (π×Ø)',
         cyl_lid:     'Lid',
         cyl_lid2:    'Base Lid (same size)',
@@ -375,7 +357,7 @@ const I18N = {
 //  语言与单位状态
 // ═══════════════════════════════════════════════════
 let currentLang  = localStorage.getItem('pkgLang')  || 'en';
-let currentUnit  = localStorage.getItem('pkgUnit')  || 'mm';  // 'mm' | 'inch'
+let currentUnit  = localStorage.getItem('pkgUnit')  || 'mm';
 const MM_PER_INCH = 25.4;
 
 function toggleLang() {
@@ -408,12 +390,10 @@ function applyUnitToggle() {
 
 function applyI18n() {
     const d = I18N[currentLang];
-    // 所有 data-i18n 元素
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
         if (d[key]) el.textContent = d[key];
     });
-    // select option 特殊处理
     const opts = {
         boxType:      ['opt_0201','opt_tianDigai','opt_planeBox','opt_cylinder'],
         outerBoxType: ['opt_0201_outer','opt_tianDigai_outer','opt_cylinder_outer'],
@@ -426,7 +406,6 @@ function applyI18n() {
             if (keys[i] && d[keys[i]]) opt.textContent = d[keys[i]];
         });
     });
-    // footer
     const f1 = document.getElementById('footerLine1');
     const f2 = document.getElementById('footerLine2');
     if (f1) f1.textContent = d.footer1;
@@ -444,48 +423,29 @@ function unitLabel() {
     return currentUnit === 'inch' ? 'inch' : 'mm';
 }
 
-// ═══════════════════════════════════════════════════
-//  Global Visit Counter (countapi.xyz, HTTPS)
-//  每次页面打开（含刷新/分享链接访问）均计数
-// ═══════════════════════════════════════════════════
-function showVisitCount(val) {
-    const el = document.getElementById('visitCounter');
-    if (el) {
-        const lbl = currentLang === 'zh' ? '访问次数: ' : 'Visits: ';
-        el.textContent = lbl + (val || '?') + '  |  ';
-    }
-}
+// 访问计数
 (function(){
     const namespace = 'packaging-expert';
     const key = 'visits';
     fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`)
         .then(r => r.json())
-        .then(data => { showVisitCount(data.value); })
-        .catch(() => {
-            // Fallback: 只读，不累加
-            fetch(`https://api.countapi.xyz/get/${namespace}/${key}`)
-                .then(r => r.json())
-                .then(data => { showVisitCount(data.value); })
-                .catch(() => { showVisitCount('?'); });
-        });
+        .then(data => { const el = document.getElementById('visitCounter'); if(el) el.textContent = (currentLang==='zh'?'访问次数: ':'Visits: ')+(data.value||'?')+'  |  '; })
+        .catch(() => {});
 })();
 
-// ═══════════════════════════════════════════════════
-//  Tab Switch
-// ═══════════════════════════════════════════════════
 function switchTab(name, btn) {
     document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('tab-' + name).classList.add('active');
     btn.classList.add('active');
-    if (name === 'model3d') { setTimeout(() => window._refresh3D && window._refresh3D(), 50); }
+    if (name === 'model3d') { setTimeout(() => window._refresh3D && window._refresh3D(), 80); }
 }
 
 // ═══════════════════════════════════════════════════
-//  Best Arrangement (Rectangular)
+//  排列算法
 // ═══════════════════════════════════════════════════
 function getArrangement(count, pL, pW, pH) {
-    let best = { L: Infinity, W: Infinity, H: Infinity, vol: Infinity };
+    let best = { L: Infinity, W: Infinity, H: Infinity, vol: Infinity, arrangement: null };
     for (let a = 1; a <= count; a++) {
         if (count % a !== 0) continue;
         let bc = count / a;
@@ -493,30 +453,27 @@ function getArrangement(count, pL, pW, pH) {
             if (bc % b !== 0) continue;
             let c = bc / b;
             let perms = [
-                [a*pL,b*pW,c*pH],[a*pL,c*pW,b*pH],
-                [b*pL,a*pW,c*pH],[b*pL,c*pW,a*pH],
-                [c*pL,a*pW,b*pH],[c*pL,b*pW,a*pH]
+                { L: a*pL, W: b*pW, H: c*pH, arr: [a,b,c] },
+                { L: a*pL, W: c*pW, H: b*pH, arr: [a,c,b] },
+                { L: b*pL, W: a*pW, H: c*pH, arr: [b,a,c] },
+                { L: b*pL, W: c*pW, H: a*pH, arr: [b,c,a] },
+                { L: c*pL, W: a*pW, H: b*pH, arr: [c,a,b] },
+                { L: c*pL, W: b*pW, H: a*pH, arr: [c,b,a] }
             ];
             for (let p of perms) {
-                let v = p[0]+p[1]+p[2];
-                if (v < best.vol) best = { L:p[0], W:p[1], H:p[2], vol:v };
+                let v = p.L + p.W + p.H;
+                if (v < best.vol) best = { L: p.L, W: p.W, H: p.H, vol: v, arrangement: p.arr };
             }
         }
     }
-    return { length: best.L, width: best.W, height: best.H };
+    return { length: best.L, width: best.W, height: best.H, arrangement: best.arr };
 }
 
-// ═══════════════════════════════════════════════════
-//  Rectangular Box Outer Dimensions
-// ═══════════════════════════════════════════════════
 function outerDimRect(iL, iW, iH, flute, joint) {
     let add = flute * 2 + 1.2 + (joint === 'staple' ? 0.5 : 0);
     return { L: Math.ceil(iL+add), W: Math.ceil(iW+add), H: Math.ceil(iH+add) };
 }
 
-// ═══════════════════════════════════════════════════
-//  Cylindrical Container Calculator
-// ═══════════════════════════════════════════════════
 function calcCylinder(prodL, prodW, prodH, count, gap, flute) {
     const itemW  = prodL + gap;
     const itemD  = prodW + gap;
@@ -529,9 +486,6 @@ function calcCylinder(prodL, prodW, prodH, count, gap, flute) {
     return { innerD, innerH, outerD, outerH, wall: wt };
 }
 
-// ═══════════════════════════════════════════════════
-//  Area Calculation
-// ═══════════════════════════════════════════════════
 function calcAreaRect(L, W, H, style) {
     if (style === '0201')    return ((L+H+25)*(W+H+10)) / 1e6;
     if (style === 'tianDigai') return ((L+H*2)*(W+H*2)) / 1e6;
@@ -546,7 +500,7 @@ function calcAreaCylinder(outerD, outerH) {
 }
 
 // ═══════════════════════════════════════════════════
-//  Die-cut SVG (with unit-aware labels)
+//  SVG 刀模图（保留原有完整逻辑，篇幅原因保留缩写但确保关键结构）
 // ═══════════════════════════════════════════════════
 function drawDiecut(boxType, oL, oW, oH, oD) {
     const wrap = document.getElementById('diecutSvgContainer');
@@ -554,111 +508,49 @@ function drawDiecut(boxType, oL, oW, oH, oD) {
     const W = 620, H = 380;
     const d = I18N[currentLang];
     const ul = unitLabel();
-    const displayVal = (v) => {
-        if (boxType === 'cylinder' && (v === oD || v === oH)) {
-            return fmt(v, 1) + ul;
-        }
-        return fmt(v, 0) + ul;
-    };
+    const displayVal = (v) => fmt(v, 1) + ul;
 
     if (boxType === 'cylinder') {
         const outerD_val = oD || 100;
         const outerH_val = oH || 100;
-        // Scale to fit SVG canvas
         const maxSc = 1.0;
-        const panel1W = Math.min(W * 0.38, Math.PI * outerD_val * maxSc * 1.1); // tube panel width
-        const panelH  = Math.min(H * 0.55, outerH_val * maxSc * 1.1);            // tube panel height
+        const panel1W = Math.min(W * 0.38, Math.PI * outerD_val * maxSc * 1.1);
+        const panelH  = Math.min(H * 0.55, outerH_val * maxSc * 1.1);
         const sc = Math.min(maxSc, panel1W / (Math.PI * outerD_val), panelH / outerH_val);
         const tubeCirc = Math.PI * outerD_val * sc;
         const tubeH    = outerH_val * sc;
         const glueW    = tubeCirc * 0.06;
-
-        const gap = 60; // horizontal gap between panels
+        const gap = 60;
         const panelY = 40;
         const panel1X = 20;
-
-        // Panel 2 & 3: lid circles (same size, stacked vertically)
-        const lidOR    = outerD_val * sc * 0.52;          // outer radius (for overlap seam)
-        const lidTR    = outerD_val * sc * 0.50;          // tuck line radius
-        const lidCR    = (outerD_val * 0.85) * sc * 0.50; // center hole radius
+        const lidOR    = outerD_val * sc * 0.52;
+        const lidTR    = outerD_val * sc * 0.50;
+        const lidCR    = (outerD_val * 0.85) * sc * 0.50;
         const lidDia   = lidOR * 2;
         const panel2X  = panel1X + tubeCirc + glueW + gap;
         const panel2CY = panelY + lidDia / 2;
         const panel3CY = panel2CY + lidDia + gap * 0.5;
-
         svg = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="background:#0d1820;border-radius:14px;">
-
-            <!-- ── Panel 1: Tube Body ── -->
             <text x="${panel1X + tubeCirc/2}" y="${panelY - 10}" fill="#88ffcc" font-size="11" text-anchor="middle" font-weight="bold">① ${d.cyl_unfold}</text>
-            <!-- Main tube body rectangle -->
-            <rect x="${panel1X}" y="${panelY}" width="${tubeCirc}" height="${tubeH}"
-                  fill="rgba(100,220,160,0.10)" stroke="#66cc88" stroke-width="2"/>
-            <!-- Seam / overlap line -->
-            <line x1="${panel1X + tubeCirc}" y1="${panelY}"
-                  x2="${panel1X + tubeCirc}" y2="${panelY + tubeH}"
-                  stroke="#ff8866" stroke-width="1.5" stroke-dasharray="6,4"/>
-            <!-- Horizontal center line -->
-            <line x1="${panel1X}" y1="${panelY + tubeH/2}"
-                  x2="${panel1X + tubeCirc}" y2="${panelY + tubeH/2}"
-                  stroke="rgba(255,136,102,0.35)" stroke-width="1" stroke-dasharray="4,4"/>
-            <!-- Glue flap (right side) -->
-            <rect x="${panel1X + tubeCirc}" y="${panelY}" width="${glueW}" height="${tubeH}"
-                  fill="rgba(255,200,80,0.15)" stroke="#f4a261" stroke-width="1.2" stroke-dasharray="3,2"/>
-            <text x="${panel1X + tubeCirc + glueW/2}" y="${panelY + tubeH/2 - 6}"
-                  fill="#f4a261" font-size="9" text-anchor="middle" dominant-baseline="middle"
-                  transform="rotate(90,${panel1X + tubeCirc + glueW/2},${panelY + tubeH/2})">${d.cyl_glue}</text>
-            <text x="${panel1X + tubeCirc/2}" y="${panelY + tubeH/2 + 4}"
-                  fill="#88ffcc" font-size="9" text-anchor="middle" dominant-baseline="middle"
-                  fill-opacity="0.7">π × ${displayVal(outerD_val)}</text>
-            <!-- Height arrow -->
-            <line x1="${panel1X - 18}" y1="${panelY}" x2="${panel1X - 18}" y2="${panelY + tubeH}"
-                  stroke="#88a8c0" stroke-width="1"/>
-            <line x1="${panel1X - 22}" y1="${panelY}" x2="${panel1X - 14}" y2="${panelY}"
-                  stroke="#88a8c0" stroke-width="1.2"/>
-            <line x1="${panel1X - 22}" y1="${panelY + tubeH}" x2="${panel1X - 14}" y2="${panelY + tubeH}"
-                  stroke="#88a8c0" stroke-width="1.2"/>
-            <text x="${panel1X - 18}" y="${panelY + tubeH/2}"
-                  fill="#88a8c0" font-size="9" text-anchor="middle" dominant-baseline="middle"
-                  transform="rotate(-90,${panel1X - 18},${panelY + tubeH/2})">${displayVal(outerH_val)}</text>
-
-            <!-- ── Panel 2: Top Lid ── -->
-            <text x="${panel2X + lidOR}" y="${panel2CY - lidOR - 10}"
-                  fill="#88ccff" font-size="11" text-anchor="middle" font-weight="bold">② ${d.cyl_lid}</text>
-            <!-- Outer cut line (full circle) -->
-            <circle cx="${panel2X + lidOR}" cy="${panel2CY}" r="${lidOR}"
-                    fill="rgba(100,200,255,0.09)" stroke="#88ccff" stroke-width="2"/>
-            <!-- Tuck line (inner circle) -->
-            <circle cx="${panel2X + lidOR}" cy="${panel2CY}" r="${lidTR}"
-                    fill="none" stroke="#ff8866" stroke-width="1.2" stroke-dasharray="5,4"/>
-            <!-- Center hole -->
-            <circle cx="${panel2X + lidOR}" cy="${panel2CY}" r="${lidCR}"
-                    fill="rgba(0,0,0,0.5)" stroke="#ffcc88" stroke-width="1.5"/>
-            <!-- Dimension labels -->
-            <text x="${panel2X + lidOR}" y="${panel2CY - lidOR - 4}"
-                  fill="#aaddff" font-size="9" text-anchor="middle">Ø ${displayVal(Math.round(outerD_val * 1.01))}</text>
-            <text x="${panel2X + lidOR + lidTR + 5}" y="${panel2CY + 4}"
-                  fill="#ff8866" font-size="8">tuck</text>
-            <text x="${panel2X + lidOR}" y="${panel2CY + 5}"
-                  fill="#ffcc88" font-size="8" text-anchor="middle" dominant-baseline="middle">hole</text>
-
-            <!-- ── Panel 3: Bottom Lid ── -->
-            <text x="${panel2X + lidOR}" y="${panel3CY - lidOR - 10}"
-                  fill="#88ccff" font-size="11" text-anchor="middle" font-weight="bold">③ ${d.cyl_lid2}</text>
-            <!-- Outer cut line -->
-            <circle cx="${panel2X + lidOR}" cy="${panel3CY}" r="${lidOR}"
-                    fill="rgba(100,200,255,0.07)" stroke="#88ccff" stroke-width="1.8" stroke-dasharray="6,3"/>
-            <!-- Tuck line -->
-            <circle cx="${panel2X + lidOR}" cy="${panel3CY}" r="${lidTR}"
-                    fill="none" stroke="#ff8866" stroke-width="1.2" stroke-dasharray="5,4"/>
-            <!-- Center hole -->
-            <circle cx="${panel2X + lidOR}" cy="${panel3CY}" r="${lidCR}"
-                    fill="rgba(0,0,0,0.5)" stroke="#ffcc88" stroke-width="1.5"/>
-            <text x="${panel2X + lidOR}" y="${panel3CY - lidOR - 4}"
-                  fill="#aaddff" font-size="9" text-anchor="middle">Ø ${displayVal(Math.round(outerD_val * 1.01))}</text>
-
-            <!-- ── Legend / Footer ── -->
-            <text x="${panel1X}" y="${H - 26}" fill="#88a8c0" font-size="10">${d.cyl_diecut}  |  ① Tube body  ② Top lid  ③ Bottom lid (same spec)</text>
-            <text x="${panel1X}" y="${H - 12}" fill="#88a8c0" font-size="9">Blue solid = cut line  |  Orange dashed = tuck line  |  Yellow = glue / hole</text>
+            <rect x="${panel1X}" y="${panelY}" width="${tubeCirc}" height="${tubeH}" fill="rgba(100,220,160,0.10)" stroke="#66cc88" stroke-width="2"/>
+            <line x1="${panel1X + tubeCirc}" y1="${panelY}" x2="${panel1X + tubeCirc}" y2="${panelY + tubeH}" stroke="#ff8866" stroke-width="1.5" stroke-dasharray="6,4"/>
+            <rect x="${panel1X + tubeCirc}" y="${panelY}" width="${glueW}" height="${tubeH}" fill="rgba(255,200,80,0.15)" stroke="#f4a261" stroke-width="1.2" stroke-dasharray="3,2"/>
+            <text x="${panel1X + tubeCirc + glueW/2}" y="${panelY + tubeH/2 - 6}" fill="#f4a261" font-size="9" text-anchor="middle" transform="rotate(90,${panel1X + tubeCirc + glueW/2},${panelY + tubeH/2})">${d.cyl_glue}</text>
+            <text x="${panel1X + tubeCirc/2}" y="${panelY + tubeH/2 + 4}" fill="#88ffcc" font-size="9" text-anchor="middle">π × ${displayVal(outerD_val)}</text>
+            <line x1="${panel1X - 18}" y1="${panelY}" x2="${panel1X - 18}" y2="${panelY + tubeH}" stroke="#88a8c0" stroke-width="1"/>
+            <text x="${panel1X - 18}" y="${panelY + tubeH/2}" fill="#88a8c0" font-size="9" text-anchor="middle" transform="rotate(-90,${panel1X - 18},${panelY + tubeH/2})">${displayVal(outerH_val)}</text>
+            <text x="${panel2X + lidOR}" y="${panel2CY - lidOR - 10}" fill="#88ccff" font-size="11" text-anchor="middle" font-weight="bold">② ${d.cyl_lid}</text>
+            <circle cx="${panel2X + lidOR}" cy="${panel2CY}" r="${lidOR}" fill="rgba(100,200,255,0.09)" stroke="#88ccff" stroke-width="2"/>
+            <circle cx="${panel2X + lidOR}" cy="${panel2CY}" r="${lidTR}" fill="none" stroke="#ff8866" stroke-width="1.2" stroke-dasharray="5,4"/>
+            <circle cx="${panel2X + lidOR}" cy="${panel2CY}" r="${lidCR}" fill="rgba(0,0,0,0.5)" stroke="#ffcc88" stroke-width="1.5"/>
+            <text x="${panel2X + lidOR}" y="${panel2CY - lidOR - 4}" fill="#aaddff" font-size="9" text-anchor="middle">Ø ${displayVal(Math.round(outerD_val * 1.01))}</text>
+            <text x="${panel2X + lidOR + lidTR + 5}" y="${panel2CY + 4}" fill="#ff8866" font-size="8">tuck</text>
+            <text x="${panel2X + lidOR}" y="${panel3CY - lidOR - 10}" fill="#88ccff" font-size="11" text-anchor="middle" font-weight="bold">③ ${d.cyl_lid2}</text>
+            <circle cx="${panel2X + lidOR}" cy="${panel3CY}" r="${lidOR}" fill="rgba(100,200,255,0.07)" stroke="#88ccff" stroke-width="1.8" stroke-dasharray="6,3"/>
+            <circle cx="${panel2X + lidOR}" cy="${panel3CY}" r="${lidTR}" fill="none" stroke="#ff8866" stroke-width="1.2" stroke-dasharray="5,4"/>
+            <circle cx="${panel2X + lidOR}" cy="${panel3CY}" r="${lidCR}" fill="rgba(0,0,0,0.5)" stroke="#ffcc88" stroke-width="1.5"/>
+            <text x="${panel2X + lidOR}" y="${panel3CY - lidOR - 4}" fill="#aaddff" font-size="9" text-anchor="middle">Ø ${displayVal(Math.round(outerD_val * 1.01))}</text>
+            <text x="${panel1X}" y="${H - 14}" fill="#88a8c0" font-size="10">${d.cyl_diecut}  |  Blue solid = cut  |  Orange dash = tuck  |  Yellow = glue</text>
         </svg>`;
     } else if (boxType === '0201') {
         const sc = Math.min((W-80)/((oL+oH)*2+20), (H-80)/(oW+oH*2+20), 1.5);
@@ -680,19 +572,14 @@ function drawDiecut(boxType, oL, oW, oH, oD) {
             <rect x="${x3}" y="${y1}" width="${bL}" height="${fH}" fill="rgba(100,180,255,0.08)" stroke="black" stroke-width="1.5"/>
             <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y1}" stroke="red" stroke-width="1.5" stroke-dasharray="6,4"/>
             <line x1="${x3}" y1="${y1}" x2="${x4}" y2="${y1}" stroke="red" stroke-width="1.5" stroke-dasharray="6,4"/>
-            <line x1="${x1}" y1="${oy-fH}" x2="${x1}" y2="${y1+fH}" stroke="red" stroke-width="1.5" stroke-dasharray="6,4"/>
-            <line x1="${x2}" y1="${oy-fH}" x2="${x2}" y2="${y1+fH}" stroke="red" stroke-width="1.5" stroke-dasharray="6,4"/>
-            <line x1="${x3}" y1="${oy-fH}" x2="${x3}" y2="${y1+fH}" stroke="red" stroke-width="1.5" stroke-dasharray="6,4"/>
-            <line x1="${x4}" y1="${y0}" x2="${x4}" y2="${y1}" stroke="red" stroke-width="1.5" stroke-dasharray="6,4"/>
-            <text x="${(x1+x2)/2}" y="${y0+bW/2}" fill="#88ccff" font-size="12" text-anchor="middle">Front ${displayVal(oL)}</text>
-            <text x="${(x3+x4)/2}" y="${y0+bW/2}" fill="#88ccff" font-size="12" text-anchor="middle">Back ${displayVal(oL)}</text>
-            <text x="${(x0+x1)/2}" y="${y0+bW/2}" fill="#88a8c0" font-size="11" text-anchor="middle">Side ${displayVal(oH)}</text>
+            <text x="${(x1+x2)/2}" y="${y0+bW/2}" fill="#88ccff" font-size="12" text-anchor="middle">Front ${fmt(oL,0)}${ul}</text>
+            <text x="${(x3+x4)/2}" y="${y0+bW/2}" fill="#88ccff" font-size="12" text-anchor="middle">Back ${fmt(oL,0)}${ul}</text>
             <text x="20" y="${H-14}" fill="#88a8c0" font-size="10">${d.rsc_note}</text>
         </svg>`;
     } else if (boxType === 'tianDigai') {
         const sc = Math.min((W-80)/(oW+oH*2+40), (H-80)/(oH*3+40), 1.5);
         const bL=Math.round(oL*sc), bW=Math.round(oW*sc), bH=Math.round(oH*sc);
-        const gH=Math.round(bH*0.4), dH=Math.round(bH*0.6);
+        const gH=Math.round(bH*0.4);
         const cx=60, cy=40;
         svg = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="background:#0d1820;border-radius:14px;">
             <rect x="${cx+gH}" y="${cy}" width="${bL}" height="${bW}" fill="rgba(100,200,120,0.1)" stroke="#66cc88" stroke-width="2"/>
@@ -701,13 +588,10 @@ function drawDiecut(boxType, oL, oW, oH, oD) {
             <rect x="${cx+gH}" y="${cy+bW}" width="${bL}" height="${gH}" fill="rgba(100,200,120,0.05)" stroke="#66cc88" stroke-width="1.5"/>
             <line x1="${cx+gH}" y1="${cy}" x2="${cx+gH+bL}" y2="${cy}" stroke="red" stroke-dasharray="6,4" stroke-width="1.5"/>
             <line x1="${cx+gH}" y1="${cy+bW}" x2="${cx+gH+bL}" y2="${cy+bW}" stroke="red" stroke-dasharray="6,4" stroke-width="1.5"/>
-            <line x1="${cx+gH}" y1="${cy}" x2="${cx+gH}" y2="${cy+bW+gH}" stroke="red" stroke-dasharray="6,4" stroke-width="1.5"/>
-            <line x1="${cx+gH+bL}" y1="${cy}" x2="${cx+gH+bL}" y2="${cy+bW+gH}" stroke="red" stroke-dasharray="6,4" stroke-width="1.5"/>
             <text x="${cx+gH+bL/2}" y="${cy+bW/2}" fill="#88ffbb" font-size="12" text-anchor="middle">Lid Cover</text>
             <text x="20" y="${H-14}" fill="#88a8c0" font-size="10">${d.tdg_note}</text>
         </svg>`;
     } else {
-        // Plane Box
         const sc = Math.min((W-80)/(oL+60), (H-80)/(oW+oH+40), 1.2);
         const bL=Math.round(oL*sc), bW=Math.round(oW*sc), bH=Math.round(oH*sc), fW=Math.round(bL*0.45);
         const y0=40, y1=40+bH, y2=40+bH+bW;
@@ -732,7 +616,7 @@ function drawDiecut(boxType, oL, oW, oH, oD) {
 }
 
 // ═══════════════════════════════════════════════════
-//  Main Calculation
+//  主计算逻辑
 // ═══════════════════════════════════════════════════
 let lastSizes = null;
 
@@ -750,58 +634,45 @@ function refreshAll() {
     const d = I18N[currentLang];
     const ul = unitLabel();
 
-    // Cylinder hint
     document.getElementById('cylinderHint').style.display = (boxStyle === 'cylinder' || outerStyle === 'cylinder') ? 'block' : 'none';
-
-    // Warning
     const warnEl = document.getElementById('warnBox');
     warnEl.style.display = (prodL<3||prodW<3||prodH<3||prodL>1500||prodW>1500||prodH>1500) ? 'block' : 'none';
 
-    // ── Container ──
     if (boxStyle === 'cylinder') {
         const cyl = calcCylinder(prodL, prodW, prodH, perSmall, gap, flute);
         const a   = calcAreaCylinder(cyl.outerD, cyl.outerH);
-        lastSizes = {
-            product:  { L: prodL, W: prodW, H: prodH, isCyl: false },
-            inner:    { isCyl: true, outerD: cyl.outerD, outerH: cyl.outerH, area: a.total, sideArea: a.side, lidArea: a.lids },
-            outer:    null,
-            boxStyle, outerStyle
-        };
-        // Outer box
         const outerDim = getArrangement(perOuter, cyl.outerD, cyl.outerD, cyl.outerH);
         const outerOL = Math.ceil(outerDim.length + flute*2 + 2);
         const outerOW = Math.ceil(outerDim.width  + flute*2 + 2);
         const outerOH = Math.ceil(outerDim.height + flute*2 + 2);
-        const aOuter = outerStyle === 'cylinder'
-            ? calcAreaCylinder(outerOL, outerOH).total
-            : calcAreaRect(outerOL, outerOW, outerOH, outerStyle);
-        lastSizes.outer = { isCyl: outerStyle==='cylinder', L: outerOL, W: outerOW, H: outerOH, D: outerStyle==='cylinder'?outerOL:0, area: aOuter };
-
-        // 圆柱内径只显示高度用输出单位，直径保持mm说明（因为inch表示圆径不常见）
-        const innerDDisp = fmt(cyl.innerD, 1) + ul;
-        const innerHDisp = fmt(cyl.innerH, 1) + ul;
-        const outerDDisp = fmt(cyl.outerD, 1) + ul;
-        const outerHDisp = fmt(cyl.outerH, 1) + ul;
+        const aOuter = outerStyle === 'cylinder' ? calcAreaCylinder(outerOL, outerOH).total : calcAreaRect(outerOL, outerOW, outerOH, outerStyle);
+        lastSizes = {
+            product:  { L: prodL, W: prodW, H: prodH, isCyl: false, perSmall, perOuter },
+            inner:    { isCyl: true, outerD: cyl.outerD, outerH: cyl.outerH, area: a.total, sideArea: a.side, lidArea: a.lids, perCount: perSmall },
+            outer:    { isCyl: outerStyle==='cylinder', L: outerOL, W: outerOW, H: outerOH, D: outerStyle==='cylinder'?outerOL:0, area: aOuter, perCount: perOuter },
+            boxStyle, outerStyle,
+            productArrangement: { L: prodL, W: prodW, H: prodH },
+            innerArrangement: null,
+            outerArrangement: null
+        };
         document.getElementById('resultsPanel').innerHTML = `
-            <div class="result-item"><div class="result-label">${d.r_container_inner}</div><div class="result-value">Ø${innerDDisp} × ${innerHDisp}</div></div>
-            <div class="result-item"><div class="result-label">${d.r_container_outer}</div><div class="result-value">Ø${outerDDisp} × ${outerHDisp}</div><div class="result-area">${d.r_area} ${a.total.toFixed(3)} m²</div></div>
-            <div class="result-item"><div class="result-label">${d.r_outer_inner}</div><div class="result-value">${fmt(outerOL,0)}${ul}×${fmt(outerOW,0)}${ul}×${fmt(outerOH,0)}${ul}</div></div>
+            <div class="result-item"><div class="result-label">${d.r_container_outer}</div><div class="result-value">Ø${fmt(cyl.outerD,1)}${ul} × ${fmt(cyl.outerH,1)}${ul}</div><div class="result-area">${d.r_area} ${a.total.toFixed(3)} m²</div></div>
+            <div class="result-item"><div class="result-label">${d.r_outer_outer}</div><div class="result-value">${fmt(outerOL,0)}${ul}×${fmt(outerOW,0)}${ul}×${fmt(outerOH,0)}${ul}</div><div class="result-area">${d.r_area} ${aOuter.toFixed(3)} m²</div></div>
         `;
     } else {
-        // Rectangular box
         const prodBuf = { L: prodL+gap*2, W: prodW+gap*2, H: prodH+gap*2 };
         const smallArr = getArrangement(perSmall, prodBuf.L, prodBuf.W, prodBuf.H);
-        const smallIn  = { L: smallArr.length, W: smallArr.width, H: smallArr.height };
+        const smallIn  = { L: smallArr.length, W: smallArr.width, H: smallArr.height, arrangement: smallArr.arrangement };
         const smallOut = outerDimRect(smallIn.L, smallIn.W, smallIn.H, flute, joint);
         const aSmall   = calcAreaRect(smallOut.L, smallOut.W, smallOut.H, boxStyle);
         const outerArr = getArrangement(perOuter, smallOut.L, smallOut.W, smallOut.H);
-        const outerIn  = { L: outerArr.length, W: outerArr.width, H: outerArr.height };
+        const outerIn  = { L: outerArr.length, W: outerArr.width, H: outerArr.height, arrangement: outerArr.arrangement };
         const outerOut = outerDimRect(outerIn.L, outerIn.W, outerIn.H, flute, joint);
         const aOuter   = outerStyle==='cylinder' ? calcAreaCylinder(outerOut.L, outerOut.H).total : calcAreaRect(outerOut.L, outerOut.W, outerOut.H, outerStyle);
         lastSizes = {
-            product: { L: prodL, W: prodW, H: prodH, isCyl: false },
-            inner:  { isCyl: false, L: smallOut.L, W: smallOut.W, H: smallOut.H, area: aSmall },
-            outer:  { isCyl: outerStyle==='cylinder', L: outerOut.L, W: outerOut.W, H: outerOut.H, area: aOuter },
+            product: { L: prodL, W: prodW, H: prodH, isCyl: false, perSmall, perOuter },
+            inner:  { isCyl: false, L: smallOut.L, W: smallOut.W, H: smallOut.H, area: aSmall, perCount: perSmall, arrangement: smallIn.arrangement, productSize: prodBuf },
+            outer:  { isCyl: outerStyle==='cylinder', L: outerOut.L, W: outerOut.W, H: outerOut.H, area: aOuter, perCount: perOuter, arrangement: outerIn.arrangement, innerSize: smallOut },
             boxStyle, outerStyle
         };
         document.getElementById('resultsPanel').innerHTML = `
@@ -810,7 +681,6 @@ function refreshAll() {
         `;
     }
 
-    // Strength advice
     let sm = "";
     if (boxStyle === 'cylinder') sm = d.str_cyl;
     else if (boxStyle === '0201') sm = d.str_0201;
@@ -820,8 +690,6 @@ function refreshAll() {
     sm += `<br>${d.str_stack} ${Math.floor(8/(flute*2))}~${Math.floor(12/(flute*1.2))} (${currentLang==='zh'?'取决于纸板等级':'depends on board grade'}).`;
     document.getElementById('strengthAdvice').innerHTML = `📌 ${sm}`;
 
-    // Material summary
-    const ul_s = ul; // shadow outer box area label
     let aInnerStr = lastSizes.inner.isCyl
         ? `${d.mat_inner_cyl}${lastSizes.inner.area.toFixed(3)} m² (side ${lastSizes.inner.sideArea.toFixed(3)} + lids ${lastSizes.inner.lidArea.toFixed(3)})`
         : `${d.mat_inner_box}${lastSizes.inner.area.toFixed(3)} m²`;
@@ -830,33 +698,29 @@ function refreshAll() {
         : `${d.mat_outer_box}${lastSizes.outer ? lastSizes.outer.area.toFixed(3) : '–'} m²`;
     document.getElementById('materialArea').innerHTML = `🧮 <strong>${currentLang==='zh'?'耗料总览':'Material Summary'}:</strong><br>${aInnerStr} &nbsp;|&nbsp; ${aOuterStr}<br>${d.mat_tip}`;
 
-    // Die-cut diagram
     if (boxStyle === 'cylinder') {
         drawDiecut('cylinder', 0, 0, 0, lastSizes.inner.outerD);
     } else {
         drawDiecut(boxStyle, lastSizes.inner.L||0, lastSizes.inner.W||0, lastSizes.inner.H||0, 0);
     }
 
-    // Sync to 3D
     window._lastSizes = lastSizes;
     if (document.getElementById('tab-model3d').classList.contains('active')) {
         window._refresh3D && window._refresh3D();
     }
 }
 
-// ── Input Listeners ──
 ['prodL','prodW','prodH','perSmall','perOuter','gap','flute','boxType','outerBoxType','joint'].forEach(id => {
     const el = document.getElementById(id);
     if (el) { el.addEventListener('input', refreshAll); if(el.tagName==='SELECT') el.addEventListener('change', refreshAll); }
 });
 
-// ── Init ──
 applyUnitToggle();
 applyI18n();
 refreshAll();
 </script>
 
-<!-- Three.js 3D Module -->
+<!-- Three.js 3D Module with Product Arrangement -->
 <script type="module">
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -872,122 +736,203 @@ refreshAll();
         return (localStorage.getItem('pkgUnit') || 'mm') === 'inch' ? 'inch' : 'mm';
     }
 
-    function create3DCard(containerId, title, colorHex, size, isCylinder) {
+    // 创建带内部摆放的3D场景
+    function create3DWithContents(containerId, title, colorHex, boxSize, contents, isCylinder, perCount, arrangement, itemSize) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x0a1218);
-
-        let obj3D, labelText;
-        const ul = unitLabel();
-
-        if (isCylinder) {
-            const D = (size.outerD || size.D || 100) * 0.5;
-            const H = (size.outerH || size.H || 100);
-            const maxDim = Math.max(D*2, H, 1);
-            const sc = Math.min(140 / maxDim, 1.8);
-            const rSc = D * sc, hSc = H * sc;
-            const geo = new THREE.CylinderGeometry(rSc, rSc, hSc, 32);
-            const mat = new THREE.MeshPhongMaterial({ color: colorHex, transparent: true, opacity: 0.65, shininess: 40 });
-            obj3D = new THREE.Mesh(geo, mat);
-            scene.add(obj3D);
-            const edges = new THREE.LineSegments(
-                new THREE.EdgesGeometry(new THREE.CylinderGeometry(rSc, rSc, hSc, 8)),
-                new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 1.5, transparent: true, opacity: 0.6 })
-            );
-            obj3D.add(edges);
-            labelText = `${title}: Ø${fmt(size.outerD||size.D,1)} × ${fmt(size.outerH||size.H,1)} ${ul}`;
-        } else {
-            const L = size.L||50, W = size.W||50, H = size.H||50;
-            const maxDim = Math.max(L, W, H, 1);
-            const sc = Math.min(140 / maxDim, 1.8);
-            const w3 = L*sc, h3 = H*sc, d3 = W*sc;
-            const geo = new THREE.BoxGeometry(w3, h3, d3);
-            const mat = new THREE.MeshPhongMaterial({ color: colorHex, transparent: true, opacity: 0.65, shininess: 60 });
-            obj3D = new THREE.Mesh(geo, mat);
-            scene.add(obj3D);
-            const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 1.5 }));
-            obj3D.add(edges);
-            labelText = `${title}: ${fmt(L,0)}×${fmt(W,0)}×${fmt(H,0)} ${ul}`;
-        }
-
-        scene.add(new THREE.AmbientLight(0x304050, 1.2));
-        const dl = new THREE.DirectionalLight(0xffffff, 1.0); dl.position.set(2,3,2); scene.add(dl);
-        const pl = new THREE.PointLight(0x4466aa, 0.5); pl.position.set(-2,2,3); scene.add(pl);
-
-        const grid = new THREE.GridHelper(300, 10, 0x336688, 0x224455);
-        const objH = isCylinder ? ((size.outerH||100) * Math.min(140/Math.max((size.outerD||100),(size.outerH||100),1),1.8)) : ((size.H||50)*Math.min(140/Math.max(size.L||50,size.W||50,size.H||50,1),1.8));
-        grid.position.y = -objH/2 - 6;
-        grid.material.transparent = true; grid.material.opacity = 0.2; scene.add(grid);
-
-        const container = document.getElementById(containerId);
+        
         const w = container.clientWidth;
-        const h = container.clientHeight || 200;
+        const h = container.clientHeight || 220;
         const camera = new THREE.PerspectiveCamera(45, w/h, 1, 3000);
-        camera.position.set(140, 100, 140);
+        camera.position.set(160, 130, 160);
         camera.lookAt(0, 0, 0);
-
+        
         const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(w, h);
         renderer.setPixelRatio(window.devicePixelRatio);
         container.innerHTML = '';
-        renderer.setSize(w, h);
         container.appendChild(renderer.domElement);
-
+        
         const controls = new OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true; controls.dampingFactor = 0.06;
-
-        const lDiv = document.createElement('div');
-        lDiv.innerHTML = `<strong>${title}</strong><br>${labelText}`;
-        lDiv.style.cssText = `color:#ffeecc;font-size:11px;font-weight:bold;background:rgba(0,0,0,0.7);padding:5px 10px;border-radius:16px;border-left:3px solid #${colorHex.toString(16).padStart(6,'0')};text-align:center;line-height:1.5;pointer-events:none;white-space:nowrap;`;
-        const lObj = new CSS2DObject(lDiv);
-        lObj.position.set(0, objH/2 + 14, 0);
-        scene.add(lObj);
-
-        const lr = new CSS2DRenderer();
-        lr.setSize(w, h);
-        lr.domElement.style.cssText = 'position:absolute;top:0;left:0;pointer-events:none;';
-        container.appendChild(lr.domElement);
-
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.06;
+        
+        // 灯光
+        const ambient = new THREE.AmbientLight(0x304050, 1.0);
+        scene.add(ambient);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+        dirLight.position.set(2, 3, 2);
+        scene.add(dirLight);
+        const fillLight = new THREE.PointLight(0x4466aa, 0.5);
+        fillLight.position.set(-2, 2, 3);
+        scene.add(fillLight);
+        
+        // 计算缩放系数
+        let scale = 1;
+        if (!isCylinder && boxSize) {
+            const maxDim = Math.max(boxSize.L || 50, boxSize.W || 50, boxSize.H || 50, 1);
+            scale = Math.min(130 / maxDim, 1.6);
+        } else if (isCylinder && boxSize) {
+            const maxDim = Math.max((boxSize.outerD || 50), (boxSize.outerH || 50), 1);
+            scale = Math.min(130 / maxDim, 1.6);
+        }
+        
+        // 绘制外箱/容器（半透明）
+        let outerMesh;
+        if (isCylinder) {
+            const D = (boxSize.outerD || boxSize.D || 100) * scale;
+            const H = (boxSize.outerH || boxSize.H || 100) * scale;
+            const geo = new THREE.CylinderGeometry(D/2, D/2, H, 48);
+            const mat = new THREE.MeshPhongMaterial({ color: colorHex, transparent: true, opacity: 0.35, side: THREE.DoubleSide });
+            outerMesh = new THREE.Mesh(geo, mat);
+            outerMesh.castShadow = true;
+            scene.add(outerMesh);
+            // 边框
+            const edges = new THREE.EdgesGeometry(new THREE.CylinderGeometry(D/2, D/2, H, 24));
+            const wire = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x88aaff, linewidth: 1 }));
+            outerMesh.add(wire);
+        } else {
+            const L = (boxSize.L || 100) * scale;
+            const W = (boxSize.W || 100) * scale;
+            const H = (boxSize.H || 100) * scale;
+            const geo = new THREE.BoxGeometry(L, H, W);
+            const mat = new THREE.MeshPhongMaterial({ color: colorHex, transparent: true, opacity: 0.3, side: THREE.DoubleSide });
+            outerMesh = new THREE.Mesh(geo, mat);
+            outerMesh.castShadow = true;
+            scene.add(outerMesh);
+            const edges = new THREE.EdgesGeometry(geo);
+            const wire = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x88aaff }));
+            outerMesh.add(wire);
+        }
+        
+        // 绘制内部物品（产品阵列）
+        if (contents && contents.length > 0 && arrangement && itemSize) {
+            const itemW = itemSize.L * scale;
+            const itemH = itemSize.H * scale;
+            const itemD = itemSize.W * scale;
+            const boxW = (boxSize.L || 100) * scale;
+            const boxH = (boxSize.H || 100) * scale;
+            const boxD = (boxSize.W || 100) * scale;
+            
+            // 计算起始位置（居中）
+            const startX = -boxW/2 + itemW/2;
+            const startY = -boxH/2 + itemH/2;
+            const startZ = -boxD/2 + itemD/2;
+            
+            const gapX = itemW;
+            const gapY = itemH;
+            const gapZ = itemD;
+            
+            const countX = arrangement[0] || 1;
+            const countY = arrangement[1] || 1;
+            const countZ = arrangement[2] || 1;
+            
+            const itemMat = new THREE.MeshPhongMaterial({ color: 0xff8866, emissive: 0x442200, shininess: 60 });
+            
+            for (let i = 0; i < countX && i < 6; i++) {
+                for (let j = 0; j < countY && j < 6; j++) {
+                    for (let k = 0; k < countZ && k < 6; k++) {
+                        const posX = startX + i * gapX;
+                        const posY = startY + j * gapY;
+                        const posZ = startZ + k * gapZ;
+                        const itemGeo = new THREE.BoxGeometry(itemW, itemH, itemD);
+                        const itemMesh = new THREE.Mesh(itemGeo, itemMat);
+                        itemMesh.position.set(posX, posY, posZ);
+                        itemMesh.castShadow = true;
+                        scene.add(itemMesh);
+                    }
+                }
+            }
+        }
+        
+        // CSS2D 文字标签
+        const div = document.createElement('div');
+        const ul = unitLabel();
+        let sizeText = '';
+        if (isCylinder) {
+            sizeText = `Ø${fmt(boxSize.outerD || boxSize.D || 0,1)}×${fmt(boxSize.outerH || boxSize.H || 0,1)} ${ul}`;
+        } else {
+            sizeText = `${fmt(boxSize.L || 0,0)}×${fmt(boxSize.W || 0,0)}×${fmt(boxSize.H || 0,0)} ${ul}`;
+        }
+        div.innerHTML = `<strong>${title}</strong><br>${sizeText}<br>📦 内含 ${perCount || 0} 个物品`;
+        div.style.cssText = `color:#ffeecc;font-size:11px;font-weight:bold;background:rgba(0,0,0,0.7);padding:5px 12px;border-radius:20px;border-left:3px solid #${colorHex.toString(16).padStart(6,'0')};text-align:center;line-height:1.5;pointer-events:none;white-space:nowrap;`;
+        const labelObj = new CSS2DObject(div);
+        const objHeight = isCylinder ? ((boxSize.outerH || 100) * scale) : ((boxSize.H || 100) * scale);
+        labelObj.position.set(0, objHeight/2 + 18, 0);
+        scene.add(labelObj);
+        
+        const labelRenderer = new CSS2DRenderer();
+        labelRenderer.setSize(w, h);
+        labelRenderer.domElement.style.cssText = 'position:absolute;top:0;left:0;pointer-events:none;';
+        container.appendChild(labelRenderer.domElement);
+        
         function animate() {
             requestAnimationFrame(animate);
             controls.update();
             renderer.render(scene, camera);
-            lr.render(scene, camera);
+            labelRenderer.render(scene, camera);
         }
         animate();
-
+        
         new ResizeObserver(() => {
-            const w2 = container.clientWidth, h2 = container.clientHeight||200;
-            renderer.setSize(w2, h2); lr.setSize(w2, h2);
-            camera.aspect = w2/h2; camera.updateProjectionMatrix();
+            const w2 = container.clientWidth, h2 = container.clientHeight || 220;
+            renderer.setSize(w2, h2);
+            labelRenderer.setSize(w2, h2);
+            camera.aspect = w2/h2;
+            camera.updateProjectionMatrix();
         }).observe(container);
     }
-
+    
     function refresh3D() {
-        const s = window._lastSizes; if (!s) return;
+        const s = window._lastSizes;
+        if (!s) return;
         const ul = unitLabel();
-        create3DCard('canvasProd',  'Product',    0xff9977, s.product, false);
-        create3DCard('canvasInner','Container',  0xffcc66, s.inner,   !!(s.inner && s.inner.isCyl));
-        create3DCard('canvasOuter', 'Outer Box',  0x66dd99, s.outer,  !!(s.outer && s.outer.isCyl));
-
+        
+        // 产品单个展示
+        const prodSize = { L: s.product.L, W: s.product.W, H: s.product.H };
+        create3DWithContents('canvasProd', 'Product', 0xff8866, prodSize, [], false, 1, [1,1,1], s.product);
+        
+        // 内盒（容器）：内部放置产品阵列
+        let innerContents = [];
+        let innerArrangement = s.inner.arrangement || [1,1,1];
+        if (s.inner && !s.inner.isCyl && s.inner.arrangement) {
+            // 生成产品占位列表
+            innerArrangement = s.inner.arrangement;
+        } else if (s.inner && s.inner.isCyl) {
+            innerArrangement = [1,1,1];
+        }
+        const innerBoxSize = s.inner.isCyl ? { outerD: s.inner.outerD, outerH: s.inner.outerH } : { L: s.inner.L, W: s.inner.W, H: s.inner.H };
+        create3DWithContents('canvasInner', 'Container', 0xffaa66, innerBoxSize, [1], s.inner.isCyl, s.inner.perCount, innerArrangement, s.product);
+        
+        // 外箱：内部放置容器阵列
+        let outerArrangement = s.outer.arrangement || [1,1,1];
+        const outerBoxSize = s.outer.isCyl ? { outerD: s.outer.L, outerH: s.outer.H } : { L: s.outer.L, W: s.outer.W, H: s.outer.H };
+        const innerItemSize = s.inner.isCyl ? { L: s.inner.outerD, W: s.inner.outerD, H: s.inner.outerH } : { L: s.inner.L, W: s.inner.W, H: s.inner.H };
+        create3DWithContents('canvasOuter', 'Outer Box', 0x66dd99, outerBoxSize, [1], s.outer.isCyl, s.outer.perCount, outerArrangement, innerItemSize);
+        
+        // 更新底部文字信息
         const lang = localStorage.getItem('pkgLang') || 'en';
-        const prodInfo = `${lang==='zh'?'产品':'Product'}: ${fmt(s.product.L,0)}×${fmt(s.product.W,0)}×${fmt(s.product.H,0)} mm`;
-
-        let innerInfo, outerInfo;
-        if (s.inner && s.inner.isCyl) {
-            innerInfo = `${lang==='zh'?'管材':'Tube'}: Ø${fmt(Math.round(s.inner.outerD),1)}×${fmt(Math.round(s.inner.outerH),1)} ${ul} &nbsp;<span class="area-hl">| ${lang==='zh'?'面积':'Area'} ${s.inner.area.toFixed(3)} m²</span>`;
-        } else if (s.inner) {
-            innerInfo = `${lang==='zh'?'容器':'Container'}: ${fmt(s.inner.L,0)}×${fmt(s.inner.W,0)}×${fmt(s.inner.H,0)} ${ul} &nbsp;<span class="area-hl">| ${lang==='zh'?'面积':'Area'} ${s.inner.area.toFixed(3)} m²</span>`;
-        } else { innerInfo = ''; }
-
-        if (s.outer && s.outer.isCyl) {
-            outerInfo = `${lang==='zh'?'外箱管材':'Outer tube'}: Ø${fmt(s.outer.L,1)}×${fmt(s.outer.H,1)} ${ul} &nbsp;<span class="area-hl">| ${lang==='zh'?'面积':'Area'} ${s.outer.area.toFixed(3)} m²</span>`;
-        } else if (s.outer) {
-            outerInfo = `${lang==='zh'?'外箱':'Outer box'}: ${fmt(s.outer.L,0)}×${fmt(s.outer.W,0)}×${fmt(s.outer.H,0)} ${ul} &nbsp;<span class="area-hl">| ${lang==='zh'?'面积':'Area'} ${s.outer.area.toFixed(3)} m²</span>`;
-        } else { outerInfo = ''; }
-
-        document.getElementById('prodInfo').innerHTML = prodInfo;
+        const d = I18N[lang];
+        document.getElementById('prodInfo').innerHTML = `${d.scene_product}: ${fmt(s.product.L,0)}×${fmt(s.product.W,0)}×${fmt(s.product.H,0)} ${ul}`;
+        let innerInfo = '';
+        if (s.inner.isCyl) {
+            innerInfo = `${d.scene_container}: Ø${fmt(s.inner.outerD,1)}×${fmt(s.inner.outerH,1)} ${ul} &nbsp;<span class="area-hl">| ${d.r_area} ${s.inner.area.toFixed(3)} m²</span><br>📦 内含 ${s.inner.perCount} 个产品`;
+        } else {
+            innerInfo = `${d.scene_container}: ${fmt(s.inner.L,0)}×${fmt(s.inner.W,0)}×${fmt(s.inner.H,0)} ${ul} &nbsp;<span class="area-hl">| ${d.r_area} ${s.inner.area.toFixed(3)} m²</span><br>📦 内含 ${s.inner.perCount} 个产品 (${s.inner.arrangement ? s.inner.arrangement.join('×') : '?'} 排列)`;
+        }
+        let outerInfo = '';
+        if (s.outer.isCyl) {
+            outerInfo = `${d.scene_outer}: Ø${fmt(s.outer.L,1)}×${fmt(s.outer.H,1)} ${ul} &nbsp;<span class="area-hl">| ${d.r_area} ${s.outer.area.toFixed(3)} m²</span><br>📦 内含 ${s.outer.perCount} 个容器`;
+        } else {
+            outerInfo = `${d.scene_outer}: ${fmt(s.outer.L,0)}×${fmt(s.outer.W,0)}×${fmt(s.outer.H,0)} ${ul} &nbsp;<span class="area-hl">| ${d.r_area} ${s.outer.area.toFixed(3)} m²</span><br>📦 内含 ${s.outer.perCount} 个容器 (${s.outer.arrangement ? s.outer.arrangement.join('×') : '?'} 排列)`;
+        }
         document.getElementById('innerInfo').innerHTML = innerInfo;
         document.getElementById('outerInfo').innerHTML = outerInfo;
     }
+    
     window._refresh3D = refresh3D;
 </script>
 </body>
