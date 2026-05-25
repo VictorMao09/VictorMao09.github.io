@@ -4,6 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Packaging Expert - 包装设计专家（带产品透视）</title>
+    <!-- 不蒜子访问计数（全球统计，GitHub Pages 支持） -->
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <!-- 隐藏的统计数据容器（不蒜子写入这两个 span） -->
+    <span id="busuanzi_container_page_pv" style="display:none">
+        <span id="busuanzi_value_page_pv"></span>
+    </span>
+    <span id="busuanzi_container_site_uv" style="display:none">
+        <span id="busuanzi_value_site_uv"></span>
+    </span>
+
     <style>
         * { box-sizing: border-box; }
         body {
@@ -410,6 +420,8 @@ function applyI18n() {
     const f2 = document.getElementById('footerLine2');
     if (f1) f1.textContent = d.footer1;
     if (f2) f2.innerHTML = d.footer2;
+    // 同步刷新计数器语言
+    if (typeof updateVisitLabel === 'function') updateVisitLabel();
 }
 
 function fmt(val, decimals) {
@@ -423,14 +435,35 @@ function unitLabel() {
     return currentUnit === 'inch' ? 'inch' : 'mm';
 }
 
-// 访问计数
+// 访问计数（不蒜子 busuanzi — 全球统计，GitHub Pages 可用）
+function updateVisitLabel() {
+    const el = document.getElementById('visitCounter');
+    if (!el) return;
+    const pv = document.getElementById('busuanzi_value_page_pv');
+    const uv = document.getElementById('busuanzi_value_site_uv');
+    if (!pv || !uv) return;
+    const pvVal = pv.innerText || '…';
+    const uvVal = uv.innerText || '…';
+    if (currentLang === 'zh') {
+        el.innerHTML = `👁 本页浏览 <b>${pvVal}</b> 次 &nbsp;|&nbsp; 👥 独立访客 <b>${uvVal}</b> 人 &nbsp;&nbsp;`;
+    } else {
+        el.innerHTML = `👁 Page Views: <b>${pvVal}</b> &nbsp;|&nbsp; 👥 Unique Visitors: <b>${uvVal}</b> &nbsp;&nbsp;`;
+    }
+}
+// 监听不蒜子写入数据（MutationObserver），数字出现后立刻刷新
 (function(){
-    const namespace = 'packaging-expert';
-    const key = 'visits';
-    fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`)
-        .then(r => r.json())
-        .then(data => { const el = document.getElementById('visitCounter'); if(el) el.textContent = (currentLang==='zh'?'访问次数: ':'Visits: ')+(data.value||'?')+'  |  '; })
-        .catch(() => {});
+    function observe(id) {
+        const target = document.getElementById(id);
+        if (!target) return;
+        new MutationObserver(() => { updateVisitLabel(); }).observe(target, { childList: true, subtree: true, characterData: true });
+    }
+    // DOM 就绪后再绑定
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => { observe('busuanzi_value_page_pv'); observe('busuanzi_value_site_uv'); });
+    } else {
+        observe('busuanzi_value_page_pv');
+        observe('busuanzi_value_site_uv');
+    }
 })();
 
 function switchTab(name, btn) {
