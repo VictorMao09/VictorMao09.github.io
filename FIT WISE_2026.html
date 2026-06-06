@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>装多多 FIT WISE</title>
+<title>装多多 FIT WISE v2607</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -467,6 +467,14 @@
       <div class="panel-title"><span class="icon">🚢</span> <span data-i18n="container-title">选择集装箱类型</span></div>
       <div class="container-grid" id="containerGrid"></div>
       <div id="selContainerInfo" style="font-size:0.8rem;color:var(--text-sub);margin-top:6px;padding:8px;background:var(--primary-pale);border-radius:8px;display:none;"></div>
+      <div id="heightToggleRow" style="display:flex;align-items:center;gap:8px;margin-top:8px;padding:6px 10px;background:var(--bg-light);border-radius:8px;font-size:0.8rem;justify-content:space-between;">
+        <span style="color:var(--text-sub);" data-i18n="height-mode-label">计算高度基准</span>
+        <div style="display:flex;gap:4px;">
+          <button id="btnDoorH" class="height-mode-btn active" onclick="setHeightMode(false)" style="padding:4px 10px;border:2px solid #1976d2;border-radius:6px 0 0 6px;background:#1976d2;color:#fff;cursor:pointer;font-size:0.75rem;font-weight:600;" data-i18n="height-door">🚪 门高</button>
+          <button id="btnInnerH" class="height-mode-btn" onclick="setHeightMode(true)" style="padding:4px 10px;border:2px solid #e0e0e0;border-left:none;border-radius:0 6px 6px 0;background:#fff;color:#666;cursor:pointer;font-size:0.75rem;font-weight:600;" data-i18n="height-inner">📐 箱体理论最大值</button>
+        </div>
+        <span id="heightModeHint" style="font-size:0.7rem;color:#888;" data-i18n="height-hint-door">机械装卸（叉车/吊机），只能进到门高，箱体理论最大值不可用</span>
+      </div>
       <div id="customContainerPanel" style="display:none;margin-top:10px;padding:10px 14px;background:#fff8e1;border:2px dashed #ffc107;border-radius:8px;">
         <div style="font-weight:700;color:#f57c00;margin-bottom:8px;font-size:0.85rem;" data-i18n="custom-title">⚙️ 自定义计算基准 / 限重自行填写</div>
         <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
@@ -672,7 +680,9 @@ const translations = {
     'expand-title': '📐 一键涨方', 'expand-label': '涨方调整（长/宽/高各加）：', 'expand-btn': '✅ 应用涨方', 'expand-reset': '↩ 还原',
     'expand-status': '已涨方 +{delta}cm', 'expand-tip': '抛货测量值常小于实际尺寸，内置三档容差一键补偿，数据零重复',
     'expand-no-cargo': '请先输入货物数据！', 'expand-applied': '✅ 已涨方 +{delta}cm（长/宽/高各加），容差补偿自动执行', 'expand-reset-done': '↩ 已还原原始尺寸，随时可重新涨方对比',
-    'strategy-layer-first': '🏗️ 层优先策略', 'strategy-width-height': '📐 宽高混合'
+    'strategy-layer-first': '🏗️ 层优先策略', 'strategy-width-height': '📐 宽高混合',
+    'height-mode-label': '计算高度基准', 'height-door': '🚪 门高', 'height-inner': '📐 箱体理论最大值',
+    'height-hint-door': '机械装卸（叉车/吊机），只能进到门高，箱体理论最大值不可用', 'height-hint-inner': '人工装载，可塞到集装箱天花板（使用箱体理论最大值计算）'
   },
   'en-US': {
     'func-desc': 'Smart Loading · Maximize Space & Profit',
@@ -719,7 +729,9 @@ const translations = {
     'expand-title': '📐 Expand Dims', 'expand-label': 'Add per dimension (L/W/H each):', 'expand-btn': '✅ Apply', 'expand-reset': '↩ Reset',
     'expand-status': '+{delta}cm applied', 'expand-tip': 'Measured dimensions often fall short — no manual adjustment needed',
     'expand-no-cargo': 'Please enter cargo data first!', 'expand-applied': '✅ Applied +{delta}cm (L/W/H each) — no manual adjustment needed', 'expand-reset-done': '↩ Restored to original — expand again anytime for comparison',
-    'strategy-layer-first': '🏗️ Layer First', 'strategy-width-height': '📐 Width-Height Mix'
+    'strategy-layer-first': '🏗️ Layer First', 'strategy-width-height': '📐 Width-Height Mix',
+    'height-mode-label': 'Height Basis', 'height-door': '🚪 Door H', 'height-inner': '📐 Internal H',
+    'height-hint-door': 'Forklift reaches door height only', 'height-hint-inner': 'Manual loading can reach full internal height'
   }
 };
 
@@ -746,7 +758,7 @@ function updateUIText() {
   if (typeof updateContainerInfo === 'function') updateContainerInfo();
   if (typeof renderMultiContainerTabs === 'function') renderMultiContainerTabs();
   if (typeof renderDetailTableMulti === 'function') renderDetailTableMulti();
-  if (typeof renderCargoLegend === 'function') renderCargoLegend(packedBoxes);
+  if (typeof renderCargoLegend === 'function') renderCargoLegend(allContainerResults[0]?.packed || []);
   if (typeof updateExpandToolbarLang === 'function') updateExpandToolbarLang();
 }
 
@@ -761,6 +773,24 @@ const CONTAINERS = [
   { id: 'c45hq', name: '45尺高柜', short: "45' HC", nameEn: '45ft HC', shortEn: "45' HC", L: 1356, W: 235, H: 270, doorH: 258, innerDesc: '计算基准 1356×235×258 cm', innerDescEn: 'Internal Ref: 1356×235×258 cm', maxWeight: 25000, teuCapVol: '82.2 m³' },
   { id: 'custom', name: '自定义', short: "自定义", nameEn: 'Custom', shortEn: "Custom", L: 1200, W: 230, H: 250, doorH: 250, innerDesc: '计算基准自定义', innerDescEn: 'Internal Ref', maxWeight: 26500, teuCapVol: '' }
 ];
+let useInternalHeight = false;
+function getContainerEffH(c) { return useInternalHeight && c.H && c.id !== 'custom' ? c.H : (c.doorH || c.H); }
+function setHeightMode(useInner) { useInternalHeight = useInner; updateContainerInfo(); renderContainers(); }
+function updateHeightToggleBtn() {
+  const btnD = document.getElementById('btnDoorH'), btnI = document.getElementById('btnInnerH');
+  const hint = document.getElementById('heightModeHint');
+  const isEn = currentLang === 'en-US';
+  if (!btnD || !btnI) return;
+  if (useInternalHeight) {
+    btnD.style.background = '#fff'; btnD.style.color = '#666'; btnD.style.borderColor = '#e0e0e0';
+    btnI.style.background = '#1976d2'; btnI.style.color = '#fff'; btnI.style.borderColor = '#1976d2';
+    if (hint) hint.textContent = isEn ? 'Manual loading: can stuff to ceiling (full H)' : '人工装载，可塞到集装箱天花板（使用箱体理论最大值计算）';
+  } else {
+    btnD.style.background = '#1976d2'; btnD.style.color = '#fff'; btnD.style.borderColor = '#1976d2';
+    btnI.style.background = '#fff'; btnI.style.color = '#666'; btnI.style.borderColor = '#e0e0e0';
+    if (hint) hint.textContent = isEn ? 'Mechanical loading: fork reaches door H only' : '机械装卸（叉车/吊机），只能进到门高，箱体理论最大值不可用';
+  }
+}
 const CARGO_COLORS = ['#ef5350','#42a5f5','#ffca28','#ab47bc','#26c6da','#ff7043','#66bb6a','#8d6e63','#ec407a','#29b6f6','#d4e157','#78909c'];
 const ORIENT_OPTIONS = [
   { key: 'free', label: '🔄 任意旋转', labelEn: '🔄 Free Rotation', hint: '允许翻转、倒置，系统自动选最优方向（适合对称型货物）', hintEn: 'Allow flipping and rotation in any direction. System auto-selects optimal orientation (suitable for symmetric cargo)' },
@@ -787,14 +817,22 @@ let labelSprites = [];
 
 function init() { renderContainers(); renderCargoList(); initThree(); renderEmptyScene(); const calcBtn = document.getElementById('btnCalculate'); if (calcBtn) calcBtn.addEventListener('click', function() { calculate(); }); }
 
+function getHeightDesc(c) {
+  const isEn = currentLang === 'en-US';
+  const effH = getContainerEffH(c);
+  const mode = useInternalHeight ? (isEn ? 'Internal H' : '箱体理论最大值') : (isEn ? 'Door H' : '门高');
+  if (c.id === 'custom') return isEn ? 'Internal Ref / Limit' : '计算基准 · 限重';
+  return isEn ? `Calc: ${c.L}×${c.W}×${effH} cm (${mode})` : `计算基准 ${c.L}×${c.W}×${effH} cm (${mode})`;
+}
 function renderContainers() {
   const grid = document.getElementById('containerGrid');
   const isEn = currentLang === 'en-US';
   grid.innerHTML = CONTAINERS.map(c => {
-    const vol = c.id === 'custom' ? '—' : ((c.L * c.W * c.H) / 1e6).toFixed(1);
+    const effH = getContainerEffH(c);
+    const vol = c.id === 'custom' ? '—' : ((c.L * c.W * effH) / 1e6).toFixed(1);
     const sel = c.id === selectedContainer.id ? 'selected' : '';
     const name = isEn ? (c.nameEn || c.name) : c.name;
-    const innerDesc = isEn ? (c.innerDescEn || c.innerDesc) : c.innerDesc;
+    const innerDesc = getHeightDesc(c);
     if (c.id === 'custom') return `<div class="container-card ${sel}" onclick="selectContainer('${c.id}')"><div class="c-name">${isEn ? 'Custom' : '自定义'}</div><div class="c-dim">${isEn ? 'Internal Ref / Limit' : '计算基准 · 限重'}</div></div>`;
     return `<div class="container-card ${sel}" onclick="selectContainer('${c.id}')"><div class="c-name">${name}</div><div class="c-dim">${c.short}</div><div class="c-dim">${innerDesc}</div><div class="c-vol">≈ ${vol} m³</div><div class="c-wt">${isEn ? 'Max' : '限重 ≤'}${isEn ? '' : ' '}${(c.maxWeight/1000).toFixed(0)} ${isEn ? 'T' : '吨'}</div></div>`;
   }).join('');
@@ -804,8 +842,8 @@ function renderContainers() {
 
 function selectContainer(id) { selectedContainer = CONTAINERS.find(c => c.id === id); renderContainers(); if (packedBoxes.length > 0) { renderEmptyScene(); needRender=true; } }
 function updateCustomContainer() { const custom = CONTAINERS.find(c => c.id === 'custom'); custom.L = parseInt(document.getElementById('customL').value) || 1200; custom.W = parseInt(document.getElementById('customW').value) || 230; custom.H = parseInt(document.getElementById('customH').value) || 250; custom.maxWeight = parseInt(document.getElementById('customWeight').value) || 19000; const vol = ((custom.L * custom.W * custom.H) / 1e6).toFixed(2); document.getElementById('customVol').textContent = vol; if (selectedContainer.id === 'custom') { selectedContainer = {...custom}; updateContainerInfo(); if (packedBoxes.length > 0) renderEmptyScene(); } }
-function updateCustomPanelVisibility() { const panel = document.getElementById('customContainerPanel'); if (panel) { panel.style.display = selectedContainer.id === 'custom' ? 'block' : 'none'; if (selectedContainer.id === 'custom') { document.getElementById('customL').value = selectedContainer.L; document.getElementById('customW').value = selectedContainer.W; document.getElementById('customH').value = selectedContainer.doorH; document.getElementById('customWeight').value = selectedContainer.maxWeight; const vol = ((selectedContainer.L * selectedContainer.W * selectedContainer.doorH) / 1e6).toFixed(2); document.getElementById('customVol').textContent = vol; } } }
-function updateContainerInfo() { const info = document.getElementById('selContainerInfo'); const c = selectedContainer; const vol = ((c.L * c.W * c.H) / 1e6).toFixed(2); const isEn = currentLang === 'en-US'; const nameDisplay = isEn ? (c.id === 'custom' ? `Custom (${c.L}×${c.W}×${c.H} cm)` : (c.nameEn || c.name)) : (c.id === 'custom' ? `自定义 (${c.L}×${c.W}×${c.H} cm)` : c.name); const innerDescDisplay = c.id === 'custom' ? '' : (isEn ? (c.innerDescEn || c.innerDesc) : c.innerDesc) + (isEn ? ' | ' : ' · '); const weightDisplay = c.id === 'custom' ? '' : ` ${isEn ? 'Weight Limit' : '限重'} <b>${(c.maxWeight/1000).toFixed(0)} ${isEn ? 'T' : '吨'}</b>`; info.style.display = 'block'; info.innerHTML = `${isEn ? '✅ Selected' : '✅ 已选'}：<b>${nameDisplay}</b>${innerDescDisplay ? (isEn ? innerDescDisplay : ' | ' + innerDescDisplay) : ''} | ${isEn ? 'Theor. Vol' : '理论容积'} <b>${vol} m³</b>${weightDisplay}`; }
+function updateCustomPanelVisibility() { const panel = document.getElementById('customContainerPanel'); if (panel) { panel.style.display = selectedContainer.id === 'custom' ? 'block' : 'none'; if (selectedContainer.id === 'custom') { document.getElementById('customL').value = selectedContainer.L; document.getElementById('customW').value = selectedContainer.W; document.getElementById('customH').value = getContainerEffH(selectedContainer); document.getElementById('customWeight').value = selectedContainer.maxWeight; const vol = ((selectedContainer.L * selectedContainer.W * getContainerEffH(selectedContainer)) / 1e6).toFixed(2); document.getElementById('customVol').textContent = vol; } } }
+function updateContainerInfo() { const info = document.getElementById('selContainerInfo'); const c = selectedContainer; const effH = getContainerEffH(c); const vol = ((c.L * c.W * effH) / 1e6).toFixed(2); const isEn = currentLang === 'en-US'; const nameDisplay = isEn ? (c.id === 'custom' ? `Custom (${c.L}×${c.W}×${c.H} cm)` : (c.nameEn || c.name)) : (c.id === 'custom' ? `自定义 (${c.L}×${c.W}×${c.H} cm)` : c.name); const hMode = useInternalHeight ? (isEn ? 'Internal H' : '箱体理论最大值') : (isEn ? 'Door H' : '门高'); const innerDescDisplay = c.id === 'custom' ? '' : (isEn ? `${c.L}×${c.W}×${effH} cm (${hMode})` : `${c.L}×${c.W}×${effH} cm (${hMode})`) + (isEn ? ' | ' : ' · '); const weightDisplay = c.id === 'custom' ? '' : ` ${isEn ? 'Weight Limit' : '限重'} <b>${(c.maxWeight/1000).toFixed(0)} ${isEn ? 'T' : '吨'}</b>`; info.style.display = 'block'; info.innerHTML = `${isEn ? '✅ Selected' : '✅ 已选'}：<b>${nameDisplay}</b>${innerDescDisplay ? (isEn ? innerDescDisplay : ' | ' + innerDescDisplay) : ''} | ${isEn ? 'Theor. Vol' : '理论容积'} <b>${vol} m³</b>${weightDisplay}`; updateHeightToggleBtn(); }
 
 function showPasteDialog() { document.getElementById('pasteModal').style.display = 'flex'; setTimeout(() => document.getElementById('pasteInput').focus(), 100); }
 function closePasteDialog() { document.getElementById('pasteModal').style.display = 'none'; document.getElementById('pasteInput').value = ''; }
@@ -894,16 +932,16 @@ function getRotations(origL, origW, origH, orient) {
 
 function renderCargoLegend(packed) {
   try {
-    const container = document.getElementById('cargoLegend'); if (!container) return;
+    const container = document.getElementById('cargoLegend'); if (!container) { console.error('renderCargoLegend: cargoLegend 容器未找到'); return; }
     const isEn = currentLang === 'en-US'; container.innerHTML = '';
     if (!packed || packed.length === 0) { container.innerHTML = `<span style="color:#888;font-size:13px;">${isEn ? 'Click "Calculate" to display' : '点击"计算装载方案"后显示'}</span>`; return; }
-    const groups = {}; packed.forEach(box => { const key = box.label || 'Unknown'; if (!groups[key]) groups[key] = { boxes: [], color: box.color }; groups[key].boxes.push(box); });
+    const groups = {}; packed.forEach(box => { const key = box.label || box.sku || 'Unknown'; if (!groups[key]) groups[key] = { boxes: [], color: box.color || '#aaaaaa' }; groups[key].boxes.push(box); });
     Object.entries(groups).forEach(([key, data]) => {
-      const { boxes, color } = data; const hex = color.replace('#', ''); const r = parseInt(hex.substr(0,2),16); const g = parseInt(hex.substr(2,2),16); const b = parseInt(hex.substr(4,2),16); const darkColor = new THREE.Color(r*0.6, g*0.6, b*0.6);
+      const { boxes, color } = data; const hex = (color || '#cccccc').replace('#', ''); const r = parseInt(hex.substr(0,2),16); const g = parseInt(hex.substr(2,2),16); const b = parseInt(hex.substr(4,2),16); const darkColor = new THREE.Color(r/255*0.6, g/255*0.6, b/255*0.6);
       const item = document.createElement('div'); item.className = 'legend-item'; item.innerHTML = `<span class="legend-color" style="background:${color};border:1px solid ${darkColor.getStyle()};"></span><span style="font-weight:600;">${key}</span><span style="color:#666;">📦${boxes.length}${isEn ? 'boxes' : '件'}</span>`;
       container.appendChild(item);
     });
-  } catch(e) {}
+  } catch(e) { console.error("renderCargoLegend 错误:", e); }
 }
 
 // ===================== 箱子排序优化器 =====================
@@ -956,7 +994,7 @@ function runPackingWithStrategy(boxes, container, strategyId, maxWeight) {
 
 // ===================== 带自动升级箱型的多容器打包 =====================
 function runMultiContainerPacking(sortedBoxes, container, maxWeight) {
-  let cL = container.L, cW = container.W, cH = container.doorH;
+  let cL = container.L, cW = container.W, cH = getContainerEffH(container);
   let currentMaxWeight = maxWeight;
   const containerVol = cL * cW * cH;
   const results = [];
@@ -965,7 +1003,7 @@ function runMultiContainerPacking(sortedBoxes, container, maxWeight) {
   const MAX = 50;
   
   function getContainerInfo() { 
-    const found = CONTAINERS.find(c => c.L === cL && c.W === cW && c.doorH === cH); 
+    const found = CONTAINERS.find(c => c.L === cL && c.W === cW && getContainerEffH(c) === cH); 
     return found || { name: '自定义', short: '自定义', shortEn: 'Custom', id: 'custom' }; 
   }
   
@@ -978,18 +1016,18 @@ function runMultiContainerPacking(sortedBoxes, container, maxWeight) {
     const maxItemWt = Math.max(...remaining.map(b => b.unitWeight || 0));
     
     const suitable = CONTAINERS.filter(c => c.id !== 'custom' && 
-      c.L >= cL && c.W >= cW && c.doorH >= cH && 
+      c.L >= cL && c.W >= cW && getContainerEffH(c) >= cH && 
       c.maxWeight >= currentMaxWeight &&
-      c.L >= maxItemL && c.W >= maxItemW && c.doorH >= maxItemH &&
+      c.L >= maxItemL && c.W >= maxItemW && getContainerEffH(c) >= maxItemH &&
       c.maxWeight >= maxItemWt);
     
     if (suitable.length > 0) {
-      suitable.sort((a, b) => (a.L * a.W * a.doorH) - (b.L * b.W * b.doorH));
+      suitable.sort((a, b) => (a.L * a.W * getContainerEffH(a)) - (b.L * b.W * getContainerEffH(b)));
       const upgraded = suitable[0];
-      if (upgraded.L > cL || upgraded.W > cW || upgraded.doorH > cH || upgraded.maxWeight > currentMaxWeight) {
+      if (upgraded.L > cL || upgraded.W > cW || getContainerEffH(upgraded) > cH || upgraded.maxWeight > currentMaxWeight) {
         cL = upgraded.L;
         cW = upgraded.W;
-        cH = upgraded.doorH;
+        cH = getContainerEffH(upgraded);
         currentMaxWeight = upgraded.maxWeight;
         return true;
       }
@@ -1052,7 +1090,7 @@ function evaluateStrategyResults(results, containerVol) {
 }
 function optimizeBoxOrder(boxes, container, maxWeight, onProgress, onComplete) {
   const strategyResults = [];
-  const cL = container.L, cW = container.W, cH = container.doorH;
+  const cL = container.L, cW = container.W, cH = getContainerEffH(container);
   const containerVol = cL * cW * cH;
   const isEn = currentLang === 'en-US';
   const totalStrategies = SORT_STRATEGIES.length;
@@ -1111,7 +1149,7 @@ function optimizeBoxOrder(boxes, container, maxWeight, onProgress, onComplete) {
   for (const strategy of strategyQueue) {
     let worker;
     try {
-      worker = new Worker('fitwise-worker.js');
+      worker = new Worker('fitwise-worker-v4.js');
     } catch (e) {
       // Worker 创建失败（常见于 file:// 协议），回退串行模式
       useWorkers = false;
@@ -1127,7 +1165,8 @@ function optimizeBoxOrder(boxes, container, maxWeight, onProgress, onComplete) {
       boxes: boxes,
       container: container,
       maxWeight: maxWeight,
-      containersList: CONTAINERS
+      containersList: CONTAINERS,
+      useInternalHeight: useInternalHeight
     });
   }
 
@@ -1271,8 +1310,8 @@ const GRAVITY_ADVICE_TABLE = {
 function getZGravityRisk(gz,cH_mm){ const h_cm=(cH_mm||3000)/10; if(gz<=0.5*h_cm) return'low'; if(gz<=0.6*h_cm) return'medium'; return'high'; }
 function getMiddleZoneRatio(packed,cL_mm){ const cL_cm=(cL_mm||12000)/10; const zoneStart=cL_cm*0.25,zoneEnd=cL_cm*0.75; let totalW=0,zoneW=0; packed.forEach(b=>{ const w=(b.unitWeight>0?b.unitWeight:b.pl*b.pw*b.ph/1000); totalW+=w; const boxStart=b.px,boxEnd=b.px+b.pl; if(boxEnd>zoneStart&&boxStart<zoneEnd) zoneW+=w; }); return totalW>0?zoneW/totalW:0; }
 function renderExpertRiskPanel(results,cL,cW,cH){ const panel=document.getElementById('expertRiskPanel'); const statsDiv=document.getElementById('expertHeavyStats'); const pressureDiv=document.getElementById('expertPressureSection'); const mechanicsDiv=document.getElementById('expertMechanics'); const hintSpan=document.getElementById('expertModeHint'); const isEn=currentLang==='en-US'; if(!expertMode||!panel){panel.style.display='none'; return;} panel.style.display='block'; let totalHeavy=0,totalExtraHeavy=0,totalWeight=0,maxPressure=0,maxPressureCargo='',heavyDetails=[]; results.forEach((r,idx)=>{ if(!r.packed||r.packed.length===0) return; r.packed.forEach(b=>{ const w=b.unitWeight||0; totalWeight+=w; if(w>=500){ totalExtraHeavy++; const pl=b.pl||b.L||b.origL||0; const pw=b.pw||b.W||b.origW||0; const area=(pl*pw)/10000; if(area>0){ const pressure=w/area; if(pressure>maxPressure){maxPressure=pressure; maxPressureCargo=b.label||`Box ${idx+1}`;} heavyDetails.push({name:b.label||`Box`,weight:w,pressure:(w/area).toFixed(0)}); } }else if(w>=25){totalHeavy++;} }); }); if(hintSpan) hintSpan.textContent=isEn?'Expert Mode Active':'专家模式已启用'; if(statsDiv) statsDiv.innerHTML=`<div style="background:#fff;padding:8px 12px;border-radius:6px;font-size:0.85rem;"><span style="color:#e65100;">🔧</span><b>${isEn?'Heavy':'重货'}</b> >25kg: <b style="color:#e65100;">${totalHeavy}</b> ${isEn?'pcs':'件'}</div><div style="background:#fff;padding:8px 12px;border-radius:6px;font-size:0.85rem;"><span style="color:#d32f2f;">⚠️</span><b>${isEn?'Extra Heavy':'超重货'}</b> >500kg: <b style="color:#d32f2f;">${totalExtraHeavy}</b> ${isEn?'pcs':'件'}</div><div style="background:#fff;padding:8px 12px;border-radius:6px;font-size:0.85rem;"><span style="color:#1565c0;">⚖️</span><b>${isEn?'Total Weight':'总重量'}</b>: <b>${(totalWeight/1000).toFixed(1)}t</b></div>`; if(pressureDiv){ if(totalExtraHeavy>0){ const floorLimit=7000,overLimit=maxPressure>floorLimit; pressureDiv.innerHTML=`<div style="padding:10px;background:${overLimit?'#ffebee':'#e8f5e9'};border-radius:6px;font-size:0.85rem;"><div style="font-weight:bold;color:${overLimit?'#d32f2f':'#2e7d32'};margin-bottom:6px;">${overLimit?'❌ ':'✅ '}${isEn?'Floor Pressure Analysis':'对地压强分析'}</div><div>${isEn?'Max pressure':'最大压强'}: <b>${maxPressure.toFixed(0)} kg/m²</b></div><div>${isEn?'Floor limit':'地板限值'}: <b>${floorLimit} kg/m²</b></div>${overLimit?`<div style="color:#d32f2f;margin-top:6px;">⚠️ ${isEn?'Exceeds floor limit! Recommend using steel base or spreader beam.':'超过地板限值！建议使用钢制底座或横梁分散压力。'}</div>`:''}${heavyDetails.length>0?`<div style="margin-top:6px;color:#666;font-size:0.8rem;">${isEn?'Extra heavy items:':'超重货物：'} ${heavyDetails.map(h=>`${h.name}(${h.weight}kg, ${h.pressure}kg/m²)`).join(', ')}</div>`:''}</div>`; }else{ pressureDiv.innerHTML=`<div style="padding:10px;background:#e8f5e9;border-radius:6px;font-size:0.85rem;color:#2e7d32;">✅ ${isEn?'No extra heavy cargo (>1500kg). Floor pressure within limits.':'无超重货物(>1500kg)。对地压强在安全范围内。'}</div>`; } } if(mechanicsDiv){ const suggestions=[]; if(results.length>0){ const grav=estimateGravityLevel(results[0].packed,cL,cW,cH); if(grav.gz&&grav.gz>100) suggestions.push({type:'warning',text:isEn?'• Center of gravity is high (Z>100cm). Reduce height stacking or add bottom ballast.':'• 重心偏高(Z>100cm)。建议降低堆高或底部增加配重。'}); } if(totalExtraHeavy>0){ suggestions.push({type:'warning',text:isEn?'• Extra heavy cargo requires mechanical handling. Plan unloading sequence accordingly.':'• 超重货物需要机械装卸。请提前规划卸货顺序。'}); suggestions.push({type:'warning',text:isEn?'• Use spreader beam or forklift for heavy cargo >500kg.':'• 超重货物(>500kg)请使用吊具或叉车。'}); } suggestions.push({type:'tip',text:isEn?'• Transit acceleration: Front 0.8g, Rear 0.5g, Lateral 0.5g':'• 运输加速度：前0.8g，后0.5g，左右0.5g'}); suggestions.push({type:'tip',text:isEn?'• Lashing point spacing should not exceed 2m.':'• 绑扎点间距不超过2米。'}); mechanicsDiv.innerHTML=suggestions.map(s=>`<div class="${s.type==='warning'?'condition-warning':'general-tip'}" style="margin:4px 0;">${s.text}</div>`).join(''); } }
-function getBestContainer(remainingVol,remainingWeight,currentContainer){ const validContainers=CONTAINERS.filter(c=>c.id!=='custom'); const containerVols=validContainers.map(c=>({...c,volume:c.L*c.W*c.doorH/1000000})); const weightOk=remainingWeight>0?containerVols.filter(c=>c.maxWeight>=remainingWeight):containerVols; let best=null,minWaste=Infinity; for(const c of weightOk){ if(c.volume>=remainingVol){ const waste=c.volume-remainingVol; if(waste<minWaste){minWaste=waste; best=c;} } } if(!best){ for(const c of weightOk){ if(c.volume>=remainingVol*0.7){ const waste=c.volume-remainingVol; if(waste<minWaste){minWaste=waste; best=c;} } } } return best||(validContainers.length>0?validContainers[0]:null); }
-function calculateMultiContainerForBaseline(boxes,cL,cW,cH,maxWeight=22000){ const sorted=[...boxes].sort((a,b)=>(b.origL*b.origW*b.origH)-(a.origL*a.origW*a.origH)); const containerVol=cL*cW*cH; const results=[]; let remainingBoxes=[...sorted]; let containerIdx=0; const MAX_CONTAINERS=50; const largestCont=(()=>{const valid=CONTAINERS.filter(c=>c.id!=='custom'); return valid.reduce((b,c)=>(c.L*c.W*c.doorH>b.L*b.W*b.doorH)?c:b,valid[0]);})(); while(remainingBoxes.length>0&&containerIdx<MAX_CONTAINERS){ const remainingWeight=remainingBoxes.reduce((s,b)=>s+(b.unitWeight||0),0); const cont=containerIdx===0?{name:'40\'HC',L:cL,W:cW,doorH:cH,maxWeight:maxWeight||26500}:getBestContainer(remainingBoxes.reduce((s,b)=>s+b.origL*b.origW*b.origH,0),remainingWeight,null)||largestCont; const effectiveMaxWeight=cont.maxWeight||maxWeight||26500; const result=extremePointPacking(remainingBoxes,cont.L,cont.W,cont.doorH,effectiveMaxWeight); if(result.packed.length>0){ result.containerName=cont.name; results.push(result); remainingBoxes=result.unpacked; containerIdx++; if(result.packed.length===0) break; }else{ results.push({containerNum:containerIdx+1,containerName:cont.name,containerShort:cont.short||cont.name,containerShortEn:cont.shortEn||cont.name,containerId:cont.id||'custom',packed:remainingBoxes,unpacked:[],usedVol:remainingBoxes.reduce((s,b)=>s+b.origL*b.origW*b.origH,0),utilRate:0,totalWeight:remainingBoxes.reduce((s,b)=>s+(b.unitWeight||0),0),isOverWeight:true}); remainingBoxes=[]; } } return results; }
+function getBestContainer(remainingVol,remainingWeight,currentContainer){ const validContainers=CONTAINERS.filter(c=>c.id!=='custom'); const containerVols=validContainers.map(c=>({...c,volume:c.L*c.W*getContainerEffH(c)/1000000})); const weightOk=remainingWeight>0?containerVols.filter(c=>c.maxWeight>=remainingWeight):containerVols; let best=null,minWaste=Infinity; for(const c of weightOk){ if(c.volume>=remainingVol){ const waste=c.volume-remainingVol; if(waste<minWaste){minWaste=waste; best=c;} } } if(!best){ for(const c of weightOk){ if(c.volume>=remainingVol*0.7){ const waste=c.volume-remainingVol; if(waste<minWaste){minWaste=waste; best=c;} } } } return best||(validContainers.length>0?validContainers[0]:null); }
+function calculateMultiContainerForBaseline(boxes,cL,cW,cH,maxWeight=22000){ const sorted=[...boxes].sort((a,b)=>(b.origL*b.origW*b.origH)-(a.origL*a.origW*a.origH)); const containerVol=cL*cW*cH; const results=[]; let remainingBoxes=[...sorted]; let containerIdx=0; const MAX_CONTAINERS=50; const largestCont=(()=>{const valid=CONTAINERS.filter(c=>c.id!=='custom'); return valid.reduce((b,c)=>(c.L*c.W*getContainerEffH(c)>b.L*b.W*getContainerEffH(b))?c:b,valid[0]);})(); while(remainingBoxes.length>0&&containerIdx<MAX_CONTAINERS){ const remainingWeight=remainingBoxes.reduce((s,b)=>s+(b.unitWeight||0),0); const cont=containerIdx===0?{name:'40\'HC',L:cL,W:cW,doorH:cH,maxWeight:maxWeight||26500}:getBestContainer(remainingBoxes.reduce((s,b)=>s+b.origL*b.origW*b.origH,0),remainingWeight,null)||largestCont; const effectiveMaxWeight=cont.maxWeight||maxWeight||26500; const result=extremePointPacking(remainingBoxes,cont.L,cont.W,getContainerEffH(cont),effectiveMaxWeight); if(result.packed.length>0){ result.containerName=cont.name; results.push(result); remainingBoxes=result.unpacked; containerIdx++; if(result.packed.length===0) break; }else{ results.push({containerNum:containerIdx+1,containerName:cont.name,containerShort:cont.short||cont.name,containerShortEn:cont.shortEn||cont.name,containerId:cont.id||'custom',packed:remainingBoxes,unpacked:[],usedVol:remainingBoxes.reduce((s,b)=>s+b.origL*b.origW*b.origH,0),utilRate:0,totalWeight:remainingBoxes.reduce((s,b)=>s+(b.unitWeight||0),0),isOverWeight:true}); remainingBoxes=[]; } } return results; }
 function runPackingWithStrategyNoGroup(boxes,container,strategyId){ const strategySort=getSortFunction(strategyId); const sorted=[...boxes].sort(strategySort); return runMultiContainerPacking(sorted,container,Infinity); }
 function calculate(){ try{ allContainerResults=[]; calculateMultiContainer(); remainingItems=allContainerResults[allContainerResults.length-1]?.unpacked||[]; }catch(e){ showAlert('计算出错: '+e.message); } }
 function calculateWithOptimization(){
@@ -1282,7 +1321,7 @@ function calculateWithOptimization(){
     const isEn=currentLang==='en-US';
     for(let i=0;i<cargoItems.length;i++){ const c=cargoItems[i]; if(!c.L||!c.W||!c.H||c.L<=0||c.W<=0||c.H<=0){ showAlert(`${isEn?'Cargo':'货物'} ${letters[i]||(i+1)} ${isEn?'dimensions incomplete. Please check!':'的尺寸未填写完整，请检查！'}`); return; } }
     const container=selectedContainer;
-    const cL=container.L,cW=container.W,cH=container.doorH;
+    const cL=container.L,cW=container.W,cH=getContainerEffH(container);
     let maxWeight;
     if(container.id==='c20') maxWeight=17500;
     else if(container.id==='c45hq') maxWeight=18820;
@@ -1325,10 +1364,10 @@ function calculateWithOptimization(){
         const containerSaved=quickContainerCount-smartContainerCount;
         // ── 利用率对比 ──
         let quickTotalVol=0,quickContVol=0;
-        quickResults.forEach(r=>{ quickTotalVol+=(r.usedVol||0); const c=CONTAINERS.find(c=>c.id===r.containerId); if(c) quickContVol+=c.L*c.W*c.doorH; else quickContVol+=cL*cW*cH; });
+        quickResults.forEach(r=>{ quickTotalVol+=(r.usedVol||0); const c=CONTAINERS.find(c=>c.id===r.containerId); if(c) quickContVol+=c.L*c.W*getContainerEffH(c); else quickContVol+=cL*cW*cH; });
         const quickUtil=quickContVol>0?(quickTotalVol/quickContVol*100).toFixed(1):'—';
         let smartTotalVol=0,smartContVol=0;
-        allContainerResults.forEach(r=>{ smartTotalVol+=(r.usedVol||0); const c=CONTAINERS.find(c=>c.id===r.containerId); if(c) smartContVol+=c.L*c.W*c.doorH; else smartContVol+=cL*cW*cH; });
+        allContainerResults.forEach(r=>{ smartTotalVol+=(r.usedVol||0); const c=CONTAINERS.find(c=>c.id===r.containerId); if(c) smartContVol+=c.L*c.W*getContainerEffH(c); else smartContVol+=cL*cW*cH; });
         const smartUtil=smartContVol>0?(smartTotalVol/smartContVol*100).toFixed(1):'—';
         const utilDiff=(parseFloat(smartUtil)||0)-(parseFloat(quickUtil)||0);
         // ── 组装对比提示消息 ──
@@ -1377,35 +1416,8 @@ function calculateMultiContainer(){
       }
     });
     allBoxes.sort((a,b)=>(b.origL*b.origW*b.origH)-(a.origL*a.origW*a.origH));
-    // 用 Worker 异步运行 vol_desc 策略，避免主线程阻塞
-    const worker=new Worker('fitwise-worker.js');
-    const strategyName=isEn?'Vol Desc (Large First)':'📦 体积降序（大箱优先）';
-    let qcTimedOut=false;
-    const qcTimeout=setTimeout(()=>{ qcTimedOut=true; worker.terminate(); calculateMultiContainerSync(container,allBoxes); },60000);
-    worker.onmessage=function(e){
-      if(qcTimedOut)return;
-      clearTimeout(qcTimeout);
-      if(e.data.type==='done'){
-        allContainerResults=e.data.results;
-        if(!allContainerResults||allContainerResults.length===0){ showAlert(isEn?"Calculation failed. Please check input data!":"计算失败，请检查输入数据！"); worker.terminate(); return; }
-        const _qcFp = computeBoxFingerprint(allBoxes, container.L, container.W, container.doorH, maxWeight);
-        _strategyCache = { fingerprint: _qcFp, strategyId: 'vol_desc', strategyName: strategyName, results: allContainerResults };
-        remainingItems=allContainerResults[allContainerResults.length-1]?.unpacked||[];
-        packedBoxes=[]; allContainerResults.forEach(r=>{ if(r.packed) packedBoxes.push(...r.packed); });
-        currentViewContainer=0;
-        renderMultiContainerTabs(); updateMultiContainerStats(); renderDetailTableMulti();
-        renderCargoLegend(allContainerResults[0]?.packed||[]);
-        updateGravityPanelQuick(allContainerResults,container.L,container.W,container.doorH);
-        renderExpertRiskPanel(allContainerResults,container.L,container.W,container.doorH);
-        setTimeout(()=>{ renderPackedScene(allContainerResults[0]?.packed||[],container); needRender=true; }, 80);
-        worker.terminate();
-      } else if(e.data.type==='error'){
-        showAlert((isEn?'Quick calculation error: ':'快速计算出错: ')+e.data.error); worker.terminate();
-      }
-    };
-    worker.onerror=function(err){ if(qcTimedOut)return; clearTimeout(qcTimeout); showAlert(isEn?'Quick calculation Worker error':'快速计算 Worker 启动失败，回退串行模式'); worker.terminate(); calculateMultiContainerSync(container,allBoxes); };
-    worker.postMessage({ strategyId:'vol_desc', strategyName:strategyName, boxes:allBoxes, container:container, maxWeight:maxWeight, containersList:CONTAINERS });
-  }catch(e){ calculateMultiContainerSync(container,allBoxes); }
+    calculateMultiContainerSync(container,allBoxes);
+  }catch(e){ showAlert('calculateMultiContainer出错: '+e.message); }
 }
 // 串行回退（Worker 不可用时）
 function calculateMultiContainerSync(container,allBoxes){
@@ -1413,129 +1425,216 @@ function calculateMultiContainerSync(container,allBoxes){
   const maxWeight=container.id==='c20'?17500:container.id==='c45hq'?18820:19200;
   allContainerResults=runMultiContainerPacking(allBoxes,container,maxWeight);
   if(!allContainerResults||allContainerResults.length===0){ showAlert(isEn?"Calculation failed. Please check input data!":"计算失败，请检查输入数据！"); return; }
-  const _qcFp = computeBoxFingerprint(allBoxes, container.L, container.W, container.doorH, maxWeight);
+  const _qcFp = computeBoxFingerprint(allBoxes, container.L, container.W, getContainerEffH(container), maxWeight);
   _strategyCache = { fingerprint: _qcFp, strategyId: 'vol_desc', strategyName: '📦 体积降序（大箱优先）', results: allContainerResults };
   remainingItems=allContainerResults[allContainerResults.length-1]?.unpacked||[];
   packedBoxes=[]; allContainerResults.forEach(r=>{ if(r.packed) packedBoxes.push(...r.packed); });
   currentViewContainer=0;
   renderMultiContainerTabs(); updateMultiContainerStats(); renderDetailTableMulti();
   renderCargoLegend(allContainerResults[0]?.packed||[]);
-  updateGravityPanelQuick(allContainerResults,container.L,container.W,container.doorH);
-  renderExpertRiskPanel(allContainerResults,container.L,container.W,container.doorH);
+  updateGravityPanelQuick(allContainerResults,container.L,container.W,getContainerEffH(container));
+  renderExpertRiskPanel(allContainerResults,container.L,container.W,getContainerEffH(container));
   setTimeout(()=>{ renderPackedScene(allContainerResults[0]?.packed||[],container); needRender=true; }, 80);
 }
 function renderMultiContainerTabs(){ const container=document.getElementById('multiContainerTabs'); if(!container) return; const isEn=currentLang==='en-US'; container.style.display='flex'; container.innerHTML=allContainerResults.map((r,idx)=>{ const isActive=idx===currentViewContainer; const containerName=isEn?(r.containerShortEn||r.containerShort):r.containerName; const totalWeightT=(r.totalWeight!=null&&isFinite(r.totalWeight))?(r.totalWeight/1000).toFixed(1):'0.0'; const weightUnit=isEn?'t':'吨'; const utilDisplay=(r.utilRate!=null&&isFinite(parseFloat(r.utilRate)))?r.utilRate:'0'; return `<button class="container-tab ${isActive?'active':''}" onclick="switchContainer(${idx})">📦 ${containerName} ${isEn?'#':''}${r.containerNum}<span class="tab-info">${r.packed.length}${isEn?'boxes':'件'} · ${utilDisplay}% · ${totalWeightT}${weightUnit}</span></button>`; }).join(''); }
-function switchContainer(idx){ currentViewContainer=idx; document.querySelectorAll('.container-tab').forEach((tab,i)=>{tab.classList.toggle('active',i===idx);}); const result=allContainerResults[idx]; const currentPacked=result.packed; const actualContainer=CONTAINERS.find(c=>c.id===result.containerId); const containerObj=actualContainer||{L:selectedContainer.L,W:selectedContainer.W,H:selectedContainer.doorH}; renderPackedScene(currentPacked,containerObj); renderCargoLegend(allContainerResults[idx].packed); }
-function updateMultiContainerStats(){ const debugBar=document.getElementById('debugBar'); const debugInfo=document.getElementById('debugInfo'); if(debugBar&&debugInfo){ const count=allContainerResults.length; const totalWt=allContainerResults.reduce((s,r)=>s+(r.totalWeight||0),0); debugInfo.textContent='📊 '+count+' container(s) · Total weight: '+(totalWt/1000).toFixed(1)+'t'; debugBar.style.display='block'; } if(allContainerResults.length===0) return; const isEn=currentLang==='en-US'; const totalPacked=allContainerResults.reduce((s,r)=>s+r.packed.length,0); const totalInput=cargoItems.reduce((s,c)=>s+(parseInt(c.qty)||0),0); const totalVol=allContainerResults.reduce((s,r)=>s+r.usedVol,0); let totalVolAll=0; allContainerResults.forEach(r=>{ const c=CONTAINERS.find(c=>c.id===r.containerId); if(c) totalVolAll+=c.L*c.W*c.doorH; else totalVolAll+=selectedContainer.L*selectedContainer.W*selectedContainer.doorH; }); const overallUtil=(totalVol/totalVolAll*100).toFixed(1); const statUtilEl=document.getElementById('statUtil'),utilBarEl=document.getElementById('utilBar'),statPackedEl=document.getElementById('statPacked'),statVolEl=document.getElementById('statVol'); if(statUtilEl) statUtilEl.textContent=overallUtil+'%'; if(utilBarEl) utilBarEl.style.width=Math.min(parseFloat(overallUtil),100)+'%'; if(statPackedEl) statPackedEl.textContent=totalPacked; if(statVolEl) statVolEl.textContent=(totalVol/1e6).toFixed(2); const containerInfo=document.getElementById('selContainerInfo'); if(containerInfo){ const containerCount=allContainerResults.length; const containerTypes={}; allContainerResults.forEach(r=>{ const shortName=isEn?(r.containerShortEn||r.containerShort):r.containerName; containerTypes[shortName]=(containerTypes[shortName]||0)+1; }); const typeStr=Object.entries(containerTypes).map(([name,count])=>count>1?`${name}×${count}`:name).join(' + '); containerInfo.innerHTML=`📦 ${isEn?'Need':'共需'} <b>${containerCount}</b> ${isEn?'container(s)':'个集装箱'}: ${typeStr}（${isEn?'viewing':'查看'}${currentViewContainer+1}${isEn?'':'号'}）`; } let hasOverweight=false; allContainerResults.forEach(r=>{ const cont=CONTAINERS.find(c=>c.id===r.containerId); const limit=cont?cont.maxWeight:PAYLOAD_LIMIT; if(r.totalWeight>limit) hasOverweight=true; }); const warnEl=document.getElementById('weightWarn'),okEl=document.getElementById('weightOk'); if(hasOverweight){ const overweightCount=allContainerResults.filter(r=>{ const cont=CONTAINERS.find(c=>c.id===r.containerId); const limit=cont?cont.maxWeight:PAYLOAD_LIMIT; return r.totalWeight>limit; }).length; const warnWeightValEl=document.getElementById('warnWeightVal'); if(warnWeightValEl) warnWeightValEl.textContent=isEn?`${overweightCount} container(s) overweight`:`${overweightCount}个集装箱超重`; if(warnEl) warnEl.style.display='block'; if(okEl) okEl.style.display='none'; }else{ const totalWeight=allContainerResults.reduce((s,r)=>s+(r.totalWeight||0),0); const okWeightValEl=document.getElementById('okWeightVal'); if(okWeightValEl) okWeightValEl.textContent=totalWeight.toLocaleString(); if(okEl) okEl.style.display='block'; if(warnEl) warnEl.style.display='none'; } }
+function switchContainer(idx){ currentViewContainer=idx; document.querySelectorAll('.container-tab').forEach((tab,i)=>{tab.classList.toggle('active',i===idx);}); const result=allContainerResults[idx]; const currentPacked=result.packed; const actualContainer=CONTAINERS.find(c=>c.id===result.containerId); const containerObj=actualContainer||{L:selectedContainer.L,W:selectedContainer.W,H:getContainerEffH(selectedContainer)}; renderPackedScene(currentPacked,containerObj); renderCargoLegend(allContainerResults[idx].packed); }
+function updateMultiContainerStats(){ const debugBar=document.getElementById('debugBar'); const debugInfo=document.getElementById('debugInfo'); if(debugBar&&debugInfo){ const count=allContainerResults.length; const totalWt=allContainerResults.reduce((s,r)=>s+(r.totalWeight||0),0); debugInfo.textContent='📊 '+count+' container(s) · Total weight: '+(totalWt/1000).toFixed(1)+'t'; debugBar.style.display='block'; } if(allContainerResults.length===0) return; const isEn=currentLang==='en-US'; const totalPacked=allContainerResults.reduce((s,r)=>s+r.packed.length,0); const totalInput=cargoItems.reduce((s,c)=>s+(parseInt(c.qty)||0),0); const totalVol=allContainerResults.reduce((s,r)=>s+r.usedVol,0); let totalVolAll=0; allContainerResults.forEach(r=>{ const c=CONTAINERS.find(c=>c.id===r.containerId); if(c) totalVolAll+=c.L*c.W*getContainerEffH(c); else totalVolAll+=selectedContainer.L*selectedContainer.W*getContainerEffH(selectedContainer); }); const overallUtil=(totalVol/totalVolAll*100).toFixed(1); const statUtilEl=document.getElementById('statUtil'),utilBarEl=document.getElementById('utilBar'),statPackedEl=document.getElementById('statPacked'),statVolEl=document.getElementById('statVol'); if(statUtilEl) statUtilEl.textContent=overallUtil+'%'; if(utilBarEl) utilBarEl.style.width=Math.min(parseFloat(overallUtil),100)+'%'; if(statPackedEl) statPackedEl.textContent=totalPacked; if(statVolEl) statVolEl.textContent=(totalVol/1e6).toFixed(2); const containerInfo=document.getElementById('selContainerInfo'); if(containerInfo){ const containerCount=allContainerResults.length; const containerTypes={}; allContainerResults.forEach(r=>{ const shortName=isEn?(r.containerShortEn||r.containerShort):r.containerName; containerTypes[shortName]=(containerTypes[shortName]||0)+1; }); const typeStr=Object.entries(containerTypes).map(([name,count])=>count>1?`${name}×${count}`:name).join(' + '); containerInfo.innerHTML=`📦 ${isEn?'Need':'共需'} <b>${containerCount}</b> ${isEn?'container(s)':'个集装箱'}: ${typeStr}（${isEn?'viewing':'查看'}${currentViewContainer+1}${isEn?'':'号'}）`; } let hasOverweight=false; allContainerResults.forEach(r=>{ const cont=CONTAINERS.find(c=>c.id===r.containerId); const limit=cont?cont.maxWeight:PAYLOAD_LIMIT; if(r.totalWeight>limit) hasOverweight=true; }); const warnEl=document.getElementById('weightWarn'),okEl=document.getElementById('weightOk'); if(hasOverweight){ const overweightCount=allContainerResults.filter(r=>{ const cont=CONTAINERS.find(c=>c.id===r.containerId); const limit=cont?cont.maxWeight:PAYLOAD_LIMIT; return r.totalWeight>limit; }).length; const warnWeightValEl=document.getElementById('warnWeightVal'); if(warnWeightValEl) warnWeightValEl.textContent=isEn?`${overweightCount} container(s) overweight`:`${overweightCount}个集装箱超重`; if(warnEl) warnEl.style.display='block'; if(okEl) okEl.style.display='none'; }else{ const totalWeight=allContainerResults.reduce((s,r)=>s+(r.totalWeight||0),0); const okWeightValEl=document.getElementById('okWeightVal'); if(okWeightValEl) okWeightValEl.textContent=totalWeight.toLocaleString(); if(okEl) okEl.style.display='block'; if(warnEl) warnEl.style.display='none'; } }
 function renderDetailTableMulti(){ const container=document.getElementById('resultDetail'); if(!container) return; const isEn=currentLang==='en-US'; if(!allContainerResults||allContainerResults.length===0){ container.innerHTML=`<div class="empty-state"><div class="big-icon">📦</div><p data-i18n="detail-calculating">${isEn?'Calculating...':'计算中...'}</p></div>`; return; } let allPackedBoxes=[]; allContainerResults.forEach((result,idx)=>{ result.packed.forEach(box=>{ allPackedBoxes.push({...box,containerNum:idx+1}); }); }); const groupStats={}; allPackedBoxes.forEach(b=>{ const key=b.containerNum+'_'+b.label; if(!groupStats[key]) groupStats[key]={label:b.label,containerNum:b.containerNum,count:0,volume:0,weight:0,color:b.color}; groupStats[key].count++; groupStats[key].volume+=b.pl*b.pw*b.ph; groupStats[key].weight+=b.unitWeight; }); const totalPacked=allContainerResults.reduce((s,r)=>s+r.packed.length,0); const totalInput=cargoItems.reduce((s,c)=>s+(parseInt(c.qty)||0),0); const totalVol=allContainerResults.reduce((s,r)=>s+r.usedVol,0); const totalWeight=allContainerResults.reduce((s,r)=>s+r.totalWeight,0); const statsList=Object.values(groupStats); let html=`<table class="result-table"><thead><th>${isEn?'Cargo':'货物'}</th><th>${isEn?'Container':'集装箱'}</th><th>${isEn?'Packed':'已装(件)'}</th><th>${isEn?'Volume(m³)':'体积(m³)'}</th><th>${isEn?'Weight(kg)':'重量(kg)'}</th></thead><tbody>`; statsList.forEach(stat=>{ html+=`<tr><td><span class="color-dot" style="background:${stat.color||'#888'};margin-right:6px;"></span><b>${stat.label}</b></td><td>📦 ${stat.containerNum}${isEn?'':'号柜'}</td><td>${stat.count}</td><td>${(stat.volume/1e6).toFixed(3)}</td><td>${stat.weight>0?stat.weight.toFixed(1):'—'}</td></tr>`; }); html+=`</tbody><table><div style="margin-top:12px;padding:12px 14px;background:#e8f5e9;border-radius:8px;font-size:0.85rem;"><div style="display:flex;flex-wrap:wrap;gap:16px;"><div>📦 <b>${totalPacked}</b> / ${totalInput} ${isEn?'packed':'件已装'}</div><div>📊 ${isEn?'Used Volume':'利用体积'} <b>${(totalVol/1e6).toFixed(2)}</b> m³</div><div>⚖️ ${isEn?'Total Weight':'总重量'} <b>${totalWeight.toFixed(0)}</b> kg</div><div>🚢 ${isEn?'Need':'共需'} <b>${allContainerResults.length}</b> ${isEn?'container(s)':'个集装箱'}</div></div></div>`; container.innerHTML=html; const exportBtn=document.getElementById('btnExportExcel'); if(exportBtn){ const hasData=allContainerResults&&allContainerResults.length>0&&totalPacked>0; exportBtn.disabled=!hasData; exportBtn.style.opacity=hasData?'1':'0.5'; exportBtn.style.cursor=hasData?'pointer':'not-allowed'; } }
 function exportToExcel(){ const isEn=currentLang==='en-US'; if(!allContainerResults||allContainerResults.length===0){ showAlert(isEn?'No data to export! Please calculate first.':'没有可导出的数据！请先计算。'); return; } let allPackedBoxes=[]; allContainerResults.forEach((result,idx)=>{ result.packed.forEach(box=>{ allPackedBoxes.push({...box,containerNum:idx+1}); }); }); if(allPackedBoxes.length===0){ showAlert(isEn?'No boxes loaded to export!':'没有已装货物可导出！'); return; } const groupStats={}; allPackedBoxes.forEach(b=>{ const key=b.containerNum+'_'+b.label; if(!groupStats[key]) groupStats[key]={label:b.label,containerNum:b.containerNum,count:0,volume:0,weight:0}; groupStats[key].count++; groupStats[key].volume+=b.pl*b.pw*b.ph; groupStats[key].weight+=b.unitWeight; }); const totalPacked=allContainerResults.reduce((s,r)=>s+r.packed.length,0); const totalInput=cargoItems.reduce((s,c)=>s+(parseInt(c.qty)||0),0); const totalVol=allContainerResults.reduce((s,r)=>s+r.usedVol,0); const totalWeight=allContainerResults.reduce((s,r)=>s+r.totalWeight,0); const statsList=Object.values(groupStats); const statsData=[[isEn?'Cargo':'货物',isEn?'Container':'集装箱',isEn?'Packed (pcs)':'已装(件)',isEn?'Volume (m³)':'体积(m³)',isEn?'Weight (kg)':'重量(kg)']]; statsList.forEach(stat=>{ statsData.push([stat.label,isEn?'Container '+stat.containerNum:stat.containerNum+'号柜',stat.count,(stat.volume/1e6).toFixed(4),stat.weight>0?stat.weight.toFixed(2):'-']); }); const detailData=[[isEn?'Cargo':'货物',isEn?'Container':'集装箱',isEn?'Length (cm)':'长(cm)',isEn?'Width (cm)':'宽(cm)',isEn?'Height (cm)':'高(cm)',isEn?'Position X':'位置X',isEn?'Position Y':'位置Y',isEn?'Position Z':'位置Z',isEn?'Weight (kg)':'重量(kg)']]; allPackedBoxes.forEach(box=>{ detailData.push([box.label,isEn?'Container '+box.containerNum:box.containerNum+'号柜',box.pl,box.pw,box.ph,box.px.toFixed(1),box.py.toFixed(1),box.pz.toFixed(1),box.unitWeight>0?box.unitWeight.toFixed(2):'-']); }); const summaryData=[[isEn?'Loading Summary Report':'装载方案汇总报告'],[''],[isEn?'Total Containers':'集装箱总数',allContainerResults.length],[isEn?'Total Boxes Loaded':'已装总件数',totalPacked],[isEn?'Total Input':'输入总件数',totalInput],[isEn?'Packing Rate':'装箱率',(totalPacked/totalInput*100).toFixed(1)+'%'],[isEn?'Used Volume':'利用体积',(totalVol/1e6).toFixed(2)+' m³'],[isEn?'Total Weight':'总重量',totalWeight.toFixed(1)+' kg']]; const wb=XLSX.utils.book_new(); const ws1=XLSX.utils.aoa_to_sheet(statsData); ws1['!cols']=[{wch:15},{wch:12},{wch:10},{wch:12},{wch:12}]; XLSX.utils.book_append_sheet(wb,ws1,isEn?'Summary':'汇总统计'); const ws2=XLSX.utils.aoa_to_sheet(detailData); ws2['!cols']=[{wch:12},{wch:12},{wch:10},{wch:10},{wch:10},{wch:10},{wch:10},{wch:10},{wch:10}]; XLSX.utils.book_append_sheet(wb,ws2,isEn?'Details':'明细数据'); const ws3=XLSX.utils.aoa_to_sheet(summaryData); ws3['!cols']=[{wch:20},{wch:15},{wch:10}]; XLSX.utils.book_append_sheet(wb,ws3,isEn?'Report':'报告'); const HEAVY_THRESHOLD=25; const heavyBoxes=allPackedBoxes.filter(b=>(b.unitWeight||0)>=HEAVY_THRESHOLD); const lightBoxes=allPackedBoxes.filter(b=>(b.unitWeight||0)<HEAVY_THRESHOLD); heavyBoxes.sort((a,b)=>a.px-b.px); lightBoxes.sort((a,b)=>b.px-a.px); const unloadSequence=[...heavyBoxes,...lightBoxes]; const unloadData=[[isEn?'Unload Sequence Report':'卸货顺序建议'],[isEn?'Rule: Heavy cargo (≥25kg) unloaded first, then light cargo':'规则：重货(≥25kg)先卸，轻货后卸'],[''],[isEn?'Seq':'顺序',isEn?'Cargo':'货物',isEn?'Container':'集装箱',isEn?'Weight (kg)':'重量(kg)',isEn?'Size L×W×H (cm)':'尺寸 长×宽×高(cm)',isEn?'Position X':'位置X',isEn?'Method':'卸货方式',isEn?'Note':'备注']]; unloadSequence.forEach((box,idx)=>{ const isHeavy=(box.unitWeight||0)>=HEAVY_THRESHOLD; const method=isHeavy?(isEn?'🔧 Mechanical':'🔧 机械'):(isEn?'📦 Manual':'📦 人工'); const note=isHeavy?(isEn?'Unload first (near door)':'先卸（靠近门口）'):(isEn?'Unload last (from inside out)':'后卸（从里往外）'); unloadData.push([idx+1,box.label,isEn?'Container '+box.containerNum:box.containerNum+'号柜',box.unitWeight>0?box.unitWeight.toFixed(2):'-',(box.pl||box.origL||0)+'×'+(box.pw||box.origW||0)+'×'+(box.ph||box.origH||0),box.px.toFixed(1),method,note]); }); const ws4=XLSX.utils.aoa_to_sheet(unloadData); ws4['!cols']=[{wch:6},{wch:12},{wch:12},{wch:12},{wch:18},{wch:10},{wch:12},{wch:20}]; XLSX.utils.book_append_sheet(wb,ws4,isEn?'Unload':'卸货顺序'); const fileName=(isEn?'LoadingPlan_':'装载方案_')+new Date().toISOString().slice(0,10).replace(/-/g,'')+'.xlsx'; XLSX.writeFile(wb,fileName); showAlert(isEn?'✅ Excel exported successfully!':'✅ Excel导出成功！'); }
 
-// ===================== 三维装箱算法（带同SKU亲和力加分，始终启用）=====================
+// ===================== 三维装箱算法（批量分组优化版 v2607）=====================
 function extremePointPacking(boxes, cL, cW, cH, maxWeight = Infinity) {
+  // 0. 规范化尺寸
   boxes.forEach(b => { b.origL = parseFloat(b.origL) || 0; b.origW = parseFloat(b.origW) || 0; b.origH = parseFloat(b.origH) || 0; });
-  let extremePoints = [{x:0, y:0, z:0}, {x:0, y:0, z: cW}, {x:cL, y:0, z:0}, {x:0, y:cH, z:0}];
+  
+  // 1. 合并相同箱子为 Group（关键优化：2355件→4-5组）
+  const groupMap = new Map();
+  for (const box of boxes) {
+    const key = `${box.origL}|${box.origW}|${box.origH}|${box.orient}|${box.unitWeight || 0}`;
+    if (!groupMap.has(key)) {
+      groupMap.set(key, { template: {...box}, count: 0 });
+    }
+    groupMap.get(key).count++;
+  }
+  const groups = Array.from(groupMap.values());
+
+  // 2. 初始化
+  let extremePoints = [{x:0, y:0, z:0}];
   let packed = [], unpacked = [], totalWeight = 0;
-  const EPS = 0.5, LOCAL_RADIUS = 250;
-  function getBoxCenter(b) { return { cx: b.px + b.pl/2, cy: b.py + b.ph/2, cz: b.pz + b.pw/2 }; }
-  function isInsideAnyBox(px, py, pz) {
-    for (const idx of gridNearby(px, py, pz)) {
-      const b = packed[idx];
-      if (Math.abs(px - (b.px + b.pl/2)) > (b.pl/2 + 5)) continue;
-      if (Math.abs(py - (b.py + b.ph/2)) > (b.ph/2 + 5)) continue;
-      if (Math.abs(pz - (b.pz + b.pw/2)) > (b.pw/2 + 5)) continue;
-      if (px > b.px + EPS && px < b.px + b.pl - EPS && py > b.py + EPS && py < b.py + b.ph - EPS && pz > b.pz + EPS && pz < b.pz + b.pw - EPS) return true;
-    }
-    return false;
-  }
-  function isOnTopOfBox(px, pz, b, epY) { return px > b.px - EPS && px < b.px + b.pl + EPS && pz > b.pz - EPS && pz < b.pz + b.pw + EPS && Math.abs(epY - (b.py + b.ph)) < EPS; }
-  function hasOverlapLocal(x, z, y, l, w, h) {
-    for (const idx of gridNearby(x + l/2, y + h/2, z + w/2)) {
-      const b = packed[idx];
-      if (x < b.px + b.pl - EPS && x + l > b.px + EPS && z < b.pz + b.pw - EPS && z + w > b.pz + EPS && y < b.py + b.ph - EPS && y + h > b.py + EPS) return true;
-    }
-    return false;
-  }
-  // 空间哈希网格：始终运行接触加分，O(K) 替代 O(N) 遍历
+  const EPS = 0.5;
   const CELL = 100;
-  const GX = Math.max(1, Math.ceil(cL / CELL)), GY = Math.max(1, Math.ceil(cH / CELL)), GZ = Math.max(1, Math.ceil(cW / CELL));
+  const GX = Math.max(1, Math.ceil(cL/CELL)), GY = Math.max(1, Math.ceil(cH/CELL)), GZ = Math.max(1, Math.ceil(cW/CELL));
   const grid = Array.from({length:GX},()=>Array.from({length:GY},()=>Array.from({length:GZ},()=>[])));
   function gridAdd(idx) {
     const b = packed[idx];
-    const x0 = Math.max(0,Math.floor(b.px/CELL)), x1 = Math.min(GX-1,Math.floor((b.px+b.pl)/CELL));
-    const y0 = Math.max(0,Math.floor(b.py/CELL)), y1 = Math.min(GY-1,Math.floor((b.py+b.ph)/CELL));
-    const z0 = Math.max(0,Math.floor(b.pz/CELL)), z1 = Math.min(GZ-1,Math.floor((b.pz+b.pw)/CELL));
-    for (let x=x0;x<=x1;x++) for(let y=y0;y<=y1;y++) for(let z=z0;z<=z1;z++) grid[x][y][z].push(idx);
+    const x0=Math.max(0,Math.floor(b.px/CELL)), x1=Math.min(GX-1,Math.floor((b.px+b.pl)/CELL));
+    const y0=Math.max(0,Math.floor(b.py/CELL)), y1=Math.min(GY-1,Math.floor((b.py+b.ph)/CELL));
+    const z0=Math.max(0,Math.floor(b.pz/CELL)), z1=Math.min(GZ-1,Math.floor((b.pz+b.pw)/CELL));
+    for(let x=x0;x<=x1;x++) for(let y=y0;y<=y1;y++) for(let z=z0;z<=z1;z++) grid[x][y][z].push(idx);
   }
-  function gridNearby(ex,ey,ez) {
-    const gx = Math.max(0,Math.min(GX-1,Math.floor(ex/CELL)));
-    const gy = Math.max(0,Math.min(GY-1,Math.floor(ey/CELL)));
-    const gz = Math.max(0,Math.min(GZ-1,Math.floor(ez/CELL)));
-    const s = new Set();
-    for (let dx=-1;dx<=1;dx++) for(let dy=-1;dy<=1;dy++) for(let dz=-1;dz<=1;dz++) {
+  function gridNeighbors(ex,ey,ez) {
+    const gx=Math.max(0,Math.min(GX-1,Math.floor(ex/CELL)));
+    const gy=Math.max(0,Math.min(GY-1,Math.floor(ey/CELL)));
+    const gz=Math.max(0,Math.min(GZ-1,Math.floor(ez/CELL)));
+    const s=new Set();
+    for(let dx=-1;dx<=1;dx++) for(let dy=-1;dy<=1;dy++) for(let dz=-1;dz<=1;dz++){
       const nx=gx+dx,ny=gy+dy,nz=gz+dz;
       if(nx>=0&&nx<GX&&ny>=0&&ny<GY&&nz>=0&&nz<GZ) for(const i of grid[nx][ny][nz]) s.add(i);
     }
     return s;
   }
-  for (const box of boxes) {
-    const rotations = getRotations(box.origL, box.origW, box.origH, box.orient);
-    let placed = false;
-    const scoredEPs = extremePoints.map(ep => {
-      let posScore = (cL - ep.x) * 10000 + (cW - ep.z) * 100 + (cH - ep.y);
-      let contactBonus = 0, sameSkuBonus = 0;
-      for (const idx of gridNearby(ep.x, ep.y, ep.z)) {
-        const b = packed[idx];
-        if (Math.abs(ep.x - (b.px + b.pl)) < 2) contactBonus += 100;
-        if (Math.abs(ep.z - (b.pz + b.pw)) < 2) contactBonus += 100;
-        if (Math.abs(ep.y - (b.py + b.ph)) < 2) contactBonus += 100;
-        if (box.label && b.label === box.label) {
-          if (Math.abs(ep.y - (b.py + b.ph)) < EPS && ep.x < b.px + b.pl + EPS && ep.x > b.px - EPS && ep.z < b.pz + b.pw + EPS && ep.z > b.pz - EPS) sameSkuBonus = 200;
-          if ((Math.abs(ep.x - (b.px + b.pl)) < EPS || Math.abs(ep.x - b.px) < EPS) && ep.y < b.py + b.ph + EPS && ep.y > b.py - EPS && ep.z < b.pz + b.pw + EPS && ep.z > b.pz - EPS) sameSkuBonus = Math.max(sameSkuBonus, 150);
-          if ((Math.abs(ep.z - (b.pz + b.pw)) < EPS || Math.abs(ep.z - b.pz) < EPS) && ep.y < b.py + b.ph + EPS && ep.y > b.py - EPS && ep.x < b.px + b.pl + EPS && ep.x > b.px - EPS) sameSkuBonus = Math.max(sameSkuBonus, 150);
+  function isInsideAnyBox(px, py, pz) {
+    for (const b of packed) {
+      if (px > b.px + EPS && px < b.px + b.pl - EPS &&
+          py > b.py + EPS && py < b.py + b.ph - EPS &&
+          pz > b.pz + EPS && pz < b.pz + b.pw - EPS) return true;
+    }
+    return false;
+  }
+  function hasOverlapGrid(x, z, y, l, w, h) {
+    const OLAP_EPS = 0.1;
+    for (const idx of gridNeighbors(x+l/2, y+h/2, z+w/2)) {
+      const b = packed[idx];
+      if (x < b.px+b.pl-OLAP_EPS && x+l > b.px+OLAP_EPS &&
+          z < b.pz+b.pw-OLAP_EPS && z+w > b.pz+OLAP_EPS &&
+          y < b.py+b.ph-OLAP_EPS && y+h > b.py+OLAP_EPS) return true;
+    }
+    return false;
+  }
+
+  // 3. 处理每个Group（批量放置）
+  for (const group of groups) {
+    const template = group.template;
+    const rotations = getRotations(template.origL, template.origW, template.origH, template.orient);
+    let remaining = group.count;
+
+    while (remaining > 0) {
+      // 极端点评分排序
+      const scoredEPs = extremePoints.map(ep => {
+        let posScore = (cL - ep.x) * 10000 + (cW - ep.z) * 100 + (cH - ep.y);
+        let fitBonus = 0;
+        for (const b of packed) {
+          if (Math.abs(ep.x - (b.px + b.pl)) < 2) fitBonus += 100;
+          if (Math.abs(ep.z - (b.pz + b.pw)) < 2) fitBonus += 100;
+          if (ep.y < 1) fitBonus += 50;
+        }
+        return { ep, score: posScore + fitBonus };
+      });
+      const sortedEPs = scoredEPs.sort((a,b)=>b.score-a.score).map(item=>item.ep);
+      let placedInThisRound = false;
+
+      for (const ep of sortedEPs) {
+        if (placedInThisRound) break;
+        if (isInsideAnyBox(ep.x, ep.y, ep.z)) continue;
+
+        // 计算支撑高度
+        let baseY = ep.y;
+        for (const b of packed) {
+          if (ep.x > b.px - EPS && ep.x < b.px + b.pl + EPS &&
+              ep.z > b.pz - EPS && ep.z < b.pz + b.pw + EPS &&
+              Math.abs(ep.y - (b.py + b.ph)) < EPS) {
+            baseY = Math.max(baseY, b.py + b.ph);
+          }
+        }
+
+        for (const rot of rotations) {
+          const [l, w, h] = rot;
+          if (ep.x + l > cL + EPS || baseY + h > cH + EPS || ep.z + w > cW + EPS) continue;
+          if (hasOverlapGrid(ep.x, ep.z, baseY, l, w, h)) continue;
+
+          const unitWeight = template.unitWeight || 0;
+          
+          // ---- 批量扩展：沿 X 方向连续放置 ----
+          const maxCountX = Math.min(remaining, Math.floor((cL - ep.x) / l));
+          if (maxCountX <= 0) continue;
+          
+          // 检查整排碰撞
+          let actualCount = 0;
+          for (let k = 0; k < maxCountX; k++) {
+            const xOff = ep.x + k * l;
+            if (hasOverlapGrid(xOff, ep.z, baseY, l, w, h)) break;
+            if (totalWeight + (actualCount + 1) * unitWeight > maxWeight) break;
+            actualCount++;
+          }
+          if (actualCount <= 0) continue;
+
+          // 批量放置整排
+          for (let k = 0; k < actualCount; k++) {
+            const placedBox = {
+              ...template,
+              pl: l, pw: w, ph: h,
+              px: ep.x + k * l, py: baseY, pz: ep.z,
+              unitWeight: unitWeight
+            };
+            delete placedBox.count;
+            packed.push(placedBox);
+            gridAdd(packed.length - 1);
+            totalWeight += unitWeight;
+          }
+          remaining -= actualCount;
+          placedInThisRound = true;
+
+          // 批量更新极端点（先过滤再添加，避免删除新边界点）
+          const rMinX = ep.x, rMaxX = ep.x + actualCount * l;
+          const rMinY = baseY, rMaxY = baseY + h;
+          const rMinZ = ep.z, rMaxZ = ep.z + w;
+          extremePoints = extremePoints.filter(ep2 => !(
+            ep2.x > rMinX - EPS && ep2.x < rMaxX + EPS &&
+            ep2.y > rMinY - EPS && ep2.y < rMaxY + EPS &&
+            ep2.z > rMinZ - EPS && ep2.z < rMaxZ + EPS
+          ));
+          const newEPs = [
+            {x: rMaxX, y: rMinY, z: rMinZ},
+            {x: rMinX, y: rMaxY, z: rMinZ},
+            {x: rMinX, y: rMinY, z: rMaxZ},
+            {x: rMaxX, y: rMaxY, z: rMinZ},
+            {x: rMaxX, y: rMinY, z: rMaxZ},
+            {x: rMinX, y: rMaxY, z: rMaxZ},
+            {x: rMaxX, y: rMaxY, z: rMaxZ}
+          ];
+          for (const nep of newEPs) {
+            if (nep.x < cL + EPS && nep.y < cH + EPS && nep.z < cW + EPS && nep.x > -EPS && nep.y > -EPS && nep.z > -EPS) {
+              if (!isInsideAnyBox(nep.x, nep.y, nep.z)) extremePoints.push(nep);
+            }
+          }
+          extremePoints = deduplicatePoints(extremePoints, 15);
+          break;
         }
       }
-      let regularityBonus = 0;
-      if (ep.x < 10) regularityBonus += 200;
-      if (ep.y < 10) regularityBonus += 200;
-      if (ep.z < 10) regularityBonus += 200;
-      return { ep, score: posScore + contactBonus + regularityBonus + sameSkuBonus };
-    });
-    const sortedEPs = scoredEPs.sort((a,b)=>b.score-a.score).map(item=>item.ep);
-  outerLoop:
-    for (const ep of sortedEPs) {
-      if (isInsideAnyBox(ep.x, ep.y, ep.z)) continue;
-      let baseY = ep.y;
-      for (const idx of gridNearby(ep.x, ep.y, ep.z)) {
-        const b = packed[idx];
-        if (Math.abs(ep.x - (b.px + b.pl/2)) > LOCAL_RADIUS && Math.abs(ep.z - (b.pz + b.pw/2)) > LOCAL_RADIUS) continue;
-        if (isOnTopOfBox(ep.x, ep.z, b, ep.y)) baseY = Math.max(baseY, b.py + b.ph);
-      }
-      for (const rot of rotations) {
-        const [l, w, h] = rot;
-        const px = ep.x, py = baseY, pz = ep.z;
-        if (px + l > cL + EPS || py + h > cH + EPS || pz + w > cW + EPS) continue;
-        if (hasOverlapLocal(px, pz, py, l, w, h)) continue;
-        const boxWeight = box.unitWeight || 0;
-        if (totalWeight + boxWeight > maxWeight) continue;
-        const placedBox = { ...box, pl: l, pw: w, ph: h, px, py, pz };
-        packed.push(placedBox);
-        gridAdd(packed.length - 1);
-        totalWeight += boxWeight;
-        const newBoxMinX = px, newBoxMaxX = px + l, newBoxMinY = py, newBoxMaxY = py + h, newBoxMinZ = pz, newBoxMaxZ = pz + w;
-        extremePoints = extremePoints.filter(ep => !(ep.x > newBoxMinX - EPS && ep.x < newBoxMaxX + EPS && ep.y > newBoxMinY - EPS && ep.y < newBoxMaxY + EPS && ep.z > newBoxMinZ - EPS && ep.z < newBoxMaxZ + EPS));
-        const newEPs = [{x: px + l, y: py, z: pz}, {x: px, y: py + h, z: pz}, {x: px, y: py, z: pz + w}, {x: px + l, y: py + h, z: pz}, {x: px + l, y: py, z: pz + w}, {x: px, y: py + h, z: pz + w}, {x: px + l, y: py + h, z: pz + w}];
-        for (const nep of newEPs) { if (nep.x < cL + EPS && nep.y < cH + EPS && nep.z < cW + EPS && nep.x > -EPS && nep.y > -EPS && nep.z > -EPS && !isInsideAnyBox(nep.x, nep.y, nep.z)) extremePoints.push(nep); }
-        extremePoints = deduplicatePoints(extremePoints, 5);
-        placed = true;
-        break outerLoop;
+      if (!placedInThisRound) break;
+    }
+
+    // 未放置的加入unpacked
+    if (remaining > 0) {
+      for (let i = 0; i < remaining; i++) {
+        unpacked.push({ ...template, pl: template.origL, pw: template.origW, ph: template.origH });
       }
     }
-    if (!placed) unpacked.push(box);
   }
+
   return { packed, unpacked };
 }
-function hasOverlap(packed, x, z, y, l, w, h) { const OLAP_EPS = 0.1; for (const b of packed) { if (x < b.px + b.pl - OLAP_EPS && x + l > b.px + OLAP_EPS && z < b.pz + b.pw - OLAP_EPS && z + w > b.pz + OLAP_EPS && y < b.py + b.ph - OLAP_EPS && y + h > b.py + OLAP_EPS) return true; } return false; }
-function deduplicatePoints(pts, EPS_MERGE = 5) { if (pts.length === 0) return pts; const map = new Map(); for (const p of pts) { const kx = Math.round(p.x / EPS_MERGE) * EPS_MERGE; const ky = Math.round(p.y / EPS_MERGE) * EPS_MERGE; const kz = Math.round(p.z / EPS_MERGE) * EPS_MERGE; const key = kx + '|' + ky + '|' + kz; const existing = map.get(key); if (!existing || p.y < existing.y) { map.set(key, {x: p.x, y: p.y, z: p.z}); } } return [...map.values()]; }
+function hasOverlap(packed, x, z, y, l, w, h) { const OLAP_EPS = 0.1; for (const b of packed) { if (x < b.px+b.pl-OLAP_EPS && x+l > b.px+OLAP_EPS && z < b.pz+b.pw-OLAP_EPS && z+w > b.pz+OLAP_EPS && y < b.py+b.ph-OLAP_EPS && y+h > b.py+OLAP_EPS) return true; } return false; }
+function deduplicatePoints(pts, EPS_MERGE) {
+  if (!EPS_MERGE) EPS_MERGE = 15;
+  if (pts.length === 0) return pts;
+  const sorted = [...pts].sort((a, b) => {
+    const dx = a.x - b.x; if (Math.abs(dx) > 1) return dx;
+    const dz = a.z - b.z; if (Math.abs(dz) > 1) return dz;
+    return a.y - b.y;
+  });
+  const result = [];
+  for (const p of sorted) {
+    let isDupe = false;
+    for (const r of result) {
+      if (Math.abs(p.x-r.x) < EPS_MERGE && Math.abs(p.y-r.y) < EPS_MERGE && Math.abs(p.z-r.z) < EPS_MERGE) {
+        isDupe = true; if (p.y < r.y) { r.x=p.x; r.y=p.y; r.z=p.z; } break;
+      }
+    }
+    if (!isDupe) result.push({x:p.x, y:p.y, z:p.z});
+  }
+  return result;
+}
 
 // ===================== Three.js 3D渲染 =====================
 function initThree() { const canvas = document.getElementById('three-canvas'); scene = new THREE.Scene(); scene.background = new THREE.Color(0xf1f8e9); camera = new THREE.PerspectiveCamera(35, canvas.clientWidth / canvas.clientHeight, 0.1, 50000); camera.position.set(600, 400, 900); camera.lookAt(600, 135, 117); renderer = new THREE.WebGLRenderer({ canvas, antialias: true }); renderer.setSize(canvas.clientWidth, canvas.clientHeight); renderer.shadowMap.enabled = true; const ambient = new THREE.AmbientLight(0xffffff, 0.7); scene.add(ambient); const dirLight = new THREE.DirectionalLight(0xffffff, 0.8); dirLight.position.set(1000, 2000, 1000); scene.add(dirLight); canvas.addEventListener('mousedown', e => { isDragging = true; prevMouse = {x: e.clientX, y: e.clientY}; }); canvas.addEventListener('mouseup', () => isDragging = false); canvas.addEventListener('mouseleave', () => isDragging = false); canvas.addEventListener('mousemove', onMouseMove); canvas.addEventListener('wheel', onWheel, {passive: true}); canvas.addEventListener('touchstart', e => { isDragging = true; prevMouse = {x: e.touches[0].clientX, y: e.touches[0].clientY}; }); canvas.addEventListener('touchend', () => isDragging = false); canvas.addEventListener('touchmove', e => { if (!isDragging) return; const dx = e.touches[0].clientX - prevMouse.x, dy = e.touches[0].clientY - prevMouse.y; rotateCamera(dx, dy); prevMouse = {x: e.touches[0].clientX, y: e.touches[0].clientY}; needRender = true; }); animate(); }
@@ -1543,7 +1642,7 @@ let cameraTheta = Math.PI, cameraPhi = 0.38, cameraRadius = 1500;
 function onMouseMove(e) { if (!isDragging) return; const dx = e.clientX - prevMouse.x, dy = e.clientY - prevMouse.y; rotateCamera(dx, dy); prevMouse = {x: e.clientX, y: e.clientY}; needRender = true; }
 function rotateCamera(dx, dy) { cameraTheta -= dx * 0.005; cameraPhi = Math.max(0.05, Math.min(Math.PI/2 - 0.05, cameraPhi - dy * 0.005)); updateCameraPos(); }
 function onWheel(e) { cameraRadius = Math.max(300, Math.min(8000, cameraRadius + e.deltaY * 1.5)); updateCameraPos(); needRender = true; }
-function updateCameraPos() { const cx = selectedContainer.L / 2, cy = selectedContainer.doorH / 2, cz = selectedContainer.W / 2; camera.position.set(cx + cameraRadius * Math.sin(cameraPhi) * Math.cos(cameraTheta), cy + cameraRadius * Math.cos(cameraPhi), cz + cameraRadius * Math.sin(cameraPhi) * Math.sin(cameraTheta)); camera.lookAt(cx, cy, cz); }
+function updateCameraPos() { const cx = selectedContainer.L / 2, cy = getContainerEffH(selectedContainer) / 2, cz = selectedContainer.W / 2; camera.position.set(cx + cameraRadius * Math.sin(cameraPhi) * Math.cos(cameraTheta), cy + cameraRadius * Math.cos(cameraPhi), cz + cameraRadius * Math.sin(cameraPhi) * Math.sin(cameraTheta)); camera.lookAt(cx, cy, cz); }
 let needRender = true;
 function animate() { requestAnimationFrame(animate); if (needRender) { renderer.render(scene, camera); needRender = false; } }
 function renderEmptyScene() { clearScene(); if (selectedContainer) drawContainerFrame(selectedContainer, 0x4caf50, 0.15); updateCameraPos(); }
@@ -1551,7 +1650,7 @@ function clearScene() { while (scene.children.length > 0) { const obj = scene.ch
 function drawContainerFrame(c, color, opacity) { const geo = new THREE.BoxGeometry(c.L, c.H, c.W); const mat = new THREE.MeshPhongMaterial({ color: color || 0x4caf50, transparent: true, opacity: opacity !== undefined ? opacity : 0.06, side: THREE.BackSide }); const mesh = new THREE.Mesh(geo, mat); mesh.position.set(c.L/2, c.H/2, c.W/2); scene.add(mesh); const edges = new THREE.EdgesGeometry(geo); const lineMat = new THREE.LineBasicMaterial({ color: 0x1b5e20, linewidth: 3 }); const wireframe = new THREE.LineSegments(edges, lineMat); wireframe.position.set(c.L/2, c.H/2, c.W/2); scene.add(wireframe); const cornerMat = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 5 }); const cornerPoints = [[0,0,0],[0,c.H,0],[c.L,0,0],[c.L,c.H,0],[c.L,0,c.W],[c.L,c.H,c.W],[0,0,c.W],[0,c.H,c.W]]; const cornerGeo = new THREE.BufferGeometry().setFromPoints(cornerPoints.flatMap(p => [new THREE.Vector3(p[0], p[1], p[2])])); const cornerLines = new THREE.LineSegments(cornerGeo, cornerMat); scene.add(cornerLines); const dimLabel = makeTextSprite(`${c.L}cm × ${c.W}cm × ${c.H}cm`, 0x555555); dimLabel.scale.set(200, 50, 1); dimLabel.position.set(c.L/2, -40, c.W/2); scene.add(dimLabel); const doorGeo = new THREE.PlaneGeometry(c.W, c.H); const doorMat = new THREE.MeshBasicMaterial({ color: 0x81c784, transparent: true, opacity: 0.25, side: THREE.DoubleSide }); const door = new THREE.Mesh(doorGeo, doorMat); door.rotation.y = Math.PI / 2; door.position.set(c.L, c.H/2, c.W/2); scene.add(door); const doorLabel = makeTextSprite('柜门 🚪', 0x1b5e20); doorLabel.scale.set(180, 54, 1); doorLabel.position.set(c.L + 30, c.H * 0.85, c.W / 2); scene.add(doorLabel); const innerLabel = makeTextSprite('柜内深处', 0x888888); innerLabel.scale.set(160, 48, 1); innerLabel.position.set(-30, c.H * 0.85, c.W / 2); scene.add(innerLabel); const arrowDir = new THREE.Vector3(1, 0, 0); const arrowOrigin = new THREE.Vector3(c.L * 0.1, 5, c.W / 2); const arrowHelper = new THREE.ArrowHelper(arrowDir, arrowOrigin, c.L * 0.8, 0x66bb6a, c.L * 0.08, c.L * 0.04); scene.add(arrowHelper); }
 function renderPackedScene(packed, container) { const EPS = 0.5; clearScene(); drawContainerFrame(container); const gridHelper = new THREE.GridHelper(Math.max(container.L, container.W), 10, 0xaaaaaa, 0xdddddd); gridHelper.position.set(container.L/2, 0, container.W/2); scene.add(gridHelper); const boundaryMat = new THREE.LineBasicMaterial({ color: 0x00aa00, linewidth: 3 }); const boundaryPoints = [new THREE.Vector3(0,0,0), new THREE.Vector3(container.L,0,0), new THREE.Vector3(container.L,0,0), new THREE.Vector3(container.L,0,container.W), new THREE.Vector3(container.L,0,container.W), new THREE.Vector3(0,0,container.W), new THREE.Vector3(0,0,container.W), new THREE.Vector3(0,0,0), new THREE.Vector3(0,container.H,0), new THREE.Vector3(container.L,container.H,0), new THREE.Vector3(container.L,container.H,0), new THREE.Vector3(container.L,container.H,container.W), new THREE.Vector3(container.L,container.H,container.W), new THREE.Vector3(0,container.H,container.W), new THREE.Vector3(0,container.H,container.W), new THREE.Vector3(0,container.H,0), new THREE.Vector3(0,0,0), new THREE.Vector3(0,container.H,0), new THREE.Vector3(container.L,0,0), new THREE.Vector3(container.L,container.H,0), new THREE.Vector3(container.L,0,container.W), new THREE.Vector3(container.L,container.H,container.W), new THREE.Vector3(0,0,container.W), new THREE.Vector3(0,container.H,container.W)]; const boundaryGeo = new THREE.BufferGeometry().setFromPoints(boundaryPoints); const boundaryLines = new THREE.LineSegments(boundaryGeo, boundaryMat); scene.add(boundaryLines); const groups = {}; packed.forEach(box => { const key = box.label || '未知'; if (!groups[key]) groups[key] = { boxes: [], color: box.color || '#888888' }; groups[key].boxes.push(box); }); const unitBox = new THREE.BoxGeometry(1, 1, 1); const unitPos = unitBox.getAttribute('position'); const unitNrm = unitBox.getAttribute('normal'); const unitIdx = unitBox.getIndex(); const unitPosArr = unitPos.array; const unitNrmArr = unitNrm.array; const unitIdxArr = unitIdx.array; const vertsPerBox = unitPosArr.length / 3; Object.entries(groups).forEach(([key, group]) => { const boxes = group.boxes; let originalColor = '#888888'; if (typeof group.color === 'string' && group.color.startsWith('#')) originalColor = group.color.toLowerCase(); else if (typeof group.color === 'number') originalColor = '#' + group.color.toString(16).padStart(6, '0'); const baseColor = new THREE.Color(originalColor); const darkColor = baseColor.clone().multiplyScalar(0.5); const n = boxes.length; const mergedPos = new Float32Array(vertsPerBox * 3 * n); const mergedNrm = new Float32Array(vertsPerBox * 3 * n); const mergedIdx = new Uint32Array(unitIdxArr.length * n); for (let i = 0; i < n; i++) { const box = boxes[i]; const offX = box.px + box.pl / 2; const offY = box.py + box.ph / 2; const offZ = box.pz + box.pw / 2; const baseI = i * vertsPerBox; for (let j = 0; j < vertsPerBox; j++) { const j3 = j * 3; const idx = (baseI + j) * 3; mergedPos[idx] = unitPosArr[j3] * box.pl + offX; mergedPos[idx + 1] = unitPosArr[j3 + 1] * box.ph + offY; mergedPos[idx + 2] = unitPosArr[j3 + 2] * box.pw + offZ; } for (let j = 0; j < vertsPerBox * 3; j++) mergedNrm[baseI * 3 + j] = unitNrmArr[j]; for (let j = 0; j < unitIdxArr.length; j++) mergedIdx[i * unitIdxArr.length + j] = unitIdxArr[j] + baseI; } const mergedGeo = new THREE.BufferGeometry(); mergedGeo.setAttribute('position', new THREE.BufferAttribute(mergedPos, 3)); mergedGeo.setAttribute('normal', new THREE.BufferAttribute(mergedNrm, 3)); mergedGeo.setIndex(new THREE.BufferAttribute(mergedIdx, 1)); const mat = new THREE.MeshPhongMaterial({ color: baseColor, shininess: 30, specular: 0x333333 }); const mesh = new THREE.Mesh(mergedGeo, mat); scene.add(mesh); const edgeGeo = new THREE.EdgesGeometry(mergedGeo); const wf = new THREE.LineSegments(edgeGeo, new THREE.LineBasicMaterial({ color: darkColor, linewidth: 1 })); scene.add(wf); }); let allValid = true, debugLines = []; packed.forEach((box, i) => { const maxX = box.px + box.pl, maxY = box.py + box.ph, maxZ = box.pz + box.pw; const checkX = maxX <= container.L + EPS ? '✓' : '✗', checkY = maxY <= container.H + EPS ? '✓' : '✗', checkZ = maxZ <= container.W + EPS ? '✓' : '✗'; const valid = (checkX === '✓') && (checkY === '✓') && (checkZ === '✓'); if (!valid) allValid = false; const xStyle = checkX === '✓' ? 'color:#2e7d32' : 'color:#c62828;font-weight:bold;background:#ffebee;padding:1px 4px;border-radius:3px;'; const yStyle = checkY === '✓' ? 'color:#2e7d32' : 'color:#c62828;font-weight:bold;background:#ffebee;padding:1px 4px;border-radius:3px;'; const zStyle = checkZ === '✓' ? 'color:#2e7d32' : 'color:#c62828;font-weight:bold;background:#ffebee;padding:1px 4px;border-radius:3px;'; const borderStatus = `<span style="${xStyle}">X${checkX} ${maxX.toFixed(0)}/${container.L}</span> <span style="${yStyle}">Y${checkY} ${maxY.toFixed(0)}/${container.H}</span> <span style="${zStyle}">Z${checkZ} ${maxZ.toFixed(0)}/${container.W}</span>`; debugLines.push({ idx: i + 1, label: box.label, dim: `${box.pl}×${box.ph}×${box.pw}`, pos: `(${box.px.toFixed(0)},${box.py.toFixed(0)},${box.pz.toFixed(0)})`, border: borderStatus, valid: valid }); }); let debugDiv = document.getElementById('debugInfo'); if (!debugDiv) { debugDiv = document.createElement('div'); debugDiv.id = 'debugInfo'; document.body.appendChild(debugDiv); } const headerStyle = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;'; const rowStyle = 'display:flex;gap:8px;align-items:center;padding:3px 0;border-bottom:1px solid #eee;'; debugDiv.innerHTML = `<div style="${headerStyle}"><span style="color:#333;font-weight:bold;">📐 边界检查 · 集装箱 ${container.L}×${container.W}×${container.H}cm</span><button onclick="document.getElementById('debugInfo').style.display='none'" style="background:#f44336;color:white;border:none;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:11px;">关闭</button></div><div style="font-size:10px;color:#666;margin-bottom:6px;">格式: 位置 — 每项[实际值/最大值]</div>${debugLines.map(l => `<div style="${rowStyle}${l.valid ? '' : 'background:#ffebee'};font-size:11px;"><span style="width:22px;color:${l.valid ? '#2e7d32' : '#c62828'};font-weight:bold;font-size:14px;">${l.valid ? '✓' : '✗'}</span><span style="width:18px;color:#666;">#${l.idx}</span><span style="width:45px;color:#1565c0;font-weight:600;">${l.label}</span><span style="width:85px;color:#555;">${l.dim}</span><span style="width:80px;color:#888;font-size:10px;">${l.pos}</span><span style="flex:1;">${l.border}</span></div>`).join('')}<div style="margin-top:10px;padding-top:8px;border-top:2px solid #ddd;font-weight:bold;color:${allValid ? '#2e7d32' : '#c62828'};background:${allValid ? '#e8f5e9' : '#ffebee'};padding:8px;border-radius:4px;text-align:center;">${allValid ? '✓ 所有货物在边界内' : '✗ 存在越界货物！请检查红色标记项'}</div>`; debugDiv.style.display = 'none'; debugDiv.style.cssText = 'display:none;position:fixed;bottom:10px;left:10px;background:rgba(255,255,255,0.97);padding:14px;border:2px solid #333;border-radius:8px;font-size:11px;max-height:350px;overflow:auto;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.3);font-family:Consolas,monospace;min-width:580px;'; cameraRadius = Math.max(container.L, container.W, container.H) * 1.0; updateCameraPos(); }
 function makeTextSprite(text, color) { const canvas = document.createElement('canvas'); canvas.width = 200; canvas.height = 60; const ctx = canvas.getContext('2d'); let hex = '#888888'; if (typeof color === 'string' && color.startsWith('#')) hex = color.length >= 7 ? color : '#' + color.substring(1).padStart(6, '0'); else if (typeof color === 'number') hex = '#' + color.toString(16).padStart(6, '0'); ctx.fillStyle = hex + '33'; ctx.beginPath(); ctx.roundRect(4, 4, 192, 52, 8); ctx.fill(); ctx.strokeStyle = hex; ctx.lineWidth = 2; ctx.stroke(); ctx.fillStyle = '#ffffff'; ctx.font = 'bold 22px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, 100, 30); const texture = new THREE.CanvasTexture(canvas); const mat = new THREE.SpriteMaterial({ map: texture, transparent: true }); const sprite = new THREE.Sprite(mat); sprite.scale.set(150, 45, 1); return sprite; }
-function resetCamera() { cameraTheta = Math.PI; cameraPhi = 0.38; cameraRadius = Math.max(selectedContainer.L, selectedContainer.W, selectedContainer.doorH) * 1.0; updateCameraPos(); }
+function resetCamera() { cameraTheta = Math.PI; cameraPhi = 0.38; cameraRadius = Math.max(selectedContainer.L, selectedContainer.W, getContainerEffH(selectedContainer)) * 1.0; updateCameraPos(); }
 window.addEventListener('resize', () => { const canvas = document.getElementById('three-canvas'); renderer.setSize(canvas.clientWidth, canvas.clientHeight); camera.aspect = canvas.clientWidth / canvas.clientHeight; camera.updateProjectionMatrix(); });
 init();
 (function(){ var bsz = document.createElement('script'); bsz.async = true; bsz.src = '//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js'; var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(bsz, s); })();
