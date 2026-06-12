@@ -1,0 +1,1974 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎰 FORTUNE COIN·推币机解密箱 | 概率论揭秘</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+SC:wght@400;700&display=swap');
+
+  :root {
+    --neon-gold: #ffd700;
+    --neon-orange: #ff8c00;
+    --neon-red: #ff3020;
+    --neon-green: #00ff88;
+    --cabinet-dark: #0c0c18;
+    --cabinet-mid: #181828;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+
+  body {
+    background: radial-gradient(ellipse at 50% 30%, #201838 0%, #0c0a18 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: 'Noto Sans SC', sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* ===== 主内容区 ===== */
+  .main-content {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 0 0;
+  }
+
+  /* ===== 标题 ===== */
+  .title-bar { text-align: center; padding: 6px 0 2px; }
+  .title-bar h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.5rem; font-weight: 900;
+    color: var(--neon-gold);
+    text-shadow: 0 0 12px #ffd70099, 0 0 30px #ff8c0055;
+    letter-spacing: 4px;
+    animation: titlePulse 2.5s ease-in-out infinite;
+  }
+  .title-sub { font-size: 0.68rem; color: #ff8c0088; letter-spacing: 2px; margin-top: 2px; }
+  @keyframes titlePulse {
+    0%,100% { text-shadow: 0 0 12px #ffd70099, 0 0 30px #ff8c0055; }
+    50%      { text-shadow: 0 0 22px #ffd700cc, 0 0 55px #ff8c0099, 0 0 80px #ff450055; }
+  }
+
+  /* ===== 主布局 ===== */
+  .layout {
+    display: flex; gap: 12px; align-items: flex-start;
+    width: 100%; max-width: 1100px; padding: 0 8px;
+    margin-top: 6px;
+  }
+
+  /* ===== 机柜 ===== */
+  .arcade-cabinet {
+    flex: 0 0 auto; width: 680px;
+    background: linear-gradient(175deg, #1a0a30 0%, #0e0e1e 40%, #090914 100%);
+    border-radius: 24px 24px 16px 16px;
+    border: 2px solid #3a1a6a;
+    box-shadow: 0 0 40px #6a2aaa22, 0 10px 50px rgba(0,0,0,0.9),
+                inset 0 1px 0 #8a5aff44;
+    padding: 12px 12px 16px;
+  }
+
+  /* 顶灯 */
+  .cabinet-lights { display:flex; justify-content:space-around; margin-bottom:8px; padding:0 15px; }
+  .cab-light { width:10px; height:10px; border-radius:50%; animation: lb 1.3s ease-in-out infinite; }
+  .cab-light:nth-child(1){ background:#ff2020;box-shadow:0 0 8px #ff2020;animation-delay:0s; }
+  .cab-light:nth-child(2){ background:#ffd700;box-shadow:0 0 8px #ffd700;animation-delay:.18s; }
+  .cab-light:nth-child(3){ background:#00ff88;box-shadow:0 0 8px #00ff88;animation-delay:.36s; }
+  .cab-light:nth-child(4){ background:#00bfff;box-shadow:0 0 8px #00bfff;animation-delay:.54s; }
+  .cab-light:nth-child(5){ background:#ff1493;box-shadow:0 0 8px #ff1493;animation-delay:.72s; }
+  .cab-light:nth-child(6){ background:#ffd700;box-shadow:0 0 8px #ffd700;animation-delay:.90s; }
+  .cab-light:nth-child(7){ background:#ff2020;box-shadow:0 0 8px #ff2020;animation-delay:.28s; }
+  @keyframes lb { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.3;transform:scale(.75)} }
+
+  /* 游戏屏幕 */
+  .game-screen {
+    position:relative; border-radius:14px; overflow:hidden;
+    border: 2px solid #2a1a4a;
+    box-shadow: 0 0 24px #5a2a8822, inset 0 0 40px rgba(0,0,0,.6);
+  }
+  .game-screen::after {
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background: repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.07) 3px,rgba(0,0,0,.07) 4px);
+    border-radius:14px;
+  }
+  #gameCanvas { display:block; background:#08080e; }
+
+  /* 控制条 */
+  .control-panel {
+    margin-top:10px; display:flex; align-items:center;
+    gap:8px; flex-wrap:wrap;
+  }
+  .stat-row { display:flex; gap:6px; flex:1; }
+  .stat-box {
+    background:rgba(12,12,28,.95); border:1px solid #3a2a5a;
+    border-radius:10px; padding:5px 10px; text-align:center; min-width:72px;
+    position:relative; overflow:hidden;
+  }
+  .stat-box::before {
+    content:''; position:absolute; top:0;left:0;right:0;height:1px;
+    background:linear-gradient(90deg,transparent,#7a4aff88,transparent);
+  }
+  .stat-label { font-size:.58rem; color:#7a5a9a; letter-spacing:1px; text-transform:uppercase; }
+  .stat-value {
+    font-family:'Orbitron',monospace; font-size:1.2rem; font-weight:700;
+    color:var(--neon-gold); text-shadow:0 0 8px #ffd70055; line-height:1.1;
+  }
+  .stat-value.red { color:#ff5050; text-shadow:0 0 8px #ff202055; }
+  .stat-value.green { color:#00ff88; text-shadow:0 0 8px #00ff8855; }
+
+  .push-btn {
+    background:linear-gradient(135deg,#ff8c00,#ff3500);
+    border:none; border-radius:50px; color:#fff;
+    font-family:'Orbitron',monospace; font-size:.95rem; font-weight:700;
+    padding:11px 26px; cursor:pointer;
+    box-shadow:0 4px 0 #7a1e00,0 0 20px #ff450055;
+    transition:.08s; letter-spacing:2px; white-space:nowrap;
+    text-shadow:0 1px 3px rgba(0,0,0,.5); position:relative; overflow:hidden;
+  }
+  .push-btn::before {
+    content:''; position:absolute; top:0;left:-100%;width:100%;height:100%;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);
+    transition:left .35s;
+  }
+  .push-btn:hover::before { left:100%; }
+  .push-btn:active { transform:translateY(3px); box-shadow:0 1px 0 #7a1e00; }
+  .push-btn:disabled { background:#2a2a3a; box-shadow:none; color:#555; cursor:not-allowed; }
+
+  .btn-sec {
+    background:#141428; border:1px solid #2a1a4a; border-radius:8px;
+    color:#7a6a9a; font-size:.72rem; padding:7px 12px; cursor:pointer;
+    transition:.15s;
+  }
+  .btn-sec:hover { background:#20104a; color:#cca9ff; border-color:#5a2a9a; }
+
+  .msg-box {
+    flex:1; background:rgba(0,0,0,.55); border:1px solid #1e0e3a;
+    border-radius:8px; padding:7px 12px; min-height:38px;
+    display:flex; align-items:center; min-width:0;
+  }
+  #msgText { font-size:.78rem; color:#ccaaff; line-height:1.4; }
+
+  .key-hint { display:flex; gap:5px; margin-top:5px; flex-wrap:wrap; }
+  .key-tag {
+    background:#10102a; border:1px solid #2a2a4a; border-radius:4px;
+    padding:2px 6px; font-size:.63rem; color:#6a5a8a; font-family:monospace;
+    border-bottom:2px solid #1e1e3a;
+  }
+  .key-tag span { color:#aaa8ff; font-weight:bold; }
+
+  .warning-bar {
+    margin-top:7px; background:linear-gradient(90deg,#1e1010,#241212,#1e1010);
+    border:1px solid #3a1010; border-radius:7px;
+    font-size:.65rem; color:#ff8888; text-align:center; line-height:1.6;
+    width:680px; padding:8px 12px; white-space:pre-line;
+  }
+
+  /* ===== 右侧面板 ===== */
+  .data-panel {
+    flex:1; min-width:220px; max-width:420px;
+    display:flex; flex-direction:column; gap:9px;
+  }
+  .panel-row {
+    display:flex; gap:9px;
+  }
+  .panel-row .panel-card {
+    flex:1; min-width:0;
+  }
+  .panel-card {
+    background:#0e0e20; border:1px solid #302050;
+    border-radius:13px; padding:11px 13px; position:relative; overflow:hidden;
+  }
+  .panel-card::before {
+    content:''; position:absolute; top:0;left:0;right:0;height:2px;
+    background:linear-gradient(90deg,transparent,#7a4aff,transparent);
+  }
+  .panel-card h3 {
+    font-size:.68rem; color:#5a4a7a; letter-spacing:2px; text-transform:uppercase;
+    margin-bottom:9px; display:flex; align-items:center; gap:5px;
+  }
+  .panel-card h3::before {
+    content:''; display:inline-block; width:3px;height:11px;
+    background:#7a4aff; border-radius:2px;
+  }
+
+  .expect-bar { background:#080818; border-radius:5px; height:9px; overflow:hidden; margin:3px 0; }
+  .expect-fill {
+    height:100%; border-radius:5px;
+    background:linear-gradient(90deg,#ff1010,#ff8c00);
+    box-shadow:0 0 6px #ff440055; transition:width .5s ease;
+  }
+  .math-item {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:3px 0; border-bottom:1px solid #202038; font-size:.72rem;
+  }
+  .math-item:last-child { border-bottom:none; }
+  .math-key { color:#6a5a8a; }
+  .math-val { color:#cca9ff; font-family:'Orbitron',monospace; font-size:.68rem; }
+  .math-val.bad  { color:#ff5555; }
+  .math-val.good { color:#55ff90; }
+
+  .reveal-item {
+    background:#12122a; border-radius:7px; padding:7px 9px; margin-bottom:5px;
+    border-left:3px solid #ff4400; font-size:.7rem; color:#bbb; line-height:1.45;
+  }
+  .reveal-item:last-child { margin-bottom:0; }
+  .reveal-item strong { color:#ffd700; }
+
+  .history-row { display:flex; gap:3px; flex-wrap:wrap; max-height:50px; overflow:hidden; }
+  .hist-dot {
+    width:13px; height:13px; border-radius:50%; font-size:9px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .hist-dot.win  { background:#00ff8833; border:2px solid #00ff88; color:#00ff88; }
+  .hist-dot.lose { background:#ff202022; border:1px solid #ff4040; color:#ff4040; }
+
+  /* 粒子 */
+  #particleCanvas {
+    position:fixed; top:0;left:0; width:100vw;height:100vh;
+    pointer-events:none; z-index:999;
+  }
+
+  /* 大奖 */
+  .jackpot-overlay {
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,.88);
+    z-index:1000; align-items:center; justify-content:center; flex-direction:column;
+  }
+  .jackpot-overlay.show { display:flex; }
+  .jackpot-text {
+    font-family:'Orbitron',monospace; font-size:2.8rem; font-weight:900;
+    color:#ffd700; text-shadow:0 0 30px #ffd700,0 0 60px #ff8c00;
+    animation:jAnim .45s ease-out forwards; text-align:center;
+  }
+  @keyframes jAnim {
+    0%{transform:scale(.3)rotate(-10deg);opacity:0}
+    60%{transform:scale(1.2)rotate(2deg);opacity:1}
+    100%{transform:scale(1)rotate(0);opacity:1}
+  }
+  .jackpot-sub { color:#ff8c00; font-size:.9rem; margin-top:9px; text-align:center; max-width:380px; }
+  .jackpot-close {
+    margin-top:18px; background:#ff4000; border:none; border-radius:30px;
+    color:#fff; font-size:.95rem; padding:9px 28px; cursor:pointer;
+    font-family:'Orbitron',monospace;
+  }
+
+  /* 兑换弹窗 */
+  .exchange-overlay {
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,.85);
+    z-index:1001; align-items:center; justify-content:center; flex-direction:column;
+  }
+  .exchange-overlay.show { display:flex; }
+  .exchange-card {
+    background:linear-gradient(160deg,#241840,#120e28);
+    border:2px solid #ffd700; border-radius:16px; padding:28px 32px;
+    text-align:center; max-width:380px; width:90%;
+    box-shadow:0 0 40px rgba(255,215,0,.15);
+  }
+  .exchange-card h3 {
+    font-family:'Orbitron',monospace; color:#ffd700; font-size:1.3rem;
+    letter-spacing:2px; margin-bottom:5px;
+  }
+  .exchange-sub { color:#888; font-size:.73rem; margin-bottom:18px; line-height:1.5; }
+  .exchange-btns { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-bottom:16px; }
+  .ex-btn {
+    background:linear-gradient(135deg,#2a1a4a,#1a0a30);
+    border:1px solid #5a3a8a; border-radius:10px; color:#dda0ff;
+    font-size:.82rem; padding:10px 16px; cursor:pointer;
+    transition:.15s; font-family:'Noto Sans SC',sans-serif;
+    min-width:64px;
+  }
+  .ex-btn:hover { background:linear-gradient(135deg,#3a2a6a,#2a1a50); border-color:#8a5aff; color:#ffd700; }
+  .ex-btn.big {
+    background:linear-gradient(135deg,#ff8c00,#d04000);
+    border-color:#ff8c00; color:#fff; font-weight:bold; font-size:.9rem;
+    padding:12px 20px;
+  }
+  .ex-btn.big:hover { background:linear-gradient(135deg,#ffaa30,#ff5020); }
+  .ex-close {
+    margin-top:10px; background:none; border:none; color:#666; cursor:pointer;
+    font-size:.75rem; text-decoration:underline;
+  }
+  .ex-close:hover { color:#aaa; }
+
+  /* 钱包条 */
+  .wallet-bar {
+    display:flex; align-items:center; gap:6px;
+    background:rgba(12,12,28,.9); border:1px solid #3a2a5a;
+    border-radius:10px; padding:3px 3px 3px 12px; margin-top:6px;
+  }
+  .wallet-label { font-size:.65rem; color:#7a5a9a; letter-spacing:1px; white-space:nowrap; }
+  .wallet-coin {
+    font-family:'Orbitron',monospace; font-size:1.15rem; font-weight:700;
+    color:#ffd700; text-shadow:0 0 8px #ffd70055; min-width:36px; text-align:right;
+  }
+  .wallet-coin.low { color:#ff4040; text-shadow:0 0 8px #ff202055; animation:blink 0.6s ease-in-out infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
+  .buy-btn {
+    background:linear-gradient(135deg,#2b8a3e,#1a6a28);
+    border:none; border-radius:8px; color:#fff;
+    font-size:.75rem;font-weight:bold; padding:6px 14px; cursor:pointer;
+    font-family:'Noto Sans SC',sans-serif; white-space:nowrap;
+    box-shadow:0 2px 0 #0d3a16;
+    transition:.1s;
+  }
+  .buy-btn:hover { background:linear-gradient(135deg,#3aaa4e,#228a38); }
+  .buy-btn:active { transform:translateY(2px); box-shadow:none; }
+
+  /* === 概率揭秘遮罩 === */
+  .reveal-mask { position:relative; overflow:hidden; }
+  .reveal-blur {
+    position:absolute; inset:0; backdrop-filter:blur(8px);
+    background:rgba(8,4,20,.7);
+    display:flex; flex-direction:column; align-items:center;
+    justify-content:center; z-index:10; border-radius:8px;
+    transition:.3s;
+  }
+  .reveal-blur .lock-icon { font-size:2rem; margin-bottom:6px; }
+  .reveal-blur .lock-text {
+    font-family:'Noto Sans SC',sans-serif; font-size:.7rem;
+    color:#7a5a9a; text-shadow:0 0 8px #7a5a9a55;
+    letter-spacing:1px;
+  }
+  .reveal-blur.hidden { opacity:0; pointer-events:none; transition:.4s; }
+
+  /* === 管理员面板 === */
+  .admin-overlay {
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,.9);
+    z-index:1002; align-items:center; justify-content:center; flex-direction:column;
+  }
+  .admin-overlay.show { display:flex; }
+  .admin-card {
+    background:linear-gradient(160deg,#241830,#120818);
+    border:2px solid #ff4040; border-radius:16px; padding:24px 28px;
+    text-align:center; max-width:420px; width:90%;
+    box-shadow:0 0 50px rgba(255,60,40,.12), inset 0 0 30px rgba(255,40,20,.03);
+  }
+  .admin-card h3 {
+    font-family:'Orbitron',monospace; color:#ff4040; font-size:1.2rem;
+    letter-spacing:2px; margin-bottom:3px;
+  }
+  .admin-sub { color:#7a5a9a; font-size:.68rem; margin-bottom:14px; letter-spacing:1px; }
+  .admin-row { display:flex; justify-content:space-between; align-items:center;
+    padding:7px 0; border-bottom:1px solid rgba(100,60,120,.15); font-size:.73rem; }
+  .admin-label { color:#a080c0; }
+  .admin-val { color:#ffd700; font-family:'Orbitron',monospace; min-width:36px; text-align:right; }
+  .admin-row input[type=range] { width:100px; accent-color:#ff4040; }
+  .admin-hint { font-size:.62rem; color:#5a3a6a; margin-top:2px; text-align:left; }
+  .admin-btns { display:flex; gap:8px; margin-top:16px; justify-content:center; flex-wrap:wrap; }
+  .adm-btn {
+    background:linear-gradient(135deg,#3a1040,#1a0a20); border:1px solid #6a2080;
+    border-radius:8px; color:#c080e0; font-size:.72rem; padding:7px 14px;
+    cursor:pointer; font-family:'Noto Sans SC',sans-serif;
+  }
+  .adm-btn:hover { border-color:#a040d0; color:#ffd700; }
+  .adm-btn.danger { border-color:#8a2020; color:#ff6060; }
+  .adm-btn.danger:hover { background:linear-gradient(135deg,#5a1030,#2a0a18); border-color:#ff3030; }
+  .adm-close { margin-top:10px; background:none; border:none; color:#555; cursor:pointer;
+    font-size:.7rem; text-decoration:underline; }
+  .adm-close:hover { color:#999; }
+
+  /* 密码弹窗 */
+  .pwd-overlay {
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,.92);
+    z-index:1003; align-items:center; justify-content:center; flex-direction:column;
+  }
+  .pwd-overlay.show { display:flex; }
+  .pwd-card {
+    background:linear-gradient(160deg,#12122a,#08081c);
+    border:2px solid #4a2080; border-radius:14px; padding:22px 26px; text-align:center;
+  }
+  .pwd-card h3 {
+    font-family:'Orbitron',monospace; color:#a080ff; font-size:1rem;
+    letter-spacing:2px; margin-bottom:12px;
+  }
+  .pwd-input {
+    background:#12122a; border:1px solid #4a2080; border-radius:8px;
+    color:#ffd700; font-family:'Orbitron',monospace; font-size:1.1rem;
+    padding:8px 14px; text-align:center; letter-spacing:3px;
+    outline:none; width:160px;
+  }
+  .pwd-input:focus { border-color:#a080ff; box-shadow:0 0 12px rgba(160,128,255,.2); }
+  .pwd-err { color:#ff4040; font-size:.65rem; margin-top:6px; min-height:16px; }
+  .pwd-btns { display:flex; gap:8px; margin-top:10px; justify-content:center; }
+
+  /* === VIP浮标 === */
+  .vip-badge {
+    display:none; position:fixed; top:18px; right:18px;
+    background:linear-gradient(135deg,#ff8c00,#ff3020);
+    border:2px solid #ffd700; border-radius:14px;
+    padding:10px 18px; z-index:999; text-align:center;
+    box-shadow:0 0 30px rgba(255,140,0,.4), 0 0 60px rgba(255,60,30,.2);
+    animation:badgePulse 0.8s ease-in-out infinite;
+  }
+  .vip-badge.show { display:block; }
+  .vip-badge .vip-title {
+    font-family:'Orbitron',monospace; font-size:.75rem; font-weight:900;
+    color:#ffd700; letter-spacing:2px;
+    text-shadow:0 0 8px #ffd70088;
+  }
+  .vip-badge .vip-count {
+    font-family:'Orbitron',monospace; font-size:1.8rem; font-weight:900;
+    color:#fff; text-shadow:0 0 12px #ffd700, 0 0 24px #ff8c00;
+    line-height:1.2;
+  }
+  .vip-badge .vip-params {
+    font-size:.6rem; color:#ffe0c0; margin-top:2px; letter-spacing:1px;
+  }
+  @keyframes badgePulse {
+    0%,100%{transform:scale(1);box-shadow:0 0 30px rgba(255,140,0,.4),0 0 60px rgba(255,60,30,.2)}
+    50%{transform:scale(1.05);box-shadow:0 0 45px rgba(255,140,0,.6),0 0 80px rgba(255,60,30,.35)}
+  }
+  .vip-warn-banner {
+    background:linear-gradient(90deg,#2a1800,#3a2000,#2a1800);
+    border:1px solid #ff8c0055; border-radius:8px;
+    padding:7px 10px; margin-bottom:8px;
+    display:flex; align-items:center; gap:7px;
+    font-size:.65rem; color:#ffc040; line-height:1.4;
+    box-shadow:0 0 12px rgba(255,140,0,.12);
+  }
+  .vip-warn-banner .vip-warn-icon { font-size:1.1rem; flex-shrink:0; }
+  .vip-warn-text { flex:1; }
+
+  /* === 底部计数器 === */
+  .visitor-counter {
+    padding:10px 18px;
+    margin:0 0 8px;
+    background:rgba(16,12,36,.85); border:1px solid #3a2a5a;
+    border-radius:10px; text-align:center;
+    font-size:.62rem; color:#6a4a8a; letter-spacing:2px;
+    width:680px;
+  }
+  .visitor-counter span { color:#7a5a9a; font-family:'Orbitron',monospace; font-size:.75rem; }
+
+  /* === 遮罩区会话统计 === */
+  .session-stats {
+    margin-top:8px; padding:10px;
+    background:rgba(255,60,40,.06); border:1px solid rgba(255,60,40,.15);
+    border-radius:8px;
+  }
+  .session-stats h4 {
+    font-size:.68rem; color:#ff6050; margin-bottom:6px;
+    letter-spacing:1px; text-align:center;
+  }
+  .session-row {
+    display:flex; justify-content:space-between; padding:3px 0;
+    font-size:.65rem; color:#a080c0;
+    border-bottom:1px solid rgba(160,128,192,.06);
+  }
+  .session-row .val { color:#ffd700; font-family:'Orbitron',monospace; font-size:.7rem; }
+  .session-row .val.red { color:#ff4040; }
+  .session-row .val.green { color:#00ff88; }
+
+  /* 响应式 */
+  @media(max-width:940px){
+    .layout{flex-direction:column;align-items:center;}
+    .data-panel{max-width:680px;width:100%;flex-direction:row;flex-wrap:wrap;}
+    .panel-card{flex:1;min-width:190px;}
+    .warning-bar{width:100%;}
+    .visitor-counter{width:100%;margin-top:12px;}
+    .panel-row{flex-direction:column;}
+  }
+  @media(max-width:700px){
+    .arcade-cabinet{width:100%;}
+    #gameCanvas{width:100%!important;height:auto!important;}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="particleCanvas"></canvas>
+
+<div class="jackpot-overlay" id="jackpotOverlay">
+  <div class="jackpot-text" data-i18n="jackpotTitle">🎰 JACKPOT!</div>
+  <div class="jackpot-sub" id="jackpotSub"></div>
+  <button class="jackpot-close" onclick="closeJackpot()" data-i18n="jackpotClose">继续沉沦</button>
+</div>
+
+<!-- 兑换游戏币弹窗 -->
+<div class="exchange-overlay" id="exchangeOverlay">
+  <div class="exchange-card">
+    <h3 data-i18n="exchangeTitle">💰 兑换游戏币</h3>
+    <div class="exchange-sub" id="exchangeDesc" data-i18n-html="exchangeDesc">
+      推币需要消耗游戏币<br>
+      请用 <b style="color:#ffd700">现金 ¥</b> 兑换游戏币继续
+    </div>
+    <div class="exchange-btns">
+      <div class="ex-btn" onclick="buyCoins(1, 1)" data-i18n-html="exchange1">¥1<br><span style="font-size:.65rem;color:#888;">= 1币</span></div>
+      <div class="ex-btn" onclick="buyCoins(5, 5)" data-i18n-html="exchange5">¥5<br><span style="font-size:.65rem;color:#888;">= 5币</span></div>
+      <div class="ex-btn" onclick="buyCoins(10, 10)" data-i18n-html="exchange10">¥10<br><span style="font-size:.65rem;color:#888;">= 10币</span></div>
+      <div class="ex-btn" onclick="buyCoins(20, 20)" data-i18n-html="exchange20">¥20<br><span style="font-size:.65rem;color:#888;">= 20币</span></div>
+    </div>
+    <button class="ex-btn big" onclick="buyCoins(50, 50)" data-i18n="exchange50">🔥 一掷千金 · ¥50 = 50币</button>
+    <br>
+    <button class="adm-close" onclick="closeExchange()" data-i18n="exchangeCancel">先不买了，再想想</button>
+  </div>
+</div>
+
+<!-- 管理员密码弹窗 -->
+<div class="pwd-overlay" id="pwdOverlay">
+  <div class="pwd-card">
+    <h3 data-i18n="pwdTitle">🔐 管理员验证</h3>
+    <div style="font-size:.68rem;color:#6a5a8a;margin-bottom:12px;" data-i18n="pwdHint">概率参数受保护，请输入管理员密码</div>
+    <input type="password" class="pwd-input" id="pwdInput" placeholder="******" maxlength="16"
+      onkeydown="if(event.key==='Enter')checkPwd()">
+    <div class="pwd-err" id="pwdErr"></div>
+    <div class="pwd-btns">
+      <button class="adm-btn" onclick="checkPwd()" data-i18n="pwdConfirm">确认</button>
+      <button class="adm-btn danger" onclick="closePwd()" data-i18n="pwdCancel">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 管理员后台面板 -->
+<div class="admin-overlay" id="adminOverlay">
+  <div class="admin-card">
+    <h3 data-i18n="adminTitle">⚙️ 管理员后台</h3>
+    <div class="admin-sub" data-i18n="adminSub">概率参数配置 · 参数实时影响游戏</div>
+    <div class="admin-row">
+      <span class="admin-label" data-i18n="adminGoldProb">金币概率</span>
+      <input type="range" id="goldProbSlider" min="0.5" max="25" value="4" step="0.5"
+        oninput="onGoldProbChange()">
+      <span class="admin-val" id="goldProbDisp">4.0%</span>
+    </div>
+    <div class="admin-hint" data-i18n="adminGoldHint">比例越高 = 新币中金币占比越大 = 玩家越容易中Jackpot</div>
+    <div class="admin-row">
+      <span class="admin-label" data-i18n="adminSpecialProb">稀有币概率</span>
+      <input type="range" id="specialProbSlider" min="0" max="35" value="12" step="0.5"
+        oninput="onSpecialProbChange()">
+      <span class="admin-val" id="specialProbDisp">12.0%</span>
+    </div>
+    <div class="admin-hint" data-i18n="adminSpecialHint">稀有币掉落触发掌声效果，增加心理成瘾</div>
+    <div id="adminEvBlock" style="padding:8px 0;margin:6px 0;background:rgba(255,40,40,.06);border-radius:6px;font-size:.7rem;color:#a080c0;text-align:left;">
+      <span data-i18n="adminEv">当前期望值：</span><b style="color:#ffd700" id="adminEv">E = 0.18 − 1 = −0.82</b><br>
+      <span data-i18n="adminRor">理论回报率：</span><b style="color:#ff5555" id="adminRor">18.0%</b>
+    </div>
+    <div class="admin-row">
+      <span class="admin-label" data-i18n="adminVipCount">VIP加成次数</span>
+      <input type="range" id="vipCountSlider" min="3" max="30" value="10" step="1"
+        oninput="document.getElementById('vipCountDisp').textContent=document.getElementById('vipCountSlider').value">
+      <span class="admin-val" id="vipCountDisp">10</span>
+    </div>
+    <div class="admin-hint" data-i18n="adminVipHint">修改参数后，接下来N次推币享受物理加成（推力↑阻力↓）</div>
+    <div class="admin-btns">
+      <button class="adm-btn" onclick="applyVipBoost()" style="border-color:#ff8c00;color:#ffd700;" data-i18n="adminApplyVip">⚡ 激活VIP加成</button>
+      <button class="adm-btn" onclick="resetAdminDefaults()" data-i18n="adminReset">🔁 恢复默认</button>
+    </div>
+    <!-- 终身统计 -->
+    <div class="session-stats" style="margin-top:12px;">
+      <h4 data-i18n="lifetimeTitle">📊 终身统计（所有会话累计）</h4>
+      <div class="session-row"><span data-i18n="lifetimePushes">累计推币</span><span class="val" id="lifetimePushes">0</span> 次</div>
+      <div class="session-row"><span data-i18n="lifetimeSpent">累计花费</span><span class="val red" id="lifetimeSpent">¥0</span></div>
+      <div class="session-row"><span data-i18n="lifetimeWon">累计赢回</span><span class="val green" id="lifetimeWon">0</span> 枚</div>
+      <div class="session-row"><span data-i18n="lifetimeNet">净盈亏</span><span class="val" id="lifetimeNet" style="color:#ffd700">¥0</span></div>
+      <div class="session-row"><span data-i18n="lifetimeVisits">访问人次</span><span class="val" id="lifetimeVisits" style="color:#a080c0">0</span></div>
+    </div>
+    <button class="adm-close" onclick="closeAdmin()" data-i18n="adminClose">关闭后台 · 参数保持生效</button>
+  </div>
+</div>
+
+<!-- VIP浮标 -->
+<div class="vip-badge" id="vipBadge">
+  <div class="vip-title" data-i18n="vipTitle">⚡ VIP加成生效中</div>
+  <div class="vip-count" id="vipRemainCount">10</div>
+  <div class="vip-params" id="vipParams"></div>
+</div>
+
+<main class="main-content">
+<div class="title-bar" style="position:relative;">
+  <h1 id="titleH1" data-i18n="h1Title">🎰 FORTUNE COIN·推币机解密箱</h1>
+  <div class="title-sub" id="subtitleLine" style="display:none;"></div>
+</div>
+<button id="langBtn" onclick="toggleLang()" title="Switch Language"
+  style="position:fixed;top:10px;right:18px;z-index:9999;background:rgba(120,80,200,.35);border:1px solid #6a3aba;color:#cca9ff;
+         font-size:.7rem;padding:5px 14px;border-radius:16px;cursor:pointer;font-family:'Orbitron',monospace;
+         box-shadow:0 2px 10px rgba(100,60,200,.2);">
+  EN
+</button>
+
+<div class="layout">
+  <!-- 左侧机柜 -->
+  <div class="arcade-cabinet">
+    <div class="cabinet-lights">
+      <div class="cab-light"></div><div class="cab-light"></div>
+      <div class="cab-light"></div><div class="cab-light"></div>
+      <div class="cab-light"></div><div class="cab-light"></div>
+      <div class="cab-light"></div>
+    </div>
+
+    <div class="game-screen">
+      <canvas id="gameCanvas" width="656" height="400"></canvas>
+    </div>
+
+    <div class="control-panel">
+      <div class="stat-row">
+        <div class="stat-box">
+          <div class="stat-label" data-i18n="statInserted">投入</div>
+          <div class="stat-value red" id="statInserted">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label" data-i18n="statWon">赢出</div>
+          <div class="stat-value green" id="statWon">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label" data-i18n="statLoss">净损失</div>
+          <div class="stat-value red" id="statLoss">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label" data-i18n="statStreak">连推次数</div>
+          <div class="stat-value" id="statStreak">0</div>
+        </div>
+      </div>
+      <button class="push-btn" id="pushBtn" onclick="pushCoin()">▶ 推  币</button>
+      <div class="msg-box"><div id="msgText"></div></div>
+    </div>
+
+    <div class="wallet-bar">
+      <span class="wallet-label" data-i18n="walletTokens">可用币</span>
+      <span class="wallet-coin" id="walletTokens">10</span>
+      <span class="wallet-label" id="walletSpentLabel">| 已花 ¥<b id="walletSpent" style="color:#ff6050">0</b></span>
+      <button class="buy-btn" onclick="openExchange()" data-i18n="exchangeBtn">💰 兑换游戏币</button>
+    </div>
+
+    <div class="key-hint">
+      <div class="key-tag"><span>Space</span> <i data-i18n="keyPush">推币</i></div>
+      <div class="key-tag"><span>R</span> <i data-i18n="keyReset">重置</i></div>
+      <div class="key-tag"><span>C</span> <i data-i18n="keyExchange">兑换币</i></div>
+      <div class="key-tag"><span>M</span> <i data-i18n="keyMute">静音</i></div>
+      <div class="key-tag"><span>↑↓</span> <i data-i18n="keyForce">推力</i></div>
+    </div>
+
+    <div class="warning-bar" id="warningBar" data-i18n="warning">⚠️ 警告
+18岁以下用户请在成年人监护下体验
+运气？技术？还是概率陷阱？
+本程序仅供教育展示 —— 智赢人生，数明正途
+  </div>
+
+  <!-- 右侧数据面板 -->
+  <div class="data-panel">
+    <div class="panel-row">
+    <div class="panel-card">
+      <h3 data-i18n="panelRealtime">实时数学数据</h3>
+      <div class="vip-warn-banner" id="vipWarnBanner" style="display:none;">
+        <span class="vip-warn-icon">⚠️</span>
+        <span class="vip-warn-text">
+          <span data-i18n="vipWarnTitle">「新手保护」实为氪金加成</span><br>
+          <span style="font-size:.58rem;opacity:.85;" data-i18n="vipWarnDesc">当前数据含数学加成，不可作真实概率参考</span>
+        </span>
+      </div>
+      <div class="math-item"><span class="math-key" data-i18n="mathDropProb">单次掉落概率</span><span class="math-val bad" id="mathDropProb">~18%</span></div>
+      <div class="math-item"><span class="math-key" data-i18n="mathExpect">数学期望（每次）</span><span class="math-val bad" id="mathExpect">-0.64 币</span></div>
+      <div class="math-item"><span class="math-key" data-i18n="mathROR">投入回报率</span><span class="math-val bad" id="rorDisplay">0%</span></div>
+      <div class="math-item"><span class="math-key" data-i18n="mathLossRate">理论亏损率</span><span class="math-val bad" id="mathLossRate">约 82%</span></div>
+      <div style="margin-top:7px;">
+        <div style="font-size:.62rem;color:#5a4a7a;margin-bottom:3px;" data-i18n="historyWR">实际回报率（越推越低）</div>
+        <div class="expect-bar"><div class="expect-fill" id="rorBar" style="width:0%"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:.58rem;color:#3a3a5a;margin-top:2px;">
+          <span data-i18n="ror0">0%（亏完）</span><span data-i18n="ror100">100%（保本）</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-card reveal-mask" id="revealCard">
+      <div class="reveal-blur" id="revealBlur" onclick="openAdmin()" style="cursor:pointer;" title="点击验证管理员身份">
+        <div class="lock-icon">🔒</div>
+        <div class="lock-text" id="revealLockText">🔑 氪金密钥<br><span style="font-size:.55rem;">点击验证身份</span></div>
+      </div>
+      <h3 id="revealTitleH" style="position:relative;z-index:1;" data-i18n="revealTitle">🔬 概率揭秘</h3>
+      <div class="reveal-item" style="position:relative;z-index:1;"><strong data-i18n="revealTrap">「差一点」视觉陷阱</strong><br><span data-i18n="revealTrapDesc">前排硬币永远保持悬在掉落线边缘，触发「再来一次」的赌徒心理。</span></div>
+      <div class="reveal-item" style="position:relative;z-index:1;"><strong data-i18n="revealEv">期望值公式</strong><br><span data-i18n-html="revealEvDesc">E = <span id="evFormula">0.18</span>×(0) + <span id="evComp">0.82</span>×(−1) = <span style="color:#ff5555" id="evResult">-0.82</span>（永远为负）</span></div>
+      <div class="reveal-item" style="position:relative;z-index:1;"><strong data-i18n="revealLaw">大数定律</strong><br><span data-i18n-html="revealLawDesc">推得越多，实际回报率越接近<span id="llnRate">18%</span>，亏损越稳定、越确定。</span></div>
+      <!-- 会话统计 -->
+      <div class="session-stats" style="position:relative;z-index:1;">
+        <h4 data-i18n="sessionTitle">📋 本次会话记录</h4>
+        <div class="session-row"><span data-i18n="sessionPushes">推币次数</span><span class="val" id="sessionPushes">0</span></div>
+        <div class="session-row"><span data-i18n="sessionSpent">累计充值</span><span class="val red" id="sessionSpent">¥0</span></div>
+        <div class="session-row"><span data-i18n="sessionWon">累计赢回</span><span class="val green" id="sessionWon">0</span> 枚</div>
+        <div class="session-row"><span data-i18n="sessionNet">净盈亏</span><span class="val" id="sessionNet" style="color:#ffd700">¥0</span></div>
+      </div>
+    </div>
+    </div>
+
+    <div class="panel-card">
+      <h3 data-i18n="panelHistory">本局推币历史</h3>
+      <div class="history-row" id="historyRow"></div>
+      <div style="margin-top:7px;font-size:.66rem;color:#5a4a7a;" id="historyLabel">
+        🟢 <i data-i18n="winDot">掉落</i> &nbsp;🔴 <i data-i18n="loseDot">未掉</i> &nbsp;<span id="winRateText"></span>
+      </div>
+    </div>
+
+    <div class="panel-card">
+      <h3 data-i18n="settingsTitle">⚙️ 设置</h3>
+      <div style="display:flex;flex-direction:column;gap:7px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:.73rem;color:#8a7aaa;">
+          <span data-i18n="forceLabel">推力强度</span>
+          <div style="display:flex;gap:4px;align-items:center;">
+            <span style="font-size:.62rem;color:#5a5a7a" data-i18n="forceWeak">弱</span>
+            <input type="range" id="forceSlider" min="5" max="20" value="11" style="width:75px;accent-color:#7a4aff;">
+            <span style="font-size:.62rem;color:#5a5a7a" data-i18n="forceStrong">强</span>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:.73rem;color:#8a7aaa;">
+          <span data-i18n="densityLabel">硬币密度</span>
+          <div style="display:flex;gap:4px;">
+            <button class="btn-sec" onclick="changeDensity(-10)" style="padding:2px 7px;font-size:.68rem;">-</button>
+            <span id="densityDisp" style="color:#ffd700;font-family:Orbitron,monospace;padding:0 7px;min-width:28px;text-align:center;">120</span>
+            <button class="btn-sec" onclick="changeDensity(10)" style="padding:2px 7px;font-size:.68rem;">+</button>
+          </div>
+        </div>
+        <button class="btn-sec" onclick="fullReset()" style="width:100%;margin-top:3px;" data-i18n="resetBtn">🔄 完全重置游戏</button>
+        <div style="font-size:.55rem;color:#2a1a3a;text-align:center;margin-top:4px;cursor:default;"
+          title="Ctrl+Shift+A" data-i18n="sysLock">-- 系统参数锁定 --</div>
+      </div>
+    </div>
+  </div>
+</div>
+</main>
+
+<!-- 卜蒜子 · 访客计数器 -->
+<div class="visitor-counter" id="visitorBar">
+  🧮 <span data-i18n="visitorText">卜蒜子 · 累计访问：</span><span id="visitorCount">0</span><span data-i18n-html="visitorSuffix"> 人次 · Designed by Victor Mao2026321</span>
+</div>
+
+<script>
+// ================================================================
+//  多语言系统 i18n
+// ================================================================
+let currentLang = 'zh';
+const i18n = {
+  zh: {
+    h1Title: '🎰 FORTUNE COIN·推币机解密箱',
+    title: '🎰 FORTUNE COIN·推币机解密箱 | 概率论揭秘',
+    subtitle: '',
+    statInserted: '投入', statWon: '赢出', statLoss: '净损失', statStreak: '连推次数',
+    pushBtn: '▶ 推  币',
+    msgStart: '按 <b style="color:#ffd700">空格</b> 开始推币',
+    walletTokens: '可用币', walletSpent: '| 已花 ¥', exchangeBtn: '💰 兑换游戏币',
+    keyPush: '推币', keyReset: '重置', keyExchange: '兑换币', keyMute: '静音', keyForce: '推力',
+    warning: '⚠️ 警告\n18岁以下用户请在成年人监护下体验\n运气？技术？还是概率陷阱？\n本程序仅供教育展示 —— 智赢人生，数明正途',
+    panelRealtime: '实时数学数据', panelHistory: '本局推币历史',
+    winDot: '掉落', loseDot: '未掉', winRate: '胜率: --',
+    mathDropProb: '单次掉落概率', mathExpect: '数学期望（每次）', mathROR: '投入回报率', mathLossRate: '理论亏损率',
+    revealTitle: '🔬 概率揭秘',
+    revealLocked: '🔑 氪金密钥<br><span style="font-size:.55rem;">点击验证身份</span>',
+    revealTrap: '「差一点」视觉陷阱',
+    revealTrapDesc: '前排硬币永远保持悬在掉落线边缘，触发「再来一次」的赌徒心理。',
+    revealEv: '期望值公式',
+    revealEvDesc: 'E = <span id="evFormula">0.18</span>×(0) + <span id="evComp">0.82</span>×(−1) = <span style="color:#ff5555" id="evResult">-0.82</span>（永远为负）',
+    revealLaw: '大数定律',
+    revealLawDesc: '推得越多，实际回报率越接近<span id="llnRate">18%</span>，亏损越稳定、越确定。',
+    sessionTitle: '📋 本次会话记录', sessionPushes: '推币次数', sessionSpent: '累计充值', sessionWon: '累计赢回', sessionNet: '净盈亏',
+    settingsTitle: '⚙️ 设置', forceLabel: '推力强度', forceWeak: '弱', forceStrong: '强',
+    densityLabel: '硬币密度', resetBtn: '🔄 完全重置游戏', sysLock: '-- 系统参数锁定 --',
+    exchangeTitle: '💰 兑换游戏币',
+    exchangeDesc: '推币需要消耗游戏币<br>请用 <b style="color:#ffd700">现金 ¥</b> 兑换游戏币继续',
+    exchange1: '¥1<br><span style="font-size:.65rem;color:#888;">= 1币</span>',
+    exchange5: '¥5<br><span style="font-size:.65rem;color:#888;">= 5币</span>',
+    exchange10: '¥10<br><span style="font-size:.65rem;color:#888;">= 10币</span>',
+    exchange20: '¥20<br><span style="font-size:.65rem;color:#888;">= 20币</span>',
+    exchange50: '🔥 一掷千金 · ¥50 = 50币', exchangeCancel: '先不买了，再想想',
+    pwdTitle: '🔐 管理员验证', pwdHint: '概率参数受保护，请输入管理员密码',
+    pwdConfirm: '确认', pwdCancel: '取消', pwdWrong: '✗ 密码错误',
+    adminTitle: '⚙️ 管理员后台', adminSub: '概率参数配置 · 参数实时影响游戏',
+    adminGoldProb: '金币概率', adminSpecialProb: '稀有币概率',
+    adminGoldHint: '比例越高 = 新币中金币占比越大 = 玩家越容易中Jackpot',
+    adminSpecialHint: '稀有币掉落触发掌声效果，增加心理成瘾',
+    adminEv: '当前期望值：', adminRor: '理论回报率：',
+    adminVipCount: 'VIP加成次数', adminVipHint: '修改参数后，接下来N次推币享受物理加成（推力↑阻力↓）',
+    adminApplyVip: '⚡ 激活VIP加成', adminReset: '🔁 恢复默认', adminClose: '关闭后台 · 参数保持生效',
+    vipTitle: '⚡ VIP加成生效中', vipParams: '金币率↑ 推力↑ 阻力↓',
+    vipParamsText: '金币率↑{vp}% 推力↑ 阻力↓',
+    vipWarnTitle: '「新手保护」实为氪金加成', vipWarnDesc: '当前数据含数学加成，不可作真实概率参考',
+    lifetimeTitle: '📊 终身统计（所有会话累计）',
+    lifetimePushes: '累计推币', lifetimeSpent: '累计花费', lifetimeWon: '累计赢回', lifetimeNet: '净盈亏', lifetimeVisits: '访问人次',
+    visitorText: '🧮 卜蒜子 · 累计访问：', visitorSuffix: ' 人次 · Designed by Victor Mao2026321',
+    jackpotTitle: '🎰 JACKPOT!', jackpotClose: '继续沉沦',
+    jackpotWin: '净赚', jackpotLoss: '净亏',
+    jackpotSub: '{emoji} 已投入<b style="color:#ff6050">{ins}</b>枚，赢回<b style="color:#ffd700">{won}</b>枚，<b>{label}{net}枚</b>。<br><span style="font-size:.75rem;color:#888;">Jackpot（头奖/大奖）是赌场用来让你记住「赢」的工具——幸存者偏差。</span>',
+    msgNoTokens: '⚠️ 游戏币用完了！<b style="color:#ffd700">点击"💰 兑换游戏币"</b>继续',
+    msgBought: '💰 兑换 <b style="color:#ffd700">{n}</b> 枚 游戏币！已花 ¥{s}',
+    msgResetParams: '🔁 概率参数已恢复默认 · 金币4% / 稀有币12%',
+    msgAdminOk: '🔓 管理员身份验证通过 · 概率参数已解锁', msgPwdWrong: '✗ 密码错误',
+    msgAdminExit: '🔒 管理员已退出 · 概率参数已恢复默认并锁定',
+    msgAdminExitVip: '🔒 管理员已退出 · VIP加成仍生效（剩余{n}次）',
+    msgVipActive: '⚡ VIP加成已激活！接下来<b style="color:#ffd700">{n}</b>次推币享受物理加成 · 金币率{vp}%',
+    msgVipDone: '⚡ VIP加成已用完 · 概率参数恢复默认',
+    msgNoTokenPush: '⚠️ 没有游戏币了！请先<b style="color:#ffd700">"💰 兑换游戏币"</b>',
+    msgReset: '游戏已重置 · 数学期望依然为负 · 祝你好运😈',
+    msgMuted: '🔇 已静音', msgUnmuted: '🔊 音效已开启',
+    msgAlmost: '😤 就差一点！再推一次肯定掉！', msgEdge: '🔥 边缘硬币在颤抖...下次一定！',
+    msgAlmost2: '⚡ 感觉快到了！再来一次？', msgAlmost3: '💢 差0.5毫米！！再推！',
+    msgCreep: '硬币悄悄前移了一点...', msgCreep2: '感觉越来越近了？', msgCreep3: '缓慢前进中...需要更多推力。',
+    msgBatchDrop: '🎉 <b style="color:#ffd700">一次掉落 {n} 枚！</b> 已投{ins}，赢回{won}',
+    msgDrop: '🎉 掉落一枚{type}已投{ins}，赢回{won}',
+    msgDropGold: '金币！', msgDropNormal: '硬币！',
+    historyWR: '实际回报率（越推越低）', ror0: '0%（亏完）', ror100: '100%（保本）',
+    evFormula: 'E = {p}×(0) + {q}×(−1) = {ev}（永远为负）',
+    winRateFmt: '实际胜率: {rate}',
+    dropZone: '▼ 掉 落 区 ▼',
+    mathEvFmt: '{ev} 币', mathLossRateFmt: '约 {pct}%',
+  },
+  en: {
+    h1Title: '🎰 MindCoin · Probability Revealed',
+    title: '🎰 MindCoin · Probability Revealed | Probability Revealed',
+    subtitle: 'Math Unmasked · Perspective View · See Through the Scam',
+    statInserted: 'Inserted', statWon: 'Won', statLoss: 'Net Loss', statStreak: 'Streak',
+    pushBtn: '▶  PUSH',
+    msgStart: 'Press <b style="color:#ffd700">Space</b> to push',
+    walletTokens: 'Coins', walletSpent: '| Spent $', exchangeBtn: '💰 Exchange Coins',
+    keyPush: 'Push', keyReset: 'Reset', keyExchange: 'Exchange', keyMute: 'Mute', keyForce: 'Force',
+    warning: '⚠️ WARNING\nUsers under 18 must experience this program under adult supervision.\nLuck? Skill? Or a probability trap?\nThis program is for educational demonstration only.\n— Win life with wisdom; let math light the right path.',
+    panelRealtime: 'Real-time Math', panelHistory: 'Push History',
+    winDot: 'Win', loseDot: 'Lose', winRate: 'Win%: --',
+    mathDropProb: 'Drop Probability', mathExpect: 'Expectation (per push)', mathROR: 'Return on Risk', mathLossRate: 'Theoretical Loss',
+    revealTitle: '\ud83d\udd2c Probability Revealed',
+    revealLocked: '🔑 Pay-to-Unlock<br><span style="font-size:.55rem;">Click to verify</span>',
+    revealTrap: '"Almost Won" Visual Trap',
+    revealTrapDesc: 'Front coins always hover at the edge, triggering "one more try" gambler\'s psychology.',
+    revealEv: 'Expectation Formula',
+    revealEvDesc: 'E = <span id="evFormula">0.18</span>\u00d7(0) + <span id="evComp">0.82</span>\u00d7(\u22121) = <span style="color:#ff5555" id="evResult">-0.82</span> (always negative)',
+    revealLaw: 'Law of Large Numbers',
+    revealLawDesc: 'The more you play, the closer ROR gets to <span id="llnRate">18%</span>, loss becomes stable.',
+    sessionTitle: '\ud83d\udccb Session Record', sessionPushes: 'Pushes', sessionSpent: 'Spent', sessionWon: 'Won', sessionNet: 'Net',
+    settingsTitle: '\u2699\ufe0f Settings', forceLabel: 'Push Force', forceWeak: 'Weak', forceStrong: 'Strong',
+    densityLabel: 'Coin Density', resetBtn: '\ud83d\udd04 Full Reset', sysLock: '-- System Locked --',
+    exchangeTitle: '\ud83d\udcb0 Exchange Coins',
+    exchangeDesc: 'Each push consumes 1 coin<br>Please use <b style="color:#ffd700">Cash $</b> to exchange coins',
+    exchange1: '$1<br><span style="font-size:.65rem;color:#888;">= 1 coin</span>',
+    exchange5: '$5<br><span style="font-size:.65rem;color:#888;">= 5 coins</span>',
+    exchange10: '$10<br><span style="font-size:.65rem;color:#888;">= 10 coins</span>',
+    exchange20: '$20<br><span style="font-size:.65rem;color:#888;">= 20 coins</span>',
+    exchange50: '\ud83d\udd25 Go Big \u00b7 $50 = 50 coins', exchangeCancel: 'Maybe later',
+    pwdTitle: '\ud83d\udd10 Admin Verification', pwdHint: 'Probability parameters are protected. Enter admin password.',
+    pwdConfirm: 'Confirm', pwdCancel: 'Cancel', pwdWrong: '\u2717 Wrong password',
+    adminTitle: '\u2699\ufe0f Admin Panel', adminSub: 'Probability Config \u00b7 Real-time Effect',
+    adminGoldProb: 'Gold Prob', adminSpecialProb: 'Special Prob',
+    adminGoldHint: 'Higher = more gold coins = easier Jackpot',
+    adminSpecialHint: 'Special coin drops trigger applause = psychological addiction',
+    adminEv: 'Expectation: ', adminRor: 'Theoretical ROR: ',
+    adminVipCount: 'VIP Boost Counts', adminVipHint: 'After changing params, next N pushes get physical boost (force\u2191 resist\u2193)',
+    adminApplyVip: '\u26a1 Activate VIP Boost', adminReset: '\ud83d\udd01 Restore Defaults', adminClose: 'Close \u00b7 Params remain active',
+    vipTitle: '\u26a1 VIP Boost Active', vipParams: 'Gold\u2191 Force\u2191 Resist\u2193',
+    vipParamsText: 'Gold\u2191{vp}% Force\u2191 Resist\u2193',
+    vipWarnTitle: '"New Player Protection" = paid boosts', vipWarnDesc: 'Current data has math-based advantages — not true probability.',
+    lifetimeTitle: '\ud83d\udcca Lifetime Stats (All Sessions)',
+    lifetimePushes: 'Total Pushes', lifetimeSpent: 'Total Spent', lifetimeWon: 'Total Won', lifetimeNet: 'Net P/L', lifetimeVisits: 'Visitors',
+    visitorText: '🧮 Boo-Suan-Zi · Total visits: ', visitorSuffix: ' visits<br>Designed by Victor Mao2026321',
+    jackpotTitle: '\ud83c\udfb0 JACKPOT!', jackpotClose: 'Continue...',
+    jackpotWin: 'Net profit', jackpotLoss: 'Net loss',
+    jackpotSub: '{emoji} Inserted <b style="color:#ff6050">{ins}</b>, Won <b style="color:#ffd700">{won}</b>, <b>{label} {net}</b>.<br><span style="font-size:.75rem;color:#888;">Jackpot is a tool to make you remember "winning" \u2014 survivor bias.</span>',
+    msgNoTokens: '\u26a0\ufe0f Out of coins! <b style="color:#ffd700">Click "\ud83d\udcb0 Exchange Coins"</b>',
+    msgBought: '\ud83d\udcb0 Exchanged <b style="color:#ffd700">{n}</b> coins! Spent ${s}',
+    msgResetParams: '\ud83d\udd01 Params restored \u00b7 Gold 4% / Special 12%',
+    msgAdminOk: '\ud83d\udd13 Admin verified \u00b7 Probability unlocked', msgPwdWrong: '\u2717 Wrong password',
+    msgAdminExit: '\ud83d\udd12 Admin exited \u00b7 Params restored & locked',
+    msgAdminExitVip: '\ud83d\udd12 Admin exited \u00b7 VIP boost still active ({n} left)',
+    msgVipActive: '\u26a1 VIP Boost activated! Next <b style="color:#ffd700">{n}</b> pushes get boost \u00b7 Gold {vp}%',
+    msgVipDone: '\u26a1 VIP Boost used up \u00b7 Params restored',
+    msgNoTokenPush: '\u26a0\ufe0f No coins! Please <b style="color:#ffd700">"\ud83d\udcb0 Exchange Coins"</b> first',
+    msgReset: 'Game reset \u00b7 Expected value still negative \u00b7 Good luck \ud83d\ude08',
+    msgMuted: '\ud83d\udd07 Muted', msgUnmuted: '\ud83d\udd0a Sound ON',
+    msgAlmost: '\ud83d\ude24 So close! One more push!', msgEdge: '\ud83d\udd25 Edge coins trembling... next time!',
+    msgAlmost2: '\u26a1 Feel like it\'s coming! Again?', msgAlmost3: '\ud83d\udca2 Off by 0.5mm!! Push!',
+    msgCreep: 'Coins inched forward...', msgCreep2: 'Feeling closer?', msgCreep3: 'Slowly advancing... need more force.',
+    msgBatchDrop: '\ud83c\udf89 <b style="color:#ffd700">Dropped {n} coins!</b> In:{ins} Won:{won}',
+    msgDrop: '\ud83c\udf89 Dropped one {type}In:{ins} Won:{won}',
+    msgDropGold: 'gold coin! ', msgDropNormal: 'coin! ',
+    historyWR: 'Actual ROR (drops as you play)', ror0: '0% (broke)', ror100: '100% (break-even)',
+    evFormula: 'E = {p}\u00d7(0) + {q}\u00d7(\u22121) = {ev} (always negative)',
+    winRateFmt: 'Win Rate: {rate}',
+    dropZone: '\u25bc DROP ZONE \u25bc',
+    mathEvFmt: '{ev} coins', mathLossRateFmt: '~ {pct}%',
+  }
+};
+
+function t(key, params) {
+  params = params || {};
+  var s = (i18n[currentLang] && i18n[currentLang][key]);
+  if (!s) return key;
+  Object.keys(params).forEach(function(k) {
+    s = s.split('{' + k + '}').join(String(params[k]));
+  });
+  return s;
+}
+
+function toggleLang() {
+  currentLang = currentLang === 'zh' ? 'en' : 'zh';
+  applyLang();
+}
+
+function applyLang() {
+  document.title = t('title');
+  document.getElementById('subtitleLine').textContent = t('subtitle');
+  document.getElementById('pushBtn').innerHTML = t('pushBtn');
+  document.getElementById('msgText').innerHTML = t('msgStart');
+  document.getElementById('warningBar').textContent = t('warning');
+
+  // Static elements with data-i18n (text) — only simple text, no child elements
+  document.querySelectorAll('[data-i18n]:not([data-i18n-html])').forEach(function(el) {
+    el.textContent = t(el.getAttribute('data-i18n'));
+  });
+  // Static elements with data-i18n-html
+  document.querySelectorAll('[data-i18n-html]').forEach(function(el) {
+    el.innerHTML = t(el.getAttribute('data-i18n-html'));
+  });
+
+  // Wallet spent — rebuild with correct <b> element
+  var wsl = document.getElementById('walletSpentLabel');
+  if (wsl) {
+    walletSpentEl = document.getElementById('walletSpent');
+    if (walletSpentEl) {
+      wsl.innerHTML = t('walletSpent') + walletSpentEl.outerHTML;
+    } else {
+      wsl.innerHTML = t('walletSpent') + '<b style=\"color:#ff6050\" id=\"walletSpent\">' + totalSpent + '</b>';
+    }
+  }
+
+  // Reveal lock text
+  var rlt = document.getElementById('revealLockText');
+  if (rlt) rlt.innerHTML = t('revealLocked');
+
+  // VIP badge params
+  var vpEl = document.getElementById('vipParams');
+  if (vpEl && vipBoostsRemaining > 0) {
+    vpEl.textContent = t('vipParamsText', {vp: (vipGoldProb*100).toFixed(0)});
+  } else if (vpEl) {
+    vpEl.textContent = t('vipParams');
+  }
+
+  // History label
+  var hl = document.getElementById('historyLabel');
+  if (hl) {
+    var wins = pushHistory.filter(Boolean).length;
+    var tot = pushHistory.length;
+    var rate = tot > 0 ? (wins/tot*100).toFixed(1) + '%' : '--';
+    hl.innerHTML = '\ud83d\udfe2 ' + t('winDot') + ' &nbsp;\ud83d\udd34 ' + t('loseDot') + ' &nbsp;<span id=\"winRateText\">' + t('winRateFmt', {rate: rate}) + '</span>';
+  }
+
+  // Language button
+  var lb = document.getElementById('langBtn');
+  if (lb) lb.textContent = currentLang === 'zh' ? 'EN' : '\u4e2d\u6587';
+
+  updateEvDisplay();
+  updateAdminPanel();
+  updateWallet();
+  updateStats();
+  updateSessionStats();
+}
+
+// ================================================================
+//  透视投影推币机
+// ================================================================
+var gc = document.getElementById('gameCanvas');
+var ctx = gc.getContext('2d');
+var W = gc.width, H = gc.height;
+
+var TABLE_W = 520, TABLE_D = 300;
+var HORIZON_Y = 80, NEAR_Y = H - 50, CX = W / 2;
+
+function project(wx, wz) {
+  var pz = wz / TABLE_D;
+  var sy = NEAR_Y - pz * (NEAR_Y - HORIZON_Y);
+  var perspScale = 0.28 + (1 - pz) * 0.72;
+  var sx = CX + (wx - TABLE_W / 2) * perspScale * (W * 0.85 / TABLE_W);
+  return { sx: sx, sy: sy, scale: perspScale };
+}
+
+var COIN_BASE_R = 15, DROP_Z = 2, PUSHER_NEAR_Z = TABLE_D - 10;
+
+function getForceParams() {
+  var force = parseInt(document.getElementById('forceSlider').value);
+  var tp = (force - 5) / 15;
+  return {
+    force: force,
+    advSpeed: 2.5 + tp * 4.0,
+    retSpeed: 2.0 + tp * 2.0,
+    frontZ: TABLE_D * (0.68 - tp * 0.22),
+  };
+}
+
+var pusherZ = PUSHER_NEAR_Z, pusherTargetZ = PUSHER_NEAR_Z;
+var pusherPhase = 0, pushQueueLen = 0, currentForceParams = null;
+var coins = [], coinDensity = 120;
+
+var goldProb = 0.04, specialProb = 0.12, adminUnlocked = false;
+var totalInserted = 0, totalWon = 0, streakCount = 0, pushHistory = [];
+var walletTokens = 10, totalSpent = 0, walletSpentEl = null;
+var vipBoostsRemaining = 0, vipGoldProb = 0.04, vipSpecialProb = 0.12;
+var sessionPushes = 0, sessionSpent = 0, sessionWon = 0;
+var lifetimePushes = 0, lifetimeSpent = 0, lifetimeWon = 0;
+var batchDropCount = 0, batchDropTimer = null, batchDroppedThisPush = [];
+var particles = [], floatTexts = [];
+var audioCtx, muted = false;
+
+function getAC() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); return audioCtx; }
+function beep(f, t, d, v) {
+  if (muted) return; v = v || 0.3;
+  try {
+    var ac = getAC(), o = ac.createOscillator(), g = ac.createGain();
+    o.connect(g); g.connect(ac.destination);
+    o.type = t; o.frequency.value = f;
+    g.gain.setValueAtTime(v, ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d);
+    o.start(); o.stop(ac.currentTime + d);
+  } catch (e) {}
+}
+function sPush() { beep(160, 'sawtooth', 0.09, 0.18); setTimeout(function() { beep(120, 'square', 0.07, 0.12); }, 55); }
+function sDrop() {
+  var coinCount = 3 + Math.floor(Math.random() * 5);
+  for (var i = 0; i < coinCount; i++) {
+    (function(idx) {
+      var delay = idx * (35 + Math.random() * 45);
+      var freq = 900 + Math.random() * 700;
+      setTimeout(function() {
+        beep(freq, 'triangle', 0.08 + Math.random() * 0.06, 0.25 + Math.random() * 0.15);
+        setTimeout(function() { beep(freq * 0.6, 'sine', 0.05, 0.12); }, 8);
+      }, delay);
+    })(i);
+  }
+  setTimeout(function() {
+    [1200, 950, 1450, 800, 1100].forEach(function(f, i) {
+      setTimeout(function() { beep(f, 'triangle', 0.05, 0.18); }, i * 18);
+    });
+  }, coinCount * 40 + 30);
+}
+function sJack() {
+  sDrop();
+  setTimeout(function() {
+    [523, 659, 784, 1047, 1319, 1568].forEach(function(f, i) { setTimeout(function() { beep(f, 'triangle', 0.28, 0.55); }, i * 70); });
+  }, 400);
+}
+function sClink() { beep(500 + Math.random() * 250, 'triangle', 0.06, 0.1); }
+function sCelebrate() {
+  for (var i = 0; i < 12; i++) {
+    setTimeout(function() { beep(200 + Math.random() * 200, 'square', 0.04 + Math.random() * 0.06, 0.08); }, i * (30 + Math.random() * 50));
+  }
+  setTimeout(function() { beep(1200, 'sine', 0.12, 0.22); }, 50);
+  setTimeout(function() { beep(1500, 'sine', 0.1, 0.18); }, 180);
+  setTimeout(function() { beep(1800, 'sine', 0.09, 0.14); }, 280);
+  setTimeout(function() {
+    [800, 1000, 1200, 1400, 1600, 1800, 2000].forEach(function(f, i) {
+      setTimeout(function() { beep(f, 'triangle', 0.14, 0.3); }, i * 55);
+    });
+  }, 400);
+}
+
+function openExchange() { document.getElementById('exchangeOverlay').classList.add('show'); }
+function closeExchange() { document.getElementById('exchangeOverlay').classList.remove('show'); }
+function buyCoins(count, cost) {
+  walletTokens += count; totalSpent += cost;
+  sessionSpent += cost; lifetimeSpent += cost;
+  saveLifetimeStats();
+  document.getElementById('exchangeOverlay').classList.remove('show');
+  updateWallet(); updateSessionStats();
+  [800, 1000, 1200].forEach(function(f, i) { setTimeout(function() { beep(f, 'sine', 0.1, 0.3); }, i * 80); });
+  setMsg(t('msgBought', { n: count, s: totalSpent }));
+}
+
+function updateWallet() {
+  var el = document.getElementById('walletTokens');
+  el.textContent = walletTokens;
+  el.className = 'wallet-coin' + (walletTokens < 3 ? ' low' : '');
+  // Store reference to the spent <b> element
+  walletSpentEl = document.getElementById('walletSpent');
+  if (!walletSpentEl) {
+    // First call — find it
+    var wsl2 = document.getElementById('walletSpentLabel');
+    if (wsl2) walletSpentEl = wsl2.querySelector('b');
+  }
+  if (walletSpentEl) walletSpentEl.textContent = totalSpent;
+
+  var btn = document.getElementById('pushBtn');
+  if (walletTokens <= 0) {
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    if (!btn._warned) { btn._warned = true; setMsg(t('msgNoTokens')); }
+  } else {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn._warned = false;
+  }
+  document.getElementById('statInserted').textContent = totalInserted;
+}
+
+// ================================================================
+//  管理员后台
+// ================================================================
+function updateEvDisplay() {
+  var empRate = totalInserted > 0 ? totalWon / totalInserted : 0;
+  var p = empRate > 0.01 ? empRate : 0.18;
+  var q = 1 - p;
+  var ev = p - 1;
+  var evFormatted = ev.toFixed(2);
+  var ratePct = (p * 100).toFixed(1);
+  document.getElementById('evFormula').textContent = p.toFixed(2);
+  document.getElementById('evComp').textContent = q.toFixed(2);
+  document.getElementById('evResult').textContent = evFormatted;
+  document.getElementById('llnRate').textContent = ratePct + '%';
+  document.getElementById('mathDropProb').textContent = '~' + ratePct + '%';
+  document.getElementById('mathExpect').textContent = t('mathEvFmt', { ev: evFormatted });
+  document.getElementById('mathLossRate').textContent = t('mathLossRateFmt', { pct: (q * 100).toFixed(0) });
+}
+
+function updateAdminPanel() {
+  document.getElementById('goldProbDisp').textContent = (goldProb * 100).toFixed(1) + '%';
+  document.getElementById('specialProbDisp').textContent = (specialProb * 100).toFixed(1) + '%';
+  document.getElementById('goldProbSlider').value = goldProb * 100;
+  document.getElementById('specialProbSlider').value = specialProb * 100;
+  var p = 0.18, ev = p - 1;
+  document.getElementById('adminEv').textContent =
+    'E = ' + p.toFixed(2) + ' \u2212 1 = ' + ev.toFixed(2);
+  document.getElementById('adminRor').textContent = (p * 100).toFixed(1) + '%';
+}
+
+function onGoldProbChange() {
+  goldProb = parseFloat(document.getElementById('goldProbSlider').value) / 100;
+  updateAdminPanel(); updateEvDisplay();
+}
+function onSpecialProbChange() {
+  specialProb = parseFloat(document.getElementById('specialProbSlider').value) / 100;
+  updateAdminPanel();
+}
+function resetAdminDefaults() {
+  goldProb = 0.04; specialProb = 0.12;
+  updateAdminPanel(); updateEvDisplay();
+  setMsg(t('msgResetParams'));
+}
+
+var ADMIN_PWD = 'Mao321';
+function checkPwd() {
+  var input = document.getElementById('pwdInput').value.trim();
+  if (input === ADMIN_PWD) {
+    adminUnlocked = true;
+    document.getElementById('pwdOverlay').classList.remove('show');
+    document.getElementById('pwdInput').value = '';
+    document.getElementById('pwdErr').textContent = '';
+    document.getElementById('revealBlur').classList.add('hidden');
+    document.getElementById('adminOverlay').classList.add('show');
+    updateAdminPanel(); updateSessionStats(); updateLifetimeDisplay();
+    setMsg(t('msgAdminOk'));
+  } else {
+    document.getElementById('pwdErr').textContent = t('pwdWrong');
+    document.getElementById('pwdInput').value = '';
+  }
+}
+function closePwd() {
+  document.getElementById('pwdOverlay').classList.remove('show');
+  document.getElementById('pwdInput').value = '';
+  document.getElementById('pwdErr').textContent = '';
+}
+function openAdmin() {
+  if (adminUnlocked) {
+    document.getElementById('adminOverlay').classList.add('show');
+    updateAdminPanel();
+  } else {
+    document.getElementById('pwdOverlay').classList.add('show');
+    setTimeout(function() { document.getElementById('pwdInput').focus(); }, 150);
+  }
+}
+function closeAdmin() {
+  document.getElementById('adminOverlay').classList.remove('show');
+  document.getElementById('revealBlur').classList.remove('hidden');
+  adminUnlocked = false;
+  if (vipBoostsRemaining <= 0) {
+    resetAdminDefaults();
+    setMsg(t('msgAdminExit'));
+  } else {
+    setMsg(t('msgAdminExitVip', { n: vipBoostsRemaining }));
+  }
+}
+
+function applyVipBoost() {
+  var count = parseInt(document.getElementById('vipCountSlider').value);
+  vipBoostsRemaining = count; vipGoldProb = goldProb; vipSpecialProb = specialProb;
+  updateVipBadge(); updateSessionStats();
+  document.getElementById('adminOverlay').classList.remove('show');
+  document.getElementById('revealBlur').classList.remove('hidden');
+  adminUnlocked = false;
+  setMsg(t('msgVipActive', { n: count, vp: (vipGoldProb * 100).toFixed(1) }));
+  goldProb = vipGoldProb; specialProb = vipSpecialProb;
+}
+
+function updateVipBadge() {
+  var badge = document.getElementById('vipBadge');
+  var warn = document.getElementById('vipWarnBanner');
+  if (vipBoostsRemaining > 0) {
+    badge.classList.add('show');
+    document.getElementById('vipRemainCount').textContent = vipBoostsRemaining;
+    document.getElementById('vipParams').textContent = t('vipParamsText', { vp: (vipGoldProb * 100).toFixed(0) });
+    if (warn) warn.style.display = 'flex';
+  } else {
+    badge.classList.remove('show');
+    document.getElementById('vipParams').textContent = t('vipParams');
+    if (warn) warn.style.display = 'none';
+  }
+  updateEvDisplay();
+}
+
+function updateSessionStats() {
+  var cur = currentLang === 'zh' ? '\u00a5' : '$';
+  document.getElementById('sessionPushes').textContent = sessionPushes;
+  document.getElementById('sessionSpent').textContent = cur + sessionSpent;
+  document.getElementById('sessionWon').textContent = sessionWon + (currentLang === 'zh' ? ' \u679a' : '');
+  var net = sessionWon - sessionSpent;
+  var netEl = document.getElementById('sessionNet');
+  netEl.textContent = (net >= 0 ? '+' : '') + cur + net;
+  netEl.className = 'val ' + (net >= 0 ? 'green' : 'red');
+}
+
+function loadLifetimeStats() {
+  try {
+    lifetimePushes = parseInt(localStorage.getItem('cp_lifetime_pushes') || '0');
+    lifetimeSpent = parseInt(localStorage.getItem('cp_lifetime_spent') || '0');
+    lifetimeWon = parseInt(localStorage.getItem('cp_lifetime_won') || '0');
+  } catch (e) { lifetimePushes = 0; lifetimeSpent = 0; lifetimeWon = 0; }
+  updateLifetimeDisplay();
+}
+function saveLifetimeStats() {
+  try {
+    localStorage.setItem('cp_lifetime_pushes', lifetimePushes);
+    localStorage.setItem('cp_lifetime_spent', lifetimeSpent);
+    localStorage.setItem('cp_lifetime_won', lifetimeWon);
+  } catch (e) {}
+  updateLifetimeDisplay();
+}
+function updateLifetimeDisplay() {
+  var cur = currentLang === 'zh' ? '\u00a5' : '$';
+  document.getElementById('lifetimePushes').textContent = lifetimePushes;
+  document.getElementById('lifetimeSpent').textContent = cur + lifetimeSpent;
+  document.getElementById('lifetimeWon').textContent = lifetimeWon + (currentLang === 'zh' ? ' \u679a' : '');
+  var net = lifetimeWon - lifetimeSpent;
+  var netEl = document.getElementById('lifetimeNet');
+  netEl.textContent = (net >= 0 ? '+' : '') + cur + net;
+  netEl.className = 'val ' + (net >= 0 ? 'green' : 'red');
+  try { document.getElementById('lifetimeVisits').textContent = localStorage.getItem('cp_visitor_count') || '0'; } catch (e) {}
+}
+function initVisitorCounter() {
+  try {
+    var count = parseInt(localStorage.getItem('cp_visitor_count') || '0');
+    count++;
+    localStorage.setItem('cp_visitor_count', count);
+    document.getElementById('visitorCount').textContent = count;
+    document.getElementById('lifetimeVisits').textContent = count;
+  } catch (e) {}
+}
+
+// ================================================================
+//  硬币初始化
+// ================================================================
+function initCoins() {
+  coins = [];
+  var COUNT = coinDensity;
+  for (var i = 0; i < COUNT; i++) {
+    coins.push(makeCoin(20 + Math.random() * (TABLE_W - 40), 5 + Math.random() * (TABLE_D - 25)));
+  }
+  for (var i = 0; i < 16; i++) {
+    coins.push(makeCoin(50 + Math.random() * (TABLE_W - 100), 3 + Math.random() * 18));
+  }
+  for (var i = 0; i < 10; i++) {
+    coins.push(makeCoin(30 + Math.random() * (TABLE_W - 60), 18 + Math.random() * 35));
+  }
+  sortCoins();
+}
+function makeCoin(wx, wz) {
+  return {
+    wx: wx, wz: wz, vx: 0, vz: 0,
+    dropping: false, dropVy: 0, alpha: 1, scale: 1, glow: 0,
+    shimmerPhase: Math.random() * Math.PI * 2,
+    type: Math.random() < goldProb ? 'gold' : Math.random() < specialProb ? 'special' : 'normal',
+    angle: Math.random() * Math.PI * 2, tiltDir: (Math.random() - 0.5) * 0.3,
+  };
+}
+function sortCoins() { coins.sort(function(a, b) { return a.wz - b.wz; }); }
+
+// ================================================================
+//  推板物理
+// ================================================================
+function doPushForce() {
+  var fp = currentForceParams || getForceParams();
+  var force = fp.force;
+  var vipActive = vipBoostsRemaining > 0;
+  var vipMul = vipActive ? 1.8 : 1.0;
+  var vipRegressCut = vipActive ? 0.35 : 1.0;
+  var vipDeepMul = vipActive ? 1.25 : 1.0;
+
+  coins.forEach(function(coin) {
+    if (coin.dropping) return;
+    if (coin.wz < pusherZ + 18 && coin.wz > pusherZ - 8) {
+      var distToDrop = coin.wz - DROP_Z;
+      var f = force * vipMul;
+      if (distToDrop < 20) f *= 0.2 + Math.random() * 0.25;
+      else if (distToDrop < 50) f *= 0.5 + Math.random() * 0.2;
+      else f *= 0.8 + Math.random() * 0.2;
+      var forceBonus = (force - 5) / 15;
+      var regress = (distToDrop < 15 ? Math.max(0.05, 0.5 - forceBonus * 0.35) :
+                     distToDrop < 40 ? Math.max(0.0, 0.2 - forceBonus * 0.12) : 0.02) * vipRegressCut;
+      var dir = Math.random() < regress ? 1 : -1;
+      coin.vz += dir * f * 0.22 * vipDeepMul;
+      coin.vx += (Math.random() - 0.5) * f * 0.12;
+      sClink();
+    }
+  });
+  for (var iter = 0; iter < 2; iter++) {
+    coins.forEach(function(coin) {
+      if (coin.dropping) return;
+      coins.forEach(function(other) {
+        if (coin === other || other.dropping) return;
+        var dx = coin.wx - other.wx, dz = coin.wz - other.wz;
+        var dist = Math.sqrt(dx * dx + dz * dz);
+        var minD = 22;
+        if (dist < minD && dist > 0.1) {
+          var push = (minD - dist) * 0.12;
+          coin.vx += (dx / dist) * push * 0.4;
+          coin.vz += (dz / dist) * push * 0.6;
+        }
+      });
+    });
+  }
+}
+
+// ================================================================
+//  物理更新
+// ================================================================
+var frameCount = 0;
+function updatePusher() {
+  if (pusherPhase === 0) {
+    if (pushQueueLen > 0) { pusherPhase = 1; pushQueueLen--; currentForceParams = getForceParams(); }
+    return;
+  }
+  var fp = currentForceParams || getForceParams();
+  if (pusherPhase === 1) {
+    pusherZ -= fp.advSpeed;
+    if (pusherZ <= fp.frontZ) { pusherZ = fp.frontZ; doPushForce(); pusherPhase = 2; }
+  } else {
+    pusherZ += fp.retSpeed;
+    if (pusherZ >= PUSHER_NEAR_Z) {
+      pusherZ = PUSHER_NEAR_Z; pusherPhase = 0; currentForceParams = null;
+      setTimeout(function() {
+        if (walletTokens > 0) {
+          document.getElementById('pushBtn').disabled = false;
+          document.getElementById('pushBtn').style.opacity = '1';
+        }
+        var frontCoins = coins.filter(function(c) { return !c.dropping && c.wz < 20; });
+        if (frontCoins.length > 0) {
+          var msgs = [t('msgAlmost'), t('msgEdge'), t('msgAlmost2'), t('msgAlmost3')];
+          setMsg(msgs[Math.floor(Math.random() * msgs.length)]);
+        } else {
+          var msgs2 = [t('msgCreep'), t('msgCreep2'), t('msgCreep3')];
+          setMsg(msgs2[Math.floor(Math.random() * msgs2.length)]);
+        }
+        pushHistory.push(false);
+        updateStats();
+      }, 80);
+    }
+  }
+}
+
+function updatePhysics() {
+  coins.forEach(function(coin) {
+    if (coin.dropping) return;
+    if (coin.wz < 25 && Math.random() < 0.15) { coin.vz += (Math.random() - 0.5) * 0.3; }
+  });
+  coins.forEach(function(coin) {
+    if (coin.dropping) { coin.dropVy += 0.9; coin.alpha -= 0.03; if (coin.alpha < 0) coin.alpha = 0; return; }
+    coin.wx += coin.vx; coin.wz += coin.vz;
+    coin.vx *= 0.80; coin.vz *= 0.80;
+    if (coin.wx < 15) { coin.wx = 15; coin.vx = Math.abs(coin.vx) * 0.3; }
+    if (coin.wx > TABLE_W - 15) { coin.wx = TABLE_W - 15; coin.vx = -Math.abs(coin.vx) * 0.3; }
+    if (coin.wz > TABLE_D - 5) { coin.wz = TABLE_D - 5; coin.vz = -Math.abs(coin.vz) * 0.2; }
+    if (coin.wz <= DROP_Z) {
+      coin.dropping = true; coin.dropVy = -1.5;
+      totalWon++; sessionWon++; lifetimeWon++;
+      saveLifetimeStats();
+      batchDropCount++; batchDroppedThisPush.push(coin.type);
+      if (batchDropTimer) clearTimeout(batchDropTimer);
+      batchDropTimer = setTimeout(function() {
+        var n = batchDropCount; batchDropCount = 0; batchDropTimer = null;
+        if (n >= 3) {
+          sCelebrate();
+          addFloat('\ud83c\udf89 x' + n + '!', CX, NEAR_Y - 40, '#ffd700', 28);
+          setMsg(t('msgBatchDrop', { n: n, ins: totalInserted, won: totalWon }));
+        } else {
+          for (var i = 0; i < n; i++) sDrop();
+        }
+      }, 500);
+      for (var i = pushHistory.length - 1; i >= 0; i--) {
+        if (pushHistory[i] === false) { pushHistory[i] = true; break; }
+      }
+      updateStats();
+      var proj = project(coin.wx, coin.wz);
+      var rect = gc.getBoundingClientRect();
+      spawnParticles(
+        rect.left + (proj.sx / W) * rect.width,
+        rect.top + (proj.sy / H) * rect.height,
+        coin.type === 'gold'
+      );
+      if (coin.type === 'gold') { sJack(); showJackpot(); }
+      addFloat('+1', proj.sx, proj.sy, coin.type === 'gold' ? '#ffd700' : '#00ff88');
+      if (!batchDropTimer) {
+        var typeLabel = coin.type === 'gold' ? t('msgDropGold') : t('msgDropNormal');
+        setMsg(t('msgDrop', { type: typeLabel, ins: totalInserted, won: totalWon }));
+      }
+    }
+    coin.glow = Math.max(0, 1 - coin.wz / 30);
+    coin.shimmerPhase += 0.07;
+  });
+  coins = coins.filter(function(c) { return !(c.dropping && c.alpha <= 0); });
+  sortCoins();
+  while (coins.length < coinDensity * 0.9) {
+    coins.push(makeCoin(20 + Math.random() * (TABLE_W - 40), TABLE_D - 15 - Math.random() * 40));
+  }
+}
+
+// ================================================================
+//  绘制
+// ================================================================
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+  var bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, '#0e0e1a'); bg.addColorStop(0.5, '#121220'); bg.addColorStop(1, '#18182c');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+  drawPerspGrid(); drawTableSurface(); drawSideWalls(); drawBackWall();
+  drawPusher(); drawCoins(); drawDropEdge(); drawFloatTexts(); drawHUD();
+}
+
+function drawPerspGrid() {
+  ctx.save();
+  ctx.strokeStyle = 'rgba(60,30,120,.12)'; ctx.lineWidth = 1;
+  for (var z = 0; z <= TABLE_D; z += 40) {
+    var p1 = project(0, z), p2 = project(TABLE_W, z);
+    ctx.beginPath(); ctx.moveTo(p1.sx, p1.sy); ctx.lineTo(p2.sx, p2.sy); ctx.stroke();
+  }
+  for (var x = 0; x <= TABLE_W; x += 60) {
+    var p3 = project(x, 0), p4 = project(x, TABLE_D);
+    ctx.beginPath(); ctx.moveTo(p3.sx, p3.sy); ctx.lineTo(p4.sx, p4.sy); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawTableSurface() {
+  var tl = project(0, TABLE_D), tr = project(TABLE_W, TABLE_D);
+  var bl = project(0, 0), br = project(TABLE_W, 0);
+  ctx.save();
+  var grad = ctx.createLinearGradient(CX, HORIZON_Y, CX, NEAR_Y);
+  grad.addColorStop(0, '#2a180c'); grad.addColorStop(0.5, '#3a2a14'); grad.addColorStop(1, '#4a3020');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.moveTo(tl.sx, tl.sy); ctx.lineTo(tr.sx, tr.sy);
+  ctx.lineTo(br.sx, br.sy); ctx.lineTo(bl.sx, bl.sy);
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,.2)'; ctx.lineWidth = 1;
+  for (var x = 0; x < TABLE_W; x += 35) {
+    var top = project(x, TABLE_D), bot = project(x, 0);
+    ctx.beginPath(); ctx.moveTo(top.sx, top.sy); ctx.lineTo(bot.sx, bot.sy); ctx.stroke();
+  }
+  var hl = ctx.createLinearGradient(CX, NEAR_Y - 60, CX, NEAR_Y);
+  hl.addColorStop(0, 'rgba(255,200,100,0)'); hl.addColorStop(1, 'rgba(255,200,100,0.06)');
+  ctx.fillStyle = hl;
+  ctx.beginPath();
+  ctx.moveTo(tl.sx, tl.sy); ctx.lineTo(tr.sx, tr.sy);
+  ctx.lineTo(br.sx, br.sy); ctx.lineTo(bl.sx, bl.sy);
+  ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+
+function drawSideWalls() {
+  ctx.save();
+  var ltop = project(0, TABLE_D), lbot = project(0, 0);
+  ctx.fillStyle = 'rgba(30,16,56,.85)';
+  ctx.beginPath();
+  ctx.moveTo(0, HORIZON_Y); ctx.lineTo(ltop.sx, ltop.sy);
+  ctx.lineTo(lbot.sx, lbot.sy); ctx.lineTo(0, NEAR_Y);
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = 'rgba(100,40,180,.3)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(ltop.sx, ltop.sy); ctx.lineTo(lbot.sx, lbot.sy); ctx.stroke();
+  var rtop = project(TABLE_W, TABLE_D), rbot = project(TABLE_W, 0);
+  ctx.fillStyle = 'rgba(30,16,56,.8)';
+  ctx.beginPath();
+  ctx.moveTo(W, HORIZON_Y); ctx.lineTo(rtop.sx, rtop.sy);
+  ctx.lineTo(rbot.sx, rbot.sy); ctx.lineTo(W, NEAR_Y);
+  ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(rtop.sx, rtop.sy); ctx.lineTo(rbot.sx, rbot.sy); ctx.stroke();
+  ctx.restore();
+}
+
+function drawBackWall() {
+  var tl = project(0, TABLE_D), tr = project(TABLE_W, TABLE_D);
+  ctx.save();
+  var screenTop = HORIZON_Y - 100;
+  var w = tr.sx - tl.sx, cx2 = (tl.sx + tr.sx) / 2;
+  var sgrad = ctx.createLinearGradient(cx2, screenTop, cx2, tl.sy);
+  sgrad.addColorStop(0, '#122a3a'); sgrad.addColorStop(1, '#081828');
+  ctx.fillStyle = sgrad;
+  ctx.fillRect(tl.sx, screenTop, w, tl.sy - screenTop);
+  ctx.strokeStyle = '#2a4a8a'; ctx.lineWidth = 3;
+  ctx.strokeRect(tl.sx + 4, screenTop + 4, w - 8, tl.sy - screenTop - 8);
+  var pulse = 0.5 + 0.5 * Math.sin(frameCount * 0.06);
+  ctx.font = 'bold ' + Math.round(w * 0.10) + 'px Orbitron,monospace';
+  ctx.fillStyle = 'rgba(255,215,0,' + (0.6 + pulse * 0.3) + ')';
+  ctx.textAlign = 'center'; ctx.shadowBlur = 18; ctx.shadowColor = '#ffd700';
+  ctx.fillText('FORTUNE COIN', cx2, screenTop + tl.sy * 0.25 + 22);
+  ctx.font = Math.round(w * 0.035) + 'px "Noto Sans SC"';
+  ctx.fillStyle = 'rgba(0,200,255,0.7)'; ctx.shadowColor = '#00bfff';
+  var hudText = currentLang === 'zh' ? ('\u5df2\u6295: ' + totalInserted + '  \u5df2\u8d62: ' + totalWon) : ('In: ' + totalInserted + '  Won: ' + totalWon);
+  ctx.fillText(hudText, cx2, screenTop + tl.sy * 0.25 + 48);
+  ctx.shadowBlur = 0; ctx.textAlign = 'left';
+  ctx.restore();
+}
+
+function drawPusher() {
+  var pz = pusherZ;
+  var left = project(0, pz), right = project(TABLE_W, pz);
+  var backLeft = project(0, pz + 18), backRight = project(TABLE_W, pz + 18);
+
+  // Top-plate depth offset (thickness body)
+  var thickScale = left.scale * 24; // 3D thickness
+  var botLeft = { sx: left.sx, sy: left.sy + thickScale };
+  var botRight = { sx: right.sx, sy: right.sy + thickScale };
+  var botBackLeft = { sx: backLeft.sx, sy: backLeft.sy + thickScale };
+  var botBackRight = { sx: backRight.sx, sy: backRight.sy + thickScale };
+
+  ctx.save();
+
+  // 1. BOTTOM face (darkest — underside shadow)
+  ctx.fillStyle = '#1a0a04';
+  ctx.beginPath();
+  ctx.moveTo(botBackLeft.sx, botBackLeft.sy);
+  ctx.lineTo(botBackRight.sx, botBackRight.sy);
+  ctx.lineTo(botRight.sx, botRight.sy);
+  ctx.lineTo(botLeft.sx, botLeft.sy);
+  ctx.closePath(); ctx.fill();
+
+  // 2. LEFT side face (medium dark)
+  var lgrad = ctx.createLinearGradient(backLeft.sx, backLeft.sy, backLeft.sx, botBackLeft.sy);
+  lgrad.addColorStop(0, '#7a3a10'); lgrad.addColorStop(0.5, '#4a1a05'); lgrad.addColorStop(1, '#1a0802');
+  ctx.fillStyle = lgrad;
+  ctx.beginPath();
+  ctx.moveTo(backLeft.sx, backLeft.sy);
+  ctx.lineTo(left.sx, left.sy);
+  ctx.lineTo(botLeft.sx, botLeft.sy);
+  ctx.lineTo(botBackLeft.sx, botBackLeft.sy);
+  ctx.closePath(); ctx.fill();
+
+  // 3. RIGHT side face (medium dark)
+  var rgrad = ctx.createLinearGradient(backRight.sx, backRight.sy, backRight.sx, botBackRight.sy);
+  rgrad.addColorStop(0, '#8a4a15'); rgrad.addColorStop(0.5, '#5a2008'); rgrad.addColorStop(1, '#1a0802');
+  ctx.fillStyle = rgrad;
+  ctx.beginPath();
+  ctx.moveTo(backRight.sx, backRight.sy);
+  ctx.lineTo(right.sx, right.sy);
+  ctx.lineTo(botRight.sx, botRight.sy);
+  ctx.lineTo(botBackRight.sx, botBackRight.sy);
+  ctx.closePath(); ctx.fill();
+
+  // 4. TOP face (main surface with metallic sheen)
+  var ptgrad = ctx.createLinearGradient(CX, backLeft.sy, CX, left.sy);
+  ptgrad.addColorStop(0, '#5a3a1a'); ptgrad.addColorStop(0.3, '#9a6030'); ptgrad.addColorStop(1, '#b8704a');
+  ctx.fillStyle = ptgrad;
+  ctx.beginPath();
+  ctx.moveTo(backLeft.sx, backLeft.sy); ctx.lineTo(backRight.sx, backRight.sy);
+  ctx.lineTo(right.sx, right.sy); ctx.lineTo(left.sx, left.sy);
+  ctx.closePath(); ctx.fill();
+
+  // Top surface metallic highlight stripe
+  ctx.fillStyle = 'rgba(255,220,160,0.12)';
+  ctx.beginPath();
+  ctx.moveTo(backLeft.sx, backLeft.sy + 2);
+  ctx.lineTo(backRight.sx, backRight.sy + 2);
+  ctx.lineTo(right.sx, right.sy + 2);
+  ctx.lineTo(left.sx, left.sy + 2);
+  ctx.closePath(); ctx.fill();
+
+  // 5. FRONT face (thick front plate)
+  var pfgrad = ctx.createLinearGradient(CX, left.sy, CX, left.sy + left.scale * 22);
+  pfgrad.addColorStop(0, '#e8a060'); pfgrad.addColorStop(0.2, '#c88040'); pfgrad.addColorStop(0.6, '#7a3510'); pfgrad.addColorStop(1, '#3a1505');
+  ctx.fillStyle = pfgrad;
+  ctx.fillRect(left.sx, left.sy, right.sx - left.sx, left.scale * 22);
+
+  // Front edge highlight (top glow line)
+  ctx.strokeStyle = 'rgba(255,220,120,0.7)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(left.sx, left.sy); ctx.lineTo(right.sx, right.sy); ctx.stroke();
+
+  // Bottom edge shadow
+  ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 1;
+  var bFrontY = left.sy + left.scale * 22;
+  ctx.beginPath(); ctx.moveTo(left.sx, bFrontY); ctx.lineTo(right.sx, bFrontY); ctx.stroke();
+
+  // Decorative bolts (golden rivets on front face)
+  ctx.fillStyle = '#f0c060';
+  ctx.shadowBlur = 3; ctx.shadowColor = '#ffd700';
+  for (var i = 1; i < 6; i++) {
+    var rx = left.sx + (right.sx - left.sx) * i / 6;
+    ctx.beginPath(); ctx.arc(rx, left.sy + left.scale * 9, left.scale * 3, 0, Math.PI * 2); ctx.fill();
+    // Bolt inner highlight
+    ctx.fillStyle = '#fff8c0';
+    ctx.beginPath(); ctx.arc(rx, left.sy + left.scale * 8.5, left.scale * 1.2, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#f0c060';
+  }
+  ctx.shadowBlur = 0;
+
+  // Push animation arrow
+  if (pusherPhase === 1) {
+    ctx.font = 'bold ' + Math.round(left.scale * 20 + 8) + 'px monospace';
+    ctx.fillStyle = 'rgba(255,220,50,.85)';
+    ctx.textAlign = 'center'; ctx.shadowBlur = 12; ctx.shadowColor = '#ffd700';
+    ctx.fillText('\u25bc', CX, left.sy + left.scale * 42);
+    ctx.shadowBlur = 0; ctx.textAlign = 'left';
+  }
+  ctx.restore();
+}
+
+function drawCoins() {
+  coins.forEach(function(coin) {
+    if (coin.alpha <= 0) return;
+    if (coin.dropping) {
+      var proj = project(coin.wx, DROP_Z);
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, coin.alpha);
+      var dy = (1 - coin.alpha) * 80;
+      drawSingleCoin(ctx, proj.sx, proj.sy + dy, proj.scale, coin, false);
+      ctx.restore();
+      return;
+    }
+    var proj = project(coin.wx, coin.wz);
+    ctx.save(); ctx.globalAlpha = coin.alpha;
+    drawSingleCoin(ctx, proj.sx, proj.sy, proj.scale, coin, true);
+    ctx.restore();
+  });
+}
+
+function drawSingleCoin(ctx, sx, sy, scale, coin, castShadow) {
+  var r = COIN_BASE_R * scale;
+  var ry = r * 0.42;
+  var isGold = coin.type === 'gold', isSpec = coin.type === 'special';
+  var shimmer = 0.5 + 0.5 * Math.sin(coin.shimmerPhase);
+  var glowA = coin.glow;
+  if (castShadow && scale > 0.4) {
+    ctx.save(); ctx.globalAlpha *= 0.4 * scale;
+    ctx.fillStyle = 'rgba(0,0,0,.5)';
+    ctx.beginPath(); ctx.ellipse(sx + r * 0.15, sy + ry * 0.9, r * 0.9, ry * 0.6, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+  if (r > 4) {
+    ctx.beginPath(); ctx.ellipse(sx, sy + ry * 0.6, r * 0.98, ry * 0.55, 0, 0, Math.PI * 2);
+    ctx.fillStyle = isGold ? '#6a4400' : isSpec ? '#1a3a6a' : '#4a3000'; ctx.fill();
+  }
+  if (glowA > 0.1 || isGold) {
+    ctx.shadowBlur = (isGold ? 20 : 12) * scale;
+    ctx.shadowColor = isGold ? '#ffd700' : isSpec ? '#00bfff' : 'rgba(255,160,0,.9)';
+  }
+  var grad = ctx.createRadialGradient(sx - r * 0.2, sy - ry * 0.3, r * 0.05, sx, sy, r);
+  if (isGold) {
+    grad.addColorStop(0, 'hsl(48,100%,' + (78 + shimmer * 15) + '%)');
+    grad.addColorStop(0.55, '#d4a000'); grad.addColorStop(1, '#7a5000');
+  } else if (isSpec) {
+    grad.addColorStop(0, 'hsl(200,100%,' + (72 + shimmer * 14) + '%)');
+    grad.addColorStop(0.55, '#0080c0'); grad.addColorStop(1, '#003060');
+  } else {
+    grad.addColorStop(0, 'hsl(40,85%,' + (68 + shimmer * 12) + '%)');
+    grad.addColorStop(0.55, '#c08820'); grad.addColorStop(1, '#6a4a08');
+  }
+  ctx.fillStyle = grad;
+  ctx.beginPath(); ctx.ellipse(sx, sy, r, ry, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = isGold ? 'rgba(255,230,80,.5)' : 'rgba(220,180,60,.3)';
+  ctx.lineWidth = Math.max(0.5, 1 * scale); ctx.stroke();
+  if (r > 6) {
+    ctx.beginPath(); ctx.ellipse(sx, sy, r * 0.65, ry * 0.65, 0, 0, Math.PI * 2);
+    ctx.strokeStyle = isGold ? 'rgba(255,255,150,.2)' : 'rgba(255,220,100,.12)';
+    ctx.lineWidth = Math.max(0.5, 0.8 * scale); ctx.stroke();
+  }
+  if (r > 7) {
+    ctx.font = 'bold ' + Math.round(r * 1.1) + 'px sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = isGold ? '#fff8e0' : isSpec ? '#e0f4ff' : '#ffe880';
+    ctx.shadowBlur = 0;
+    ctx.fillText(isGold ? '\u2605' : isSpec ? '\u25c6' : '\u00a5', sx, sy);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+  }
+  if (r > 4) {
+    ctx.beginPath(); ctx.ellipse(sx - r * 0.22, sy - ry * 0.28, r * 0.28, ry * 0.16, -0.4, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,' + ((0.2 + shimmer * 0.18) * scale) + ')';
+    ctx.shadowBlur = 0; ctx.fill();
+  }
+  ctx.shadowBlur = 0;
+}
+
+function drawDropEdge() {
+  var left = project(0, 0), right = project(TABLE_W, 0);
+  var extLeft = project(0, -15), extRight = project(TABLE_W, -15);
+  ctx.save();
+  var pulse = 0.5 + 0.5 * Math.sin(frameCount * 0.12);
+  var platGrad = ctx.createLinearGradient(CX, left.sy, CX, extLeft.sy);
+  platGrad.addColorStop(0, '#3a2010'); platGrad.addColorStop(0.5, '#2a1808'); platGrad.addColorStop(1, '#1a0c04');
+  ctx.fillStyle = platGrad;
+  ctx.beginPath();
+  ctx.moveTo(left.sx, left.sy); ctx.lineTo(right.sx, right.sy);
+  ctx.lineTo(extRight.sx, extRight.sy); ctx.lineTo(extLeft.sx, extLeft.sy);
+  ctx.closePath(); ctx.fill();
+  var metalGrad = ctx.createLinearGradient(CX, left.sy - 2, CX, left.sy + 6);
+  metalGrad.addColorStop(0, '#d4a040');
+  metalGrad.addColorStop(0.35, 'rgba(255,220,100,' + (0.7 + pulse * 0.25) + ')');
+  metalGrad.addColorStop(0.5, '#e8c860'); metalGrad.addColorStop(0.7, '#8a6020'); metalGrad.addColorStop(1, '#4a3008');
+  ctx.fillStyle = metalGrad;
+  ctx.fillRect(left.sx - 3, left.sy - 2, right.sx - left.sx + 6, 8);
+  ctx.strokeStyle = 'rgba(255,255,200,' + (0.35 + pulse * 0.2) + ')'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(left.sx, left.sy + 1); ctx.lineTo(right.sx, right.sy + 1); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,240,180,' + (0.5 + pulse * 0.3) + ')';
+  for (var i = 1; i < 8; i++) {
+    var rx = left.sx + (right.sx - left.sx) * i / 8;
+    ctx.beginPath(); ctx.arc(rx, left.sy + 2.5, 2.5, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#4a3008'; ctx.lineWidth = 0.5; ctx.stroke(); ctx.strokeStyle = 'transparent';
+  }
+  var frontGrad = ctx.createLinearGradient(CX, left.sy + 8, CX, extLeft.sy);
+  frontGrad.addColorStop(0, '#3a1a0a'); frontGrad.addColorStop(0.3, '#1a0808'); frontGrad.addColorStop(1, '#0c0c1a');
+  ctx.fillStyle = frontGrad;
+  ctx.beginPath();
+  ctx.moveTo(left.sx - 3, left.sy + 8); ctx.lineTo(right.sx + 3, right.sy + 8);
+  ctx.lineTo(extRight.sx + 3, extRight.sy); ctx.lineTo(extLeft.sx - 3, extLeft.sy);
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,.3)'; ctx.lineWidth = 1;
+  for (var x2 = left.sx; x2 < right.sx; x2 += 28) {
+    var tx = (x2 - left.sx) / (right.sx - left.sx);
+    ctx.beginPath(); ctx.moveTo(x2, left.sy + 8); ctx.lineTo(x2, extLeft.sy); ctx.stroke();
+  }
+  var slotGrad = ctx.createLinearGradient(CX, extLeft.sy - 15, CX, extLeft.sy + 20);
+  slotGrad.addColorStop(0, 'rgba(255,40,0,' + (0.08 + pulse * 0.06) + ')');
+  slotGrad.addColorStop(0.4, 'rgba(255,20,0,' + (0.15 + pulse * 0.08) + ')');
+  slotGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = slotGrad;
+  ctx.fillRect(extLeft.sx + 10, extLeft.sy - 20, extRight.sx - extLeft.sx - 20, 60);
+  var catchGlow = ctx.createRadialGradient(CX, extLeft.sy + 15, 5, CX, extLeft.sy + 15, 60);
+  catchGlow.addColorStop(0, 'rgba(255,200,40,' + (0.1 + pulse * 0.08) + ')');
+  catchGlow.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = catchGlow;
+  ctx.fillRect(extLeft.sx - 10, extLeft.sy - 10, extRight.sx - extLeft.sx + 20, 70);
+  ctx.strokeStyle = 'rgba(255,100,20,' + (0.35 + pulse * 0.3) + ')'; ctx.lineWidth = 2.5;
+  ctx.setLineDash([8, 6]);
+  ctx.beginPath(); ctx.moveTo(left.sx, left.sy - 1); ctx.lineTo(right.sx, right.sy - 1); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.font = 'bold 11px "Noto Sans SC"';
+  ctx.fillStyle = 'rgba(255,200,80,' + (0.5 + pulse * 0.25) + ')';
+  ctx.textAlign = 'center';
+  ctx.fillText(t('dropZone'), CX, left.sy + 21);
+  ctx.textAlign = 'left';
+  ctx.restore();
+}
+
+function drawFloatTexts() {
+  floatTexts = floatTexts.filter(function(f) { return f.alpha > 0; });
+  floatTexts.forEach(function(f) {
+    ctx.save(); ctx.globalAlpha = f.alpha;
+    ctx.font = 'bold ' + (f.size || 20) + 'px Orbitron,monospace';
+    ctx.fillStyle = f.color; ctx.shadowBlur = 14; ctx.shadowColor = f.color;
+    ctx.textAlign = 'center'; ctx.fillText(f.text, f.x, f.y);
+    ctx.restore();
+    f.y -= 1.8; f.alpha -= 0.022;
+  });
+  ctx.textAlign = 'left'; ctx.shadowBlur = 0;
+}
+function addFloat(text, sx, sy, color, size) {
+  floatTexts.push({ text: text, x: sx, y: sy, alpha: 1, color: color, size: size || 20 });
+}
+
+function drawHUD() {
+  ctx.save();
+  ctx.font = 'bold 11px Orbitron,monospace'; ctx.textAlign = 'left';
+  var ror = totalInserted > 0 ? ((totalWon / totalInserted) * 100).toFixed(0) : 0;
+  var entries = [
+    { text: (currentLang === 'zh' ? '\u6295: ' : 'In: ') + totalInserted, color: '#ff6050' },
+    { text: (currentLang === 'zh' ? '\u8d62: ' : 'Won: ') + totalWon, color: '#00ff88' },
+    { text: 'ROR: ' + ror + '%', color: ror >= 50 ? '#00ff88' : '#ff5050' },
+  ];
+  entries.forEach(function(e, i) {
+    ctx.fillStyle = e.color; ctx.shadowBlur = 5; ctx.shadowColor = e.color;
+    ctx.fillText(e.text, 10, 16 + i * 16);
+  });
+  ctx.shadowBlur = 0;
+  ctx.restore();
+}
+
+// ================================================================
+//  粒子
+// ================================================================
+var pCanvas = document.getElementById('particleCanvas');
+var pCtx = pCanvas.getContext('2d');
+function resizePCanvas() { pCanvas.width = window.innerWidth; pCanvas.height = window.innerHeight; }
+resizePCanvas(); window.addEventListener('resize', resizePCanvas);
+function spawnParticles(px, py, isGold) {
+  var n = isGold ? 70 : 35;
+  for (var i = 0; i < n; i++) {
+    var a = Math.random() * Math.PI * 2;
+    var sp = isGold ? 5 + Math.random() * 9 : 2 + Math.random() * 6;
+    particles.push({
+      x: px, y: py, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - (isGold ? 5 : 2.5),
+      life: 1, decay: 0.018 + Math.random() * 0.02,
+      r: isGold ? 3 + Math.random() * 5 : 2 + Math.random() * 4,
+      color: isGold ? (Math.random() < 0.5 ? '#ffd700' : '#ff8c00') : (Math.random() < 0.5 ? '#c8a020' : '#ffd060'),
+      rot: Math.random() * Math.PI * 2, rs: (Math.random() - 0.5) * 0.3,
+      star: isGold && Math.random() < 0.4,
+    });
+  }
+}
+function updateParticles() {
+  pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+  particles = particles.filter(function(p) { return p.life > 0; });
+  particles.forEach(function(p) {
+    p.x += p.vx; p.y += p.vy; p.vy += 0.22; p.vx *= 0.97;
+    p.life -= p.decay; p.rot += p.rs;
+    pCtx.save(); pCtx.globalAlpha = Math.max(0, p.life);
+    pCtx.translate(p.x, p.y); pCtx.rotate(p.rot);
+    pCtx.shadowBlur = 10; pCtx.shadowColor = p.color;
+    if (p.star) {
+      pCtx.fillStyle = p.color;
+      drawStar(pCtx, 0, 0, 5, p.r * 1.6, p.r * 0.6); pCtx.fill();
+    } else {
+      pCtx.beginPath(); pCtx.ellipse(0, 0, p.r, p.r * 0.45, 0, 0, Math.PI * 2);
+      pCtx.fillStyle = p.color; pCtx.fill();
+    }
+    pCtx.restore();
+  });
+}
+function drawStar(c, cx, cy, spikes, ro, ri) {
+  var rot = Math.PI / 2 * 3, step = Math.PI / spikes;
+  c.beginPath(); c.moveTo(cx, cy - ro);
+  for (var i = 0; i < spikes; i++) {
+    c.lineTo(cx + Math.cos(rot) * ro, cy + Math.sin(rot) * ro); rot += step;
+    c.lineTo(cx + Math.cos(rot) * ri, cy + Math.sin(rot) * ri); rot += step;
+  }
+  c.lineTo(cx, cy - ro); c.closePath();
+}
+
+// ================================================================
+//  游戏控制
+// ================================================================
+function pushCoin() {
+  var btn = document.getElementById('pushBtn');
+  if (btn.disabled) return;
+  if (walletTokens <= 0) {
+    setMsg(t('msgNoTokenPush'));
+    openExchange(); return;
+  }
+  walletTokens--; updateWallet(); pushQueueLen++;
+  totalInserted++; streakCount++;
+  sessionPushes++; lifetimePushes++; saveLifetimeStats();
+  updateStats(); sPush();
+  if (vipBoostsRemaining > 0) {
+    vipBoostsRemaining--; updateVipBadge();
+    if (vipBoostsRemaining === 0) {
+      goldProb = 0.04; specialProb = 0.12;
+      updateAdminPanel(); updateEvDisplay();
+      setMsg(t('msgVipDone'));
+    }
+  }
+  batchDroppedThisPush = [];
+}
+
+function fullReset() {
+  totalInserted = 0; totalWon = 0; streakCount = 0; pushHistory = [];
+  walletTokens = 10; totalSpent = 0;
+  batchDropCount = 0; if (batchDropTimer) clearTimeout(batchDropTimer); batchDropTimer = null;
+  batchDroppedThisPush = [];
+  pusherZ = PUSHER_NEAR_Z; pusherPhase = 0; pushQueueLen = 0;
+  particles = []; floatTexts = [];
+  initCoins(); updateStats(); updateWallet();
+  document.getElementById('pushBtn').disabled = false;
+  document.getElementById('pushBtn').style.opacity = '1';
+  setMsg(t('msgReset'));
+}
+function changeDensity(d) {
+  coinDensity = Math.max(40, Math.min(250, coinDensity + d));
+  document.getElementById('densityDisp').textContent = coinDensity;
+  while (coins.length < coinDensity)
+    coins.push(makeCoin(20 + Math.random() * (TABLE_W - 40), TABLE_D * 0.1 + Math.random() * TABLE_D * 0.85));
+  if (coins.length > coinDensity + 20) coins.splice(0, coins.length - coinDensity);
+}
+
+function updateStats() {
+  document.getElementById('statInserted').textContent = totalInserted;
+  document.getElementById('statWon').textContent = totalWon;
+  var loss = totalInserted - totalWon;
+  var lossEl = document.getElementById('statLoss');
+  lossEl.textContent = loss;
+  lossEl.className = 'stat-value ' + (loss > 0 ? 'red' : 'green');
+  var ror = totalInserted > 0 ? (totalWon / totalInserted * 100).toFixed(1) : '0.0';
+  document.getElementById('rorDisplay').textContent = ror + '%';
+  document.getElementById('rorDisplay').className = 'math-val ' + (parseFloat(ror) < 50 ? 'bad' : 'good');
+  document.getElementById('rorBar').style.width = Math.min(100, parseFloat(ror)) + '%';
+  document.getElementById('statStreak').textContent = streakCount;
+  updateHistory(); updateEvDisplay(); updateSessionStats();
+}
+function updateHistory() {
+  var row = document.getElementById('historyRow');
+  row.innerHTML = '';
+  pushHistory.slice(-40).forEach(function(win) {
+    var d = document.createElement('div');
+    d.className = 'hist-dot ' + (win ? 'win' : 'lose');
+    d.textContent = '\u25cf'; row.appendChild(d);
+  });
+  var wins = pushHistory.filter(Boolean).length;
+  var tot = pushHistory.length;
+  var rate = tot > 0 ? (wins / tot * 100).toFixed(1) + '%' : '--';
+  document.getElementById('winRateText').textContent = t('winRateFmt', { rate: rate });
+}
+function setMsg(html) { document.getElementById('msgText').innerHTML = html; }
+
+function showJackpot() {
+  var net = totalWon - totalInserted;
+  var netAbs = Math.abs(net);
+  var label = net >= 0 ? t('jackpotWin') : t('jackpotLoss');
+  var emoji = net >= 0 ? '\ud83e\udd11' : '\ud83d\ude2d';
+  document.getElementById('jackpotSub').innerHTML =
+    t('jackpotSub', { emoji: emoji, ins: totalInserted, won: totalWon, label: label, net: netAbs });
+  document.getElementById('jackpotOverlay').classList.add('show');
+}
+function closeJackpot() { document.getElementById('jackpotOverlay').classList.remove('show'); }
+
+window.addEventListener('keydown', function(e) {
+  var tag = e.target.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || e.target.isContentEditable) return;
+  if (e.ctrlKey && e.shiftKey && e.code === 'KeyA') { e.preventDefault(); openAdmin(); return; }
+  if (e.code === 'Space') { e.preventDefault(); pushCoin(); }
+  else if (e.code === 'KeyR') fullReset();
+  else if (e.code === 'KeyM') { muted = !muted; setMsg(muted ? t('msgMuted') : t('msgUnmuted')); }
+  else if (e.code === 'KeyC') { e.preventDefault(); openExchange(); }
+  else if (e.code === 'ArrowUp') { var s = document.getElementById('forceSlider'); s.value = Math.min(20, +s.value + 1); }
+  else if (e.code === 'ArrowDown') { var s = document.getElementById('forceSlider'); s.value = Math.max(5, +s.value - 1); }
+});
+
+// ================================================================
+//  主循环
+// ================================================================
+function loop() {
+  try {
+    frameCount++;
+    updatePusher(); updatePhysics(); updateParticles(); draw();
+  } catch(e) {
+    console.error('Loop error:', e);
+    // Show error in the game message area
+    var m = document.getElementById('msgText');
+    if (m) m.innerHTML = '<b style="color:red">ERR:</b> ' + e.message;
+  }
+  requestAnimationFrame(loop);
+}
+
+// Global error handler — catch any JS errors
+window.onerror = function(msg, url, line, col, err) {
+  var m = document.getElementById('msgText');
+  if (m) m.innerHTML = '<b style="color:red">JS ERROR L' + line + ':</b> ' + msg;
+  return false;
+};
+
+loadLifetimeStats();
+initVisitorCounter();
+initCoins();
+updateStats();
+updateWallet();
+updateSessionStats();
+// applyLang() is NOT called on init — HTML defaults are already Chinese
+// It's only called when user toggles language
+loop();
+</script>
+</body>
+</html>
