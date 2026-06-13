@@ -453,6 +453,10 @@
     font-size:.68rem; color:#ff6050; margin-bottom:6px;
     letter-spacing:1px; text-align:center;
   }
+  /* 氪金记录面板滚动条 */
+  #spendHistoryPanel::-webkit-scrollbar { width:4px; }
+  #spendHistoryPanel::-webkit-scrollbar-track { background:rgba(255,170,68,.05); border-radius:2px; }
+  #spendHistoryPanel::-webkit-scrollbar-thumb { background:rgba(255,170,68,.25); border-radius:2px; }
   .session-row {
     display:flex; justify-content:space-between; padding:3px 0;
     font-size:.65rem; color:#a080c0;
@@ -495,6 +499,20 @@
       推币需要消耗游戏币<br>
       请用 <b style="color:#ffd700">现金 ¥</b> 兑换游戏币继续<br>
       <span style="font-size:.58rem;color:#ff605088;margin-top:4px;display:inline-block;">💡 提示：真实推币机不存在免费币，首发10枚已计入成本</span>
+    </div>
+    <div style="background:rgba(255,60,60,.10);border:1px solid rgba(255,60,60,.25);border-radius:7px;padding:7px 10px;margin:8px 0 4px;font-size:.60rem;color:#ff8888;line-height:1.6;text-align:left;" id="redeemNoteZh">
+      ⚠️ <b>电玩城真相</b>：赢回的游戏币只能兑换礼品，<br>
+      实际价值约为投币的 <b id="redeemRateZh">40%</b>（兑换折扣率）。<br>
+      即使你赢回 <b>100 枚</b>币，也只相当于 <b>¥40</b> 礼品，<br>
+      而你已经花了 <b>¥100</b> 去换那 100 枚币。<br>
+      <span style="color:#ffcc66;">→ 下方"实际现金回报率"已扣除折扣，永远为红！</span>
+    </div>
+    <div style="background:rgba(255,60,60,.10);border:1px solid rgba(255,60,60,.25);border-radius:7px;padding:7px 10px;margin:8px 0 4px;font-size:.60rem;color:#ff8888;line-height:1.6;text-align:left;display:none;" id="redeemNoteEn">
+      ⚠️ <b>Arcade Truth</b>: Won tokens can only be redeemed for prizes,<br>
+      worth only about <b id="redeemRateEn">40%</b> of what you paid (redemption discount).<br>
+      Even if you win back <b>100 tokens</b>, they're only worth <b>¥40</b> in prizes,<br>
+      but you already spent <b>¥100</b> to get those 100 tokens.<br>
+      <span style="color:#ffcc66;">→ "Real Cash ROR" below already deducts this discount, always red!</span>
     </div>
     <div class="exchange-btns">
       <div class="ex-btn" onclick="buyCoins(1, 1)" data-i18n-html="exchange1">¥1<br><span style="font-size:.65rem;color:#888;">= 1币</span></div>
@@ -546,6 +564,13 @@
       <span data-i18n="adminEv">当前期望值：</span><b style="color:#ffd700" id="adminEv">E = 0.18 − 1 = −0.82</b><br>
       <span data-i18n="adminRor">理论回报率：</span><b style="color:#ff5555" id="adminRor">18.0%</b>
     </div>
+    <div class="admin-row" style="margin-top:8px;border-top:1px solid rgba(255,180,60,.15);padding-top:8px;">
+      <span class="admin-label" data-i18n="adminRedeemRate">🎁 兑换价值比</span>
+      <input type="range" id="redeemRateSlider" min="10" max="90" value="40" step="5"
+        oninput="onRedeemRateChange()">
+      <span class="admin-val" id="redeemRateDisp">40%</span>
+    </div>
+    <div class="admin-hint" data-i18n="adminRedeemHint">赢回的代币只能换礼品，实际现金价值打折扣；越低=电玩城越黑</div>
     <div class="admin-row">
       <span class="admin-label" data-i18n="adminVipCount">VIP加成次数</span>
       <input type="range" id="vipCountSlider" min="3" max="30" value="10" step="1"
@@ -563,8 +588,15 @@
       <div class="session-row"><span data-i18n="lifetimePushes">累计推币</span><span class="val" id="lifetimePushes">0</span> 次</div>
       <div class="session-row"><span data-i18n="lifetimeSpent">累计花费</span><span class="val red" id="lifetimeSpent">¥0</span></div>
       <div class="session-row"><span data-i18n="lifetimeWon">累计赢回</span><span class="val green" id="lifetimeWon">0</span> 枚</div>
-      <div class="session-row"><span data-i18n="lifetimeNet">净盈亏</span><span class="val" id="lifetimeNet" style="color:#ffd700">¥0</span></div>
+      <div class="session-row"><span data-i18n="lifetimeNet">净盈亏(折现)</span><span class="val red" id="lifetimeNet">¥0</span></div>
       <div class="session-row"><span data-i18n="lifetimeVisits">访问人次</span><span class="val" id="lifetimeVisits" style="color:#a080c0">0</span></div>
+    </div>
+    <!-- Excel导出 & JSON导入 -->
+    <div style="display:flex;gap:8px;margin-top:10px;justify-content:center;flex-wrap:wrap;">
+      <button class="adm-btn" onclick="exportExcel()" style="border-color:#4a9a6a;color:#80ffaa;font-size:.62rem;padding:5px 10px;" data-i18n="btnExportExcel">📊 导出Excel统计</button>
+      <button class="adm-btn" onclick="exportData()" style="border-color:#5a3a8a;color:#c8a0ff;font-size:.62rem;padding:5px 10px;" data-i18n="btnExport">📤 导出JSON存档</button>
+      <button class="adm-btn" onclick="document.getElementById('adminImportInput').click()" style="border-color:#3a6a4a;color:#80ffa0;font-size:.62rem;padding:5px 10px;" data-i18n="btnImport">📥 导入JSON存档</button>
+      <input type="file" id="adminImportInput" accept=".json" style="display:none;" onchange="importData(this.files[0]);this.value='';">
     </div>
     <button class="adm-close" onclick="closeAdmin()" data-i18n="adminClose">关闭后台 · 参数保持生效</button>
   </div>
@@ -613,9 +645,9 @@
           <div class="stat-label" data-i18n="statWon">赢出</div>
           <div class="stat-value green" id="statWon">0</div>
         </div>
-        <div class="stat-box">
-          <div class="stat-label" data-i18n="statLoss">净损失</div>
-          <div class="stat-value red" id="statLoss">0</div>
+        <div class="stat-box" id="statLossBox" style="display:none;">
+          <div class="stat-label" data-i18n="statLoss">理论应亏</div>
+          <div class="stat-value red" id="statLoss">¥0</div>
         </div>
         <div class="stat-box">
           <div class="stat-label" data-i18n="statStreak">连推次数</div>
@@ -662,8 +694,8 @@
       <div class="math-item"><span class="math-key" data-i18n="mathDropProb">单次掉落概率</span><span class="math-val bad" id="mathDropProb">~18%</span></div>
       <div class="math-item" style="font-size:.55rem;"><span class="math-key" style="color:#6a5a8a;" data-i18n="mathEmpDrop">当前实测</span><span class="math-val" id="mathEmpDrop" style="color:#aa88cc;font-size:.7rem;">--</span></div>
       <div class="math-item"><span class="math-key" data-i18n="mathExpect">数学期望（每次）</span><span class="math-val bad" id="mathExpect">-0.82 币</span></div>
-      <div class="math-item"><span class="math-key" data-i18n="mathROR">投入回报率</span><span class="math-val bad" id="rorDisplay">0%</span></div>
-      <div class="math-item"><span class="math-key" data-i18n="mathLossRate">理论亏损率</span><span class="math-val bad" id="mathLossRate">约 82%</span></div>
+      <div class="math-item" style="background:rgba(80,0,0,.18);border-radius:5px;padding:2px 5px;"><span class="math-key" style="color:#ff7070;font-size:.58rem;" data-i18n="mathRealROR">💰 实际现金回报率</span><span class="math-val bad" id="realRorDisplay" style="font-size:.72rem;">--</span></div>
+      <div class="math-item" id="mathLossRateItem" style="display:none;"><span class="math-key" data-i18n="mathLossRate">理论亏损率</span><span class="math-val bad" id="mathLossRate">约 82%</span></div>
       <div style="margin-top:7px;">
         <div style="font-size:.62rem;color:#5a4a7a;margin-bottom:3px;" data-i18n="historyWR">实际回报率（越推越低）</div>
         <div class="expect-bar"><div class="expect-fill" id="rorBar" style="width:0%"></div></div>
@@ -688,7 +720,10 @@
         <div class="session-row"><span data-i18n="sessionPushes">推币次数</span><span class="val" id="sessionPushes">0</span></div>
         <div class="session-row"><span data-i18n="sessionSpent">累计充值</span><span class="val red" id="sessionSpent">¥0</span></div>
         <div class="session-row"><span data-i18n="sessionWon">累计赢回</span><span class="val green" id="sessionWon">0</span> 枚</div>
-        <div class="session-row"><span data-i18n="sessionNet">净盈亏</span><span class="val" id="sessionNet" style="color:#ffd700">¥0</span></div>
+        <div class="session-row"><span data-i18n="sessionNet">净盈亏(折现)</span><span class="val red" id="sessionNet">¥0</span></div>
+        <!-- 氪金记录（折叠） -->
+        <div id="spendHistoryToggle" style="margin-top:7px;font-size:.6rem;color:#ffaa44;cursor:pointer;text-align:center;" onclick="toggleSpendHistory()" data-i18n="spendHistoryToggle">💰 氪金记录（点击展开）</div>
+        <div id="spendHistoryPanel" style="display:none;margin-top:5px;max-height:120px;overflow-y:auto;font-size:.55rem;color:#c8a060;"></div>
       </div>
     </div>
     </div>
@@ -729,10 +764,12 @@
 </div>
 </main>
 
-<!-- 卜蒜子 · 访客计数器 -->
+<!-- 不蒜子 · 访客计数器 -->
 <div class="visitor-counter" id="visitorBar">
-  🧮 <span data-i18n="visitorText">卜蒜子 · 累计访问：</span><span id="visitorCount">0</span><span data-i18n-html="visitorSuffix"> 人次 · Designed by Victor Mao2026321</span>
+  🧮 <span data-i18n="visitorText">不蒜子 · 累计访问：</span><span id="busuanzi_value_site_pv">-</span><span data-i18n-html="visitorSuffix"> 人次 · Designed by Victor Mao2026321</span>
 </div>
+<!-- 不蒜子真实访问计数器（全局统计，非localStorage） -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
 <script>
 // ================================================================
@@ -744,7 +781,7 @@ const i18n = {
     h1Title: '🎰 FORTUNE COIN·推币机解密箱',
     title: '🎰 FORTUNE COIN·推币机解密箱 | 概率论揭秘',
     subtitle: '',
-    statInserted: '投入', statWon: '赢出', statLoss: '净损失', statStreak: '连推次数',
+    statInserted: '投入', statWon: '赢出', statLoss: '理论应亏', statStreak: '连推次数',
     pushBtn: '▶ 推  币',
     msgStart: '按 <b style="color:#ffd700">空格</b> 开始推币',
     walletTokens: '可用币', walletSpent: '| 已花 ¥', exchangeBtn: '💰 兑换游戏币',
@@ -752,7 +789,7 @@ const i18n = {
     warning: '⚠️ 警告\n18岁以下用户请在成年人监护下体验\n运气？技术？还是概率陷阱？\n本程序仅供教育展示 —— 智赢人生，数明正途',
     panelRealtime: '实时数学数据', panelHistory: '本局推币历史',
     winDot: '掉落', loseDot: '未掉', winRate: '胜率: --',
-    mathDropProb: '单次掉落概率', mathEmpDrop: '当前实测', mathExpect: '数学期望（每次）', mathROR: '投入回报率', mathLossRate: '理论亏损率',
+    mathDropProb: '单次掉落概率', mathEmpDrop: '当前实测', mathExpect: '数学期望（每次）', mathROR: '投入回报率', mathRealROR: '实际现金回报率', mathLossRate: '理论亏损率',
     revealTitle: '🔬 概率揭秘',
     revealLocked: '🔑 氪金密钥<br><span style="font-size:.55rem;">点击验证身份</span>',
     revealTrap: '「差一点」视觉陷阱',
@@ -761,7 +798,11 @@ const i18n = {
     revealEvDesc: 'E = <span id="evFormula">0.18</span>×(0) + <span id="evComp">0.82</span>×(−1) = <span style="color:#ff5555" id="evResult">-0.82</span>（永远为负）',
     revealLaw: '大数定律',
     revealLawDesc: '推得越多，实际回报率越接近<span id="llnRate">18%</span>，亏损越稳定、越确定。',
-    sessionTitle: '📋 本次会话记录', sessionPushes: '推币次数', sessionSpent: '累计充值', sessionWon: '累计赢回', sessionNet: '净盈亏',
+    sessionTitle: '📋 本次会话记录', sessionPushes: '推币次数', sessionSpent: '累计充值', sessionWon: '累计赢回', sessionNet: '净盈亏(折现)',
+    btnExport: '📤 导出数据', btnImport: '📥 导入数据',
+    spendHistoryToggle: '💰 氪金记录（点击展开）', spendHistoryToggleOpen: '💰 氪金记录（点击收起）',
+    spendHistoryTitle: '--- 氪金明细 ---', spendHistoryEmpty: '暂无氪金记录',
+    btnExportExcel: '📊 导出Excel统计',
     settingsTitle: '⚙️ 设置', forceLabel: '推力强度', forceWeak: '弱', forceStrong: '强',
     densityLabel: '硬币密度', resetBtn: '🔄 完全重置游戏', sysLock: '-- 系统参数锁定 --',
     exchangeTitle: '💰 兑换游戏币',
@@ -776,6 +817,7 @@ const i18n = {
     adminTitle: '⚙️ 管理员后台', adminSub: '概率参数配置 · 参数实时影响游戏',
     adminGoldProb: '金币概率', adminSpecialProb: '稀有币概率',
     adminGoldHint: '比例越高 = 新币中金币占比越大 = 玩家越容易中Jackpot',
+    adminRedeemRate: '🎁 兑换价值比', adminRedeemHint: '赢回的代币只能换礼品，实际现金价值打折扣；越低=电玩城越黑',
     adminSpecialHint: '稀有币掉落触发掌声效果，增加心理成瘾',
     adminEv: '当前期望值：', adminRor: '理论回报率：',
     adminVipCount: 'VIP加成次数', adminVipHint: '修改参数后，接下来N次推币享受物理加成（推力↑阻力↓）',
@@ -785,10 +827,10 @@ const i18n = {
     vipWarnTitle: '「新手保护」实为氪金加成', vipWarnDesc: '当前数据含数学加成，不可作真实概率参考',
     lifetimeTitle: '📊 终身统计（所有会话累计）',
     lifetimePushes: '累计推币', lifetimeSpent: '累计花费', lifetimeWon: '累计赢回', lifetimeNet: '净盈亏', lifetimeVisits: '访问人次',
-    visitorText: '🧮 卜蒜子 · 累计访问：', visitorSuffix: ' 人次 · Designed by Victor Mao2026321',
+    visitorText: '🧮 不蒜子 · 累计访问：', visitorSuffix: ' 人次 · Designed by Victor Mao2026321',
     jackpotTitle: '🎰 JACKPOT!', jackpotClose: '继续沉沦',
-    jackpotWin: '净赚', jackpotLoss: '净亏',
-    jackpotSub: '{emoji} 已投入<b style="color:#ff6050">{ins}</b>枚，赢回<b style="color:#ffd700">{won}</b>枚，<b>{label}{net}枚</b>。<br><span style="font-size:.75rem;color:#888;">Jackpot（头奖/大奖）是赌场用来让你记住「赢」的工具——幸存者偏差。</span>',
+    jackpotWin: '「净赚」', jackpotLoss: '「净亏」',
+    jackpotSub: '{emoji} 已投入<b style="color:#ff6050">{ins}</b>枚，赢回<b style="color:#ffd700">{won}</b>枚，<b style="color:#ffcc00">{label}{net}枚</b>。<br><span style="font-size:.75rem;color:#888;">Jackpot（头奖）是赌场让你记住「赢」的工具——幸存者偏差。</span><br><span style="font-size:.70rem;color:#ff6666;display:inline-block;margin-top:6px;">💡 现金消费，仅可换回游戏代币。按{rate}兑换折扣算，这{label2}实际价值 ≈ ¥{cashVal}</span>',
     msgNoTokens: '⚠️ 游戏币用完了！<b style="color:#ffd700">点击"💰 兑换游戏币"</b>继续',
     msgBought: '💰 兑换 <b style="color:#ffd700">{n}</b> 枚 游戏币！已花 ¥{s}',
     msgResetParams: '🔁 概率参数已恢复默认 · 金币4% / 稀有币12%',
@@ -806,7 +848,7 @@ const i18n = {
     msgBatchDrop: '🎉 <b style="color:#ffd700">一次掉落 {n} 枚！</b> 已投{ins}，赢回{won}',
     msgDrop: '🎉 掉落一枚{type}已投{ins}，赢回{won}',
     msgDropGold: '金币！', msgDropNormal: '硬币！',
-    historyWR: '实际回报率（越推越低）', ror0: '0%（亏完）', ror100: '100%（保本）',
+    historyWR: '现金回报率（越推越低）', ror0: '0%（全亏）', ror100: '100%（保本）',
     evFormula: 'E = {p}×(0) + {q}×(−1) = {ev}（永远为负）',
     winRateFmt: '实际胜率: {rate}',
     dropZone: '▼ 掉 落 区 ▼',
@@ -816,7 +858,7 @@ const i18n = {
     h1Title: '🎰 MindCoin · Probability Revealed',
     title: '🎰 MindCoin · Probability Revealed | Probability Revealed',
     subtitle: 'Math Unmasked · Perspective View · See Through the Scam',
-    statInserted: 'Inserted', statWon: 'Won', statLoss: 'Net Loss', statStreak: 'Streak',
+    statInserted: 'Inserted', statWon: 'Won', statLoss: 'Exp.Loss', statStreak: 'Streak',
     pushBtn: '▶  PUSH',
     msgStart: 'Press <b style="color:#ffd700">Space</b> to push',
     walletTokens: 'Coins', walletSpent: '| Spent $', exchangeBtn: '💰 Exchange Coins',
@@ -824,7 +866,7 @@ const i18n = {
     warning: '⚠️ WARNING\nUsers under 18 must experience this program under adult supervision.\nLuck? Skill? Or a probability trap?\nThis program is for educational demonstration only.\n— Win life with wisdom; let math light the right path.',
     panelRealtime: 'Real-time Math', panelHistory: 'Push History',
     winDot: 'Win', loseDot: 'Lose', winRate: 'Win%: --',
-    mathDropProb: 'Drop Probability', mathEmpDrop: 'Observed', mathExpect: 'Expectation (per push)', mathROR: 'Return on Risk', mathLossRate: 'Theoretical Loss',
+    mathDropProb: 'Drop Probability', mathEmpDrop: 'Observed', mathExpect: 'Expectation (per push)', mathROR: 'Return on Risk', mathRealROR: 'Real Cash ROR', mathLossRate: 'Theoretical Loss',
     revealTitle: '\ud83d\udd2c Probability Revealed',
     revealLocked: '🔑 Pay-to-Unlock<br><span style="font-size:.55rem;">Click to verify</span>',
     revealTrap: '"Almost Won" Visual Trap',
@@ -833,7 +875,11 @@ const i18n = {
     revealEvDesc: 'E = <span id="evFormula">0.18</span>\u00d7(0) + <span id="evComp">0.82</span>\u00d7(\u22121) = <span style="color:#ff5555" id="evResult">-0.82</span> (always negative)',
     revealLaw: 'Law of Large Numbers',
     revealLawDesc: 'The more you play, the closer ROR gets to <span id="llnRate">18%</span>, loss becomes stable.',
-    sessionTitle: '\ud83d\udccb Session Record', sessionPushes: 'Pushes', sessionSpent: 'Spent', sessionWon: 'Won', sessionNet: 'Net',
+    sessionTitle: '\ud83d\udccb Session Record', sessionPushes: 'Pushes', sessionSpent: 'Spent', sessionWon: 'Won', sessionNet: 'Net (cash)',
+    btnExport: '\ud83d\udce4 Export', btnImport: '\ud83d\udce5 Import',
+    spendHistoryToggle: '\ud83d\udcb0 Spend History (click to expand)', spendHistoryToggleOpen: '\ud83d\udcb0 Spend History (click to collapse)',
+    spendHistoryTitle: '--- Spend Details ---', spendHistoryEmpty: 'No spend records yet',
+    btnExportExcel: '\ud83d\udcca Export Excel Stats',
     settingsTitle: '\u2699\ufe0f Settings', forceLabel: 'Push Force', forceWeak: 'Weak', forceStrong: 'Strong',
     densityLabel: 'Coin Density', resetBtn: '\ud83d\udd04 Full Reset', sysLock: '-- System Locked --',
     exchangeTitle: '\ud83d\udcb0 Exchange Coins',
@@ -848,6 +894,7 @@ const i18n = {
     adminTitle: '\u2699\ufe0f Admin Panel', adminSub: 'Probability Config \u00b7 Real-time Effect',
     adminGoldProb: 'Gold Prob', adminSpecialProb: 'Special Prob',
     adminGoldHint: 'Higher = more gold coins = easier Jackpot',
+    adminRedeemRate: '🎁 Redeem Value', adminRedeemHint: 'Won tokens only redeemed for prizes at a discount; lower = more rigged',
     adminSpecialHint: 'Special coin drops trigger applause = psychological addiction',
     adminEv: 'Expectation: ', adminRor: 'Theoretical ROR: ',
     adminVipCount: 'VIP Boost Counts', adminVipHint: 'After changing params, next N pushes get physical boost (force\u2191 resist\u2193)',
@@ -856,11 +903,11 @@ const i18n = {
     vipParamsText: 'Gold\u2191{vp}% Force\u2191 Resist\u2193',
     vipWarnTitle: '"New Player Protection" = paid boosts', vipWarnDesc: 'Current data has math-based advantages — not true probability.',
     lifetimeTitle: '\ud83d\udcca Lifetime Stats (All Sessions)',
-    lifetimePushes: 'Total Pushes', lifetimeSpent: 'Total Spent', lifetimeWon: 'Total Won', lifetimeNet: 'Net P/L', lifetimeVisits: 'Visitors',
+    lifetimePushes: 'Total Pushes', lifetimeSpent: 'Total Spent', lifetimeWon: 'Total Won', lifetimeNet: 'Net P/L (cash)', lifetimeVisits: 'Visitors',
     visitorText: '🧮 Boo-Suan-Zi · Total visits: ', visitorSuffix: ' visits<br>Designed by Victor Mao2026321',
     jackpotTitle: '\ud83c\udfb0 JACKPOT!', jackpotClose: 'Continue...',
-    jackpotWin: 'Net profit', jackpotLoss: 'Net loss',
-    jackpotSub: '{emoji} Inserted <b style="color:#ff6050">{ins}</b>, Won <b style="color:#ffd700">{won}</b>, <b>{label} {net}</b>.<br><span style="font-size:.75rem;color:#888;">Jackpot is a tool to make you remember "winning" \u2014 survivor bias.</span>',
+    jackpotWin: '"Net profit"', jackpotLoss: '"Net loss"',
+    jackpotSub: '{emoji} Inserted <b style="color:#ff6050">{ins}</b>, Won <b style="color:#ffd700">{won}</b>, <b style="color:#ffcc00">{label} {net}</b>.<br><span style="font-size:.75rem;color:#888;">Jackpot is a tool to make you remember "winning" \u2014 survivor bias.</span><br><span style="font-size:.70rem;color:#ff6666;display:inline-block;margin-top:6px;">\ud83d\udca1 You spent real money, won back tokens only. At {rate} redemption, actual cash value \u2248 \u00a5{cashVal}</span>',
     msgNoTokens: '\u26a0\ufe0f Out of coins! <b style="color:#ffd700">Click "\ud83d\udcb0 Exchange Coins"</b>',
     msgBought: '\ud83d\udcb0 Exchanged <b style="color:#ffd700">{n}</b> coins! Spent ${s}',
     msgResetParams: '\ud83d\udd01 Params restored \u00b7 Gold 4% / Special 12%',
@@ -878,7 +925,7 @@ const i18n = {
     msgBatchDrop: '\ud83c\udf89 <b style="color:#ffd700">Dropped {n} coins!</b> In:{ins} Won:{won}',
     msgDrop: '\ud83c\udf89 Dropped one {type}In:{ins} Won:{won}',
     msgDropGold: 'gold coin! ', msgDropNormal: 'coin! ',
-    historyWR: 'Actual ROR (drops as you play)', ror0: '0% (broke)', ror100: '100% (break-even)',
+    historyWR: 'Cash ROR (drops as you play)', ror0: '0% (lost all)', ror100: '100% (break-even)',
     evFormula: 'E = {p}\u00d7(0) + {q}\u00d7(\u22121) = {ev} (always negative)',
     winRateFmt: 'Win Rate: {rate}',
     dropZone: '\u25bc DROP ZONE \u25bc',
@@ -958,6 +1005,12 @@ function applyLang() {
   updateWallet();
   updateStats();
   updateSessionStats();
+  // 兑换说明：按语言切换显示
+  var nZh = document.getElementById('redeemNoteZh');
+  var nEn = document.getElementById('redeemNoteEn');
+  if (nZh) nZh.style.display = currentLang === 'zh' ? 'block' : 'none';
+  if (nEn) nEn.style.display = currentLang === 'en' ? 'block' : 'none';
+  updateRedeemRateDisplay();
 }
 
 // ================================================================
@@ -993,16 +1046,388 @@ function getForceParams() {
 
 var pusherZ = PUSHER_NEAR_Z, pusherTargetZ = PUSHER_NEAR_Z;
 var pusherPhase = 0, pushQueueLen = 0, currentForceParams = null;
+var pushWaveTimer = 0;   // 推力波纹计时器：>0时摩擦降低，动量传播更远
 var coins = [], coinDensity = 120;
 
 var goldProb = 0.04, specialProb = 0.12, adminUnlocked = false;
+// 代币兑换折扣率：电玩城赢回的代币只能兑换礼品，实际价值约为投币的 40%
+// 即：赢回 10 枚代币 → 可换礼品价值 ≈ ¥4 → 实际回报率 = 名义ROR × 40%
+var REDEMPTION_RATE = 0.40;
 var totalInserted = 0, totalWon = 0, streakCount = 0, pushHistory = [];
 // 初始10枚币视为已购买（真实场景不存在免费币），单价¥1/枚
 var walletTokens = 10, totalSpent = 10, walletSpentEl = null;
 var vipBoostsRemaining = 0, vipGoldProb = 0.04, vipSpecialProb = 0.12;
 var sessionPushes = 0, sessionSpent = 10, sessionWon = 0;
 var lifetimePushes = 0, lifetimeSpent = 0, lifetimeWon = 0;
+// 氪金记录：每次兑换独立存档 [{time, amount, cost, beforePushes, beforeROR, afterTokens}]
+var spendHistory = [];
+// 会话追踪：记录每次登录/退出的时间戳和统计数据
+var sessionStartTime = Date.now();
+var visitHistory = [];  // [{loginTime, logoutTime, pushes, spent, won, duration}]
+var sessionLog = [];     // 完整的推币+氪金事件日志（用于Excel明细）
 var batchDropCount = 0, batchDropTimer = null, batchDroppedThisPush = [];
+
+// ================================================================
+//  本地存档 / 读档（localStorage）
+//  自动保存路径：coin_pusher_save_v2
+// ================================================================
+function saveGame() {
+  try {
+    var data = {
+      v: 2,
+      ts: Date.now(),
+      totalInserted: totalInserted, totalWon: totalWon,
+      pushHistory: pushHistory,
+      walletTokens: walletTokens, totalSpent: totalSpent,
+      vipBoostsRemaining: vipBoostsRemaining,
+      sessionPushes: sessionPushes, sessionSpent: sessionSpent, sessionWon: sessionWon,
+      lifetimePushes: lifetimePushes, lifetimeSpent: lifetimeSpent, lifetimeWon: lifetimeWon,
+      spendHistory: spendHistory,
+      visitHistory: visitHistory,
+      sessionLog: sessionLog,
+      redeemRate: REDEMPTION_RATE
+      // 注意：不存档硬币位置（太大，且重启后重新初始化即可）
+    };
+    localStorage.setItem('coin_pusher_save_v2', JSON.stringify(data));
+  } catch(e) {}
+}
+
+function loadGame() {
+  try {
+    var raw = localStorage.getItem('coin_pusher_save_v2');
+    if (!raw) return false;
+    var data = JSON.parse(raw);
+    if (!data || data.v !== 2) return false;
+    totalInserted = data.totalInserted || 0;
+    totalWon = data.totalWon || 0;
+    pushHistory = data.pushHistory || [];
+    walletTokens = data.walletTokens || 10;
+    totalSpent = data.totalSpent || 10;
+    vipBoostsRemaining = data.vipBoostsRemaining || 0;
+    sessionPushes = data.sessionPushes || 0;
+    sessionSpent = data.sessionSpent || 10;
+    sessionWon = data.sessionWon || 0;
+    lifetimePushes = data.lifetimePushes || 0;
+    lifetimeSpent = data.lifetimeSpent || 0;
+    lifetimeWon = data.lifetimeWon || 0;
+    spendHistory = data.spendHistory || [];
+    visitHistory = data.visitHistory || [];
+    REDEMPTION_RATE = data.redeemRate || 0.40;
+    sessionLog = data.sessionLog || [];
+    // 不恢复硬币位置——重新初始化即可
+    initCoins();
+    return true;
+  } catch(e) { return false; }
+}
+
+function resetSave() {
+  localStorage.removeItem('coin_pusher_save_v2');
+}
+
+// 导出数据为JSON文件
+function exportData() {
+  try {
+    // 先记录当前会话结束
+    finalizeCurrentVisit();
+    var data = {
+      exportTime: new Date().toLocaleString(),
+      totalInserted: totalInserted, totalWon: totalWon,
+      pushHistory: pushHistory,
+      walletTokens: walletTokens, totalSpent: totalSpent,
+      sessionPushes: sessionPushes, sessionSpent: sessionSpent, sessionWon: sessionWon,
+      lifetimePushes: lifetimePushes, lifetimeSpent: lifetimeSpent, lifetimeWon: lifetimeWon,
+      spendHistory: spendHistory,
+      visitHistory: visitHistory,
+      sessionLog: sessionLog
+    };
+    var blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = 'coin_pusher_data_' + Date.now() + '.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch(e) { alert(t('exportFail') || '导出失败：' + e.message); }
+}
+
+// 导入JSON文件
+function importData(file) {
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var data = JSON.parse(e.target.result);
+      if (!data || typeof data.totalInserted !== 'number') throw new Error('无效的数据文件');
+      totalInserted = data.totalInserted || 0;
+      totalWon = data.totalWon || 0;
+      pushHistory = data.pushHistory || [];
+      walletTokens = data.walletTokens || 10;
+      totalSpent = data.totalSpent || 10;
+      sessionPushes = data.sessionPushes || 0;
+      sessionSpent = data.sessionSpent || 10;
+      sessionWon = data.sessionWon || 0;
+      lifetimePushes = data.lifetimePushes || 0;
+      lifetimeSpent = data.lifetimeSpent || 0;
+      lifetimeWon = data.lifetimeWon || 0;
+      spendHistory = data.spendHistory || [];
+      visitHistory = data.visitHistory || [];
+      sessionLog = data.sessionLog || [];
+      saveGame();
+      updateEvDisplay(); updateSessionUI(); updateWalletUI();
+      alert('导入成功！已恢复 ' + lifetimePushes + ' 次推币记录。');
+    } catch(err) { alert('导入失败：' + err.message); }
+  };
+  reader.readAsText(file);
+}
+
+// ================================================================
+//  会话追踪：记录每次访问的开始/结束
+// ================================================================
+function finalizeCurrentVisit() {
+  if (sessionPushes > 0 || sessionSpent > 10) {
+    visitHistory.push({
+      loginTime: sessionStartTime,
+      logoutTime: Date.now(),
+      pushes: sessionPushes,
+      spent: sessionSpent,
+      won: sessionWon,
+      duration: Date.now() - sessionStartTime
+    });
+    saveGame();
+  }
+}
+
+// 页面关闭时自动保存会话
+window.addEventListener('beforeunload', function() {
+  finalizeCurrentVisit();
+  saveGame();
+});
+
+// ================================================================
+//  Excel 导出（HTML表格格式，带颜色/边框/交替行，导出为 .xls）
+//  Excel / WPS 均可直接打开，包含4个排版区域：
+//    1. 总览概要
+//    2. 会话记录（每次登录/退出）
+//    3. 氪金明细
+//    4. 推币历史（每5次汇总，避免文件过大）
+// ================================================================
+function exportExcel() {
+  try {
+    finalizeCurrentVisit();
+    var isZh = currentLang === 'zh';
+    var currency = isZh ? '¥' : '$';
+
+    function ts(d) { return d ? new Date(d).toLocaleString() : '--'; }
+    function dur(ms) {
+      if (!ms || ms <= 0) return '--';
+      var s = Math.floor(ms / 1000);
+      var m = Math.floor(s / 60);
+      var h = Math.floor(m / 60);
+      return h > 0 ? h + 'h' + (m % 60) + 'm' : m + 'm' + (s % 60) + 's';
+    }
+    function numFmt(n) { return typeof n === 'number' ? n.toLocaleString() : n; }
+    function clr(v, pos, neg) {
+      if (v >= 0) return pos || '';
+      return neg || 'color:#E74C3C;font-weight:bold;';
+    }
+
+    var H = [];
+    // ---- HTML head + global styles ----
+    H.push('<html xmlns:o="urn:schemas-microsoft-com:office:office" '+
+            'xmlns:x="urn:schemas-microsoft-com:office:excel">'+
+            '<head><meta charset="UTF-8">'+
+            '<style>'+
+            'table{border-collapse:collapse;width:100%;font-family:"Microsoft YaHei",Arial,sans-serif;font-size:11pt;margin-bottom:18px;}'+
+            'th{background:#2C3E50;color:#FFF;font-weight:bold;padding:7px 10px;border:1px solid #1A252F;text-align:center;white-space:nowrap;}'+
+            '.st{background:#34495E;color:#FFF;font-weight:bold;padding:10px 12px;border:1px solid #2C3E50;font-size:13pt;letter-spacing:1px;}'+
+            'td{padding:5px 10px;border:1px solid #D5D8DC;vertical-align:middle;}'+
+            '.mn{font-weight:bold;background:#F0F3F5;color:#2C3E50;width:22%;}'+   // metric name
+            '.mv{text-align:center;font-size:12pt;color:#2980B9;width:20%;}'+       // metric value
+            '.mu{text-align:center;color:#7F8C8D;font-size:10pt;width:10%;}'+        // metric unit
+            '.mt{color:#95A5A6;font-size:9pt;width:28%;}'+                           // metric note
+            '.re{background:#FFFFFF;} .ro{background:#EBF5FB;}'+                      // even / odd rows
+            '.vp{color:#27AE60;font-weight:bold;} .vn{color:#E74C3C;font-weight:bold;} .vw{color:#F39C12;font-weight:bold;}'+
+            '.info{text-align:right;color:#95A5A6;font-size:9pt;padding:3px 10px;}'+
+            'td.c{text-align:center;}'+
+            '</style></head><body>');
+
+    // ---- Title ----
+    H.push('<table><tr><td class="st" style="font-size:16pt;background:#1A252F;">'+
+      (isZh ? '\uD83C\uDFB0  推币机实验数据总览' : '\uD83C\uDFB0  Coin Pusher Experiment Summary')+
+      '</td></tr></table>');
+    H.push('<table><tr><td class="info" colspan="4">'+
+      (isZh ? '导出时间：' : 'Export: ')+new Date().toLocaleString()+
+      '</td></tr></table>');
+
+    // ======== Section 1 : 核心指标 ========
+    var ror   = lifetimeSpent > 0 ? (lifetimeWon / lifetimeSpent * 100).toFixed(2) : '0.00';
+    var realRor = lifetimeSpent > 0 ? (lifetimeWon * REDEMPTION_RATE / lifetimeSpent * 100).toFixed(2) : '0.00';
+    // 净盈亏：扣除兑换折扣率后的真实现金盈亏
+    var netPL = (lifetimeWon * REDEMPTION_RATE) - lifetimeSpent;
+    var dRate = lifetimePushes > 0 ? (lifetimeWon / lifetimePushes * 100).toFixed(2) : '0.00';
+    var rorC  = parseFloat(ror) >= 100 ? 'vp' : (parseFloat(ror) < 50 ? 'vn' : 'vw');
+    var netC  = 'vn';  // 扣除兑换折扣后净盈亏几乎永远为负
+
+    var metrics = [
+      [isZh?'累计推币次数':'Total Pushes',     numFmt(lifetimePushes), isZh?'次':'pushes',     isZh?'所有会话累计':'All sessions',       ''],
+      [isZh?'累计花费':'Total Spent',            currency+numFmt(lifetimeSpent), isZh?'元':'CNY', isZh?'含首发10枚成本':'Inc. starter 10', ''],
+      [isZh?'累计赢回':'Total Won',              numFmt(lifetimeWon), isZh?'枚':'coins',         '',                                   ''],
+      [isZh?'净盈亏(折现)':'Net P/L (cash)',  currency+numFmt(netPL), isZh?'元':'CNY',          isZh?'已扣'+((REDEMPTION_RATE*100).toFixed(0))+'%兑换折扣':'After discount',        netC],
+      [isZh?'实际回报率(ROR)':'Actual ROR',      ror+'%', '',                                  isZh?'理论值约18%':'Theo. ~18%',         rorC],
+      [isZh?'实际现金回报率':'Real Cash ROR',  realRor+'%', '',                               isZh?'已扣除兑换折扣'+((REDEMPTION_RATE*100).toFixed(0))+'%':'After '+((REDEMPTION_RATE*100).toFixed(0))+'% discount', 'vn'],
+      [isZh?'理论期望值(EV)':'Theoretical EV',   '-0.82', isZh?'币/次':'coin/push',              'E = p \u2212 1 = 0.18 \u2212 1',      ''],
+      [isZh?'实测掉落率':'Measured Drop Rate',   dRate+'%', '',                               isZh?'理论值 18%':'Theo. 18%',           ''],
+      [isZh?'总访问次数':'Total Visits',          numFmt(visitHistory.length+1), isZh?'次':'visits', isZh?'（含本次）':'(incl. current)', ''],
+      [isZh?'氪金次数':'Recharge Count',          numFmt(spendHistory.length), isZh?'次':'times', '',                               ''],
+    ];
+
+    H.push('<table><tr><th class="st" colspan="4">'+
+      (isZh?'\uD83D\uDCCA  核心指标':'\uD83D\uDCCA  Key Metrics')+'</th></tr>');
+    for (var i = 0; i < metrics.length; i++) {
+      var m = metrics[i], rc = i%2===0?'re':'ro', vc = m[4]||'';
+      H.push('<tr class="'+rc+'">'+
+        '<td class="mn">'+m[0]+'</td>'+
+        '<td class="mv '+vc+'">'+m[1]+'</td>'+
+        '<td class="mu">'+m[2]+'</td>'+
+        '<td class="mt">'+m[3]+'</td></tr>');
+    }
+    H.push('</table>');
+
+    // ======== Section 2 : 会话记录 ========
+    H.push('<table><tr><th class="st" colspan="9">'+
+      (isZh?'\uD83D\uDC65  会话记录':'\uD83D\uDC65  Session Records')+'</th></tr>');
+    var s2h = [isZh?'序号':'#', isZh?'登录时间':'Login', isZh?'退出时间':'Logout',
+               isZh?'持续时长':'Duration', isZh?'推币次数':'Pushes',
+               isZh?'花费':'Spent', isZh?'赢回':'Won', isZh?'净盈亏':'Net P/L', 'ROR'];
+    H.push('<tr>'+s2h.map(function(h){return '<th>'+h+'</th>';}).join('')+'</tr>');
+    for (var i = 0; i < visitHistory.length; i++) {
+      var v = visitHistory[i];
+      var net = v.won - v.spent;
+      var r = v.spent>0?(v.won/v.spent*100).toFixed(1)+'%':'0%';
+      var nc = net>=0?'vp':'vn';
+      H.push('<tr class="'+(i%2===0?'re':'ro')+'">'+
+        '<td class="c">'+(i+1)+'</td><td class="c">'+ts(v.loginTime)+'</td>'+
+        '<td class="c">'+ts(v.logoutTime)+'</td><td class="c">'+dur(v.duration)+'</td>'+
+        '<td class="c">'+v.pushes+'</td><td class="c">'+currency+v.spent+'</td>'+
+        '<td class="c">'+v.won+'</td><td class="c '+nc+'">'+currency+net+'</td>'+
+        '<td class="c">'+r+'</td></tr>');
+    }
+    // current session
+    var cn = sessionWon - sessionSpent;
+    var cr = sessionSpent>0?(sessionWon/sessionSpent*100).toFixed(1)+'%':'0%';
+    var cnc = cn>=0?'vp':'vn';
+    H.push('<tr class="'+(visitHistory.length%2===0?'re':'ro')+'">'+
+      '<td class="c">'+(visitHistory.length+1)+'</td><td class="c">'+ts(sessionStartTime)+'</td>'+
+      '<td class="c">'+(isZh?'(进行中)':'(active)')+'</td><td class="c">'+dur(Date.now()-sessionStartTime)+'</td>'+
+      '<td class="c">'+sessionPushes+'</td><td class="c">'+currency+sessionSpent+'</td>'+
+      '<td class="c">'+sessionWon+'</td><td class="c '+cnc+'">'+currency+cn+'</td>'+
+      '<td class="c">'+cr+'</td></tr>');
+    H.push('</table>');
+
+    // ======== Section 3 : 氪金明细 ========
+    H.push('<table><tr><th class="st" colspan="7">'+
+      (isZh?'\uD83D\uDCB0  氪金明细':'\uD83D\uDCB0  Recharge Details')+'</th></tr>');
+    var s3h = [isZh?'序号':'#', isZh?'时间':'Time', isZh?'充值金额':'Coins',
+               isZh?'花费':'Cost', isZh?'累计花费':'Cum.Spent',
+               isZh?'当时推币次数':'Pushes', isZh?'当时ROR':'ROR'];
+    H.push('<tr>'+s3h.map(function(h){return '<th>'+h+'</th>';}).join('')+'</tr>');
+    if (spendHistory.length === 0) {
+      H.push('<tr><td class="c" colspan="7" style="color:#95A5A6;padding:12px;">'+
+        (isZh?'（无氪金记录）':'(No records)')+'</td></tr>');
+    }
+    for (var i = 0; i < spendHistory.length; i++) {
+      var r = spendHistory[i];
+      H.push('<tr class="'+(i%2===0?'re':'ro')+'">'+
+        '<td class="c">'+(i+1)+'</td><td class="c">'+(r.time||ts(r.ts))+'</td>'+
+        '<td class="c">'+r.amount+'</td><td class="c">'+currency+r.cost+'</td>'+
+        '<td class="c">'+(r.totalSpent?'¥'+r.totalSpent:'--')+'</td>'+
+        '<td class="c">'+(r.totalPushes||'--')+'</td>'+
+        '<td class="c">'+((r.ROR||'--')+'%')+'</td></tr>');
+    }
+    H.push('</table>');
+
+    // ======== Section 4 : 推币历史（每10次汇总） ========
+    H.push('<table><tr><th class="st" colspan="7">'+
+      (isZh?'\uD83D\uDCCA  推币历史（每10次汇总）':'\uD83D\uDCCA  Push History (every 10)')+'</th></tr>');
+    var s4h = [isZh?'阶段':'Phase', isZh?'推币范围':'Range', isZh?'掉落数':'Drops',
+               isZh?'区间掉落率':'Drop%', isZh?'累计花费':'Cum.Spent',
+               isZh?'累计赢回':'Cum.Won', isZh?'累计ROR':'Cum.ROR'];
+    H.push('<tr>'+s4h.map(function(h){return '<th>'+h+'</th>';}).join('')+'</tr>');
+
+    var bucketSize = 10;
+    for (var start = 0; start < lifetimePushes; start += bucketSize) {
+      var end = Math.min(start + bucketSize, lifetimePushes);
+      var dropsIn = 0, cumDrop = 0;
+      for (var j = 0; j < end && j < pushHistory.length; j++) {
+        if (pushHistory[j]) { if (j >= start) dropsIn++; cumDrop++; }
+      }
+      var bRate = ((dropsIn/(end-start))*100).toFixed(1);
+      var cRor  = (end>0?(cumDrop/end*100).toFixed(1):'0');
+      var rowIdx = Math.floor(start/bucketSize);
+      H.push('<tr class="'+(rowIdx%2===0?'re':'ro')+'">'+
+        '<td class="c">#'+(rowIdx+1)+'</td>'+
+        '<td class="c">'+(start+1)+' - '+end+'</td>'+
+        '<td class="c">'+dropsIn+'</td>'+
+        '<td class="c">'+bRate+'%</td>'+
+        '<td class="c">'+currency+end+'</td>'+
+        '<td class="c">'+cumDrop+'</td>'+
+        '<td class="c">'+cRor+'%</td></tr>');
+    }
+    H.push('</table>');
+
+    // ---- Footer ----
+    var footerText = isZh
+      ? '数据来自推币机模拟器 localStorage 存档  |  理论期望值 EV = \u2212 0.82 币/次  |  理论掉落概率 p = 18%'
+      : 'Data from Coin Pusher Simulator localStorage  |  Theoretical EV = \u2212 0.82 coin/push  |  Theoretical p = 18%';
+    H.push('<table><tr><td class="info" colspan="7">' + footerText + '</td></tr></table>');
+
+    H.push('</body></html>');
+
+    var blob = new Blob(['\uFEFF'+H.join('\r\n')], {type:'application/vnd.ms-excel;charset=utf-8'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'coin_pusher_stats_'+new Date().toISOString().slice(0,10)+'.xls';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setMsg(isZh ? '📊 Excel已导出！' : '📊 Excel exported!');
+  } catch(e) { alert(isZh ? '导出失败：' : 'Export failed: ' + e.message); }
+}
+
+// ================================================================
+//  氪金记录面板（展开/折叠 + 渲染）
+// ================================================================
+var spendHistoryOpen = false;
+function toggleSpendHistory() {
+  spendHistoryOpen = !spendHistoryOpen;
+  var panel = document.getElementById('spendHistoryPanel');
+  var toggle = document.getElementById('spendHistoryToggle');
+  if (spendHistoryOpen) {
+    panel.style.display = 'block';
+    toggle.textContent = '💰 ' + t('spendHistoryToggleOpen') || '💰 氪金记录（点击收起）';
+    updateSpendHistoryDisplay();
+  } else {
+    panel.style.display = 'none';
+    toggle.textContent = '💰 ' + t('spendHistoryToggle') || '💰 氪金记录（点击展开）';
+  }
+}
+
+function updateSpendHistoryDisplay() {
+  var panel = document.getElementById('spendHistoryPanel');
+  if (!panel || spendHistory.length === 0) {
+    panel.innerHTML = '<div style="color:#6a5a3a;text-align:center;padding:6px;">' + t('spendHistoryEmpty') + '</div>';
+    return;
+  }
+  var html = '<div style="font-weight:bold;margin-bottom:4px;color:#ffaa44;">' + t('spendHistoryTitle') + '</div>';
+  // 倒序显示（最新在前）
+  for (var i = spendHistory.length - 1; i >= 0; i--) {
+    var r = spendHistory[i];
+    html += '<div style="padding:3px 0;border-bottom:1px solid #3a2a1a;line-height:1.5;">' +
+      '<div style="color:#ffcc66;">' + (r.time || '--') + '</div>' +
+      '<div style="color:#c8a060;">充值 <b style="color:#ffd700;">¥' + r.cost + '</b> → 得 ' + r.amount + ' 枚 | ' +
+      '累计花费 ¥' + (r.totalSpent || '--') + ' | 当时ROR ' + (r.ROR || '--') + '%</div>' +
+      '</div>';
+  }
+  panel.innerHTML = html;
+}
 var particles = [], floatTexts = [];
 var audioCtx, muted = false;
 
@@ -1061,11 +1486,22 @@ function sCelebrate() {
 function openExchange() { document.getElementById('exchangeOverlay').classList.add('show'); }
 function closeExchange() { document.getElementById('exchangeOverlay').classList.remove('show'); }
 function buyCoins(count, cost) {
+  // 记录氪金（含当前状态快照）
+  var snapshotROR = totalInserted > 0 ? (totalWon / totalInserted * 100).toFixed(1) : '0';
+  spendHistory.push({
+    time: new Date().toLocaleString(),
+    ts: Date.now(),
+    amount: count,
+    cost: cost,
+    totalSpent: totalSpent + cost,
+    totalPushes: lifetimePushes,
+    ROR: snapshotROR
+  });
   walletTokens += count; totalSpent += cost;
   sessionSpent += cost; lifetimeSpent += cost;
-  saveLifetimeStats();
-  document.getElementById('exchangeOverlay').classList.remove('show');
-  updateWallet(); updateSessionStats();
+      saveLifetimeStats(); saveGame();
+      document.getElementById('exchangeOverlay').classList.remove('show');
+      updateWallet(); updateSessionStats(); updateSpendHistoryDisplay();
   [800, 1000, 1200].forEach(function(f, i) { setTimeout(function() { beep(f, 'sine', 0.1, 0.3); }, i * 80); });
   setMsg(t('msgBought', { n: count, s: totalSpent }));
 }
@@ -1134,9 +1570,13 @@ function updateAdminPanel() {
   document.getElementById('specialProbDisp').textContent = (specialProb * 100).toFixed(1) + '%';
   document.getElementById('goldProbSlider').value = goldProb * 100;
   document.getElementById('specialProbSlider').value = specialProb * 100;
+  var rr = document.getElementById('redeemRateDisp');
+  if (rr) rr.textContent = (REDEMPTION_RATE * 100).toFixed(0) + '%';
+  var rrs = document.getElementById('redeemRateSlider');
+  if (rrs) rrs.value = REDEMPTION_RATE * 100;
   var p = 0.18, ev = p - 1;
   document.getElementById('adminEv').textContent =
-    'E = ' + p.toFixed(2) + ' \u2212 1 = ' + ev.toFixed(2);
+    'E = ' + p.toFixed(2) + ' − 1 = ' + ev.toFixed(2);
   document.getElementById('adminRor').textContent = (p * 100).toFixed(1) + '%';
 }
 
@@ -1148,9 +1588,15 @@ function onSpecialProbChange() {
   specialProb = parseFloat(document.getElementById('specialProbSlider').value) / 100;
   updateAdminPanel();
 }
+function onRedeemRateChange() {
+  REDEMPTION_RATE = parseFloat(document.getElementById('redeemRateSlider').value) / 100;
+  updateAdminPanel();
+  updateRedeemRateDisplay();
+  updateStats();
+}
 function resetAdminDefaults() {
-  goldProb = 0.04; specialProb = 0.12;
-  updateAdminPanel(); updateEvDisplay();
+  goldProb = 0.04; specialProb = 0.12; REDEMPTION_RATE = 0.40;
+  updateAdminPanel(); updateEvDisplay(); updateRedeemRateDisplay();
   setMsg(t('msgResetParams'));
 }
 
@@ -1229,10 +1675,11 @@ function updateSessionStats() {
   document.getElementById('sessionPushes').textContent = sessionPushes;
   document.getElementById('sessionSpent').textContent = cur + sessionSpent;
   document.getElementById('sessionWon').textContent = sessionWon + (currentLang === 'zh' ? ' \u679a' : '');
-  var net = sessionWon - sessionSpent;
+  // 净盈亏：扣除兑换折扣率后的真实现金盈亏（赢回币×折扣 - 花费）
+  var net = (sessionWon * REDEMPTION_RATE) - sessionSpent;
   var netEl = document.getElementById('sessionNet');
-  netEl.textContent = (net >= 0 ? '+' : '') + cur + net;
-  netEl.className = 'val ' + (net >= 0 ? 'green' : 'red');
+  netEl.textContent = cur + net.toFixed(0);
+  netEl.className = 'val red';
 }
 
 function loadLifetimeStats() {
@@ -1256,19 +1703,31 @@ function updateLifetimeDisplay() {
   document.getElementById('lifetimePushes').textContent = lifetimePushes;
   document.getElementById('lifetimeSpent').textContent = cur + lifetimeSpent;
   document.getElementById('lifetimeWon').textContent = lifetimeWon + (currentLang === 'zh' ? ' \u679a' : '');
-  var net = lifetimeWon - lifetimeSpent;
+  // 净盈亏：扣除兑换折扣率后的真实现金盈亏（赢回币×折扣 - 花费）
+  var net = (lifetimeWon * REDEMPTION_RATE) - lifetimeSpent;
   var netEl = document.getElementById('lifetimeNet');
-  netEl.textContent = (net >= 0 ? '+' : '') + cur + net;
-  netEl.className = 'val ' + (net >= 0 ? 'green' : 'red');
-  try { document.getElementById('lifetimeVisits').textContent = localStorage.getItem('cp_visitor_count') || '0'; } catch (e) {}
+  netEl.textContent = cur + net.toFixed(0);
+  netEl.className = 'val red';
+  // 访问人次由不蒜子全局统计，这里同步显示
+  try { var bEl = document.getElementById('busuanzi_value_site_pv'); if (bEl) document.getElementById('lifetimeVisits').textContent = bEl.textContent; } catch (e) {}
 }
 function initVisitorCounter() {
+  // 不蒜子异步加载，数据由 busuanzi_value_site_pv 自动填充
+  // 管理员面板的"访问人次"也读取不蒜子数值（等异步加载完成后同步）
   try {
-    var count = parseInt(localStorage.getItem('cp_visitor_count') || '0');
-    count++;
-    localStorage.setItem('cp_visitor_count', count);
-    document.getElementById('visitorCount').textContent = count;
-    document.getElementById('lifetimeVisits').textContent = count;
+    var sync = function() {
+      var el = document.getElementById('busuanzi_value_site_pv');
+      if (el && el.textContent && el.textContent !== '-') {
+        document.getElementById('lifetimeVisits').textContent = el.textContent;
+      }
+    };
+    // 立即同步一次，再定时同步（不蒜子异步可能延迟）
+    sync();
+    var iv = setInterval(function() {
+      sync();
+      var el = document.getElementById('busuanzi_value_site_pv');
+      if (el && el.textContent && el.textContent !== '-') clearInterval(iv);
+    }, 500);
   } catch (e) {}
 }
 
@@ -1314,6 +1773,7 @@ function doPushForce() {
   var vipRegressCut = vipActive ? 0.35 : 1.0;
   var vipDeepMul = vipActive ? 1.25 : 1.0;
 
+  // === 第一阶段：推子对硬币的直接推力 ===
   coins.forEach(function(coin) {
     if (coin.dropping) return;
     if (coin.wz < pusherZ + 18 && coin.wz > pusherZ - 8) {
@@ -1331,22 +1791,39 @@ function doPushForce() {
       sClink();
     }
   });
-  for (var iter = 0; iter < 2; iter++) {
+
+  // === 压力波：推子后方的硬币也被推动（衰减力，模拟链式传导） ===
+  //  力随距离线性衰减，最远端力接近0；系数较小，避免每次推币都导致掉落
+  coins.forEach(function(coin) {
+    if (coin.dropping) return;
+    if (coin.wz > pusherZ && coin.wz < pusherZ + 140) {
+      var dist = coin.wz - pusherZ;
+      var wave = Math.max(0, 1 - dist / 140) * force * 0.028;
+      coin.vz -= wave;
+      coin.vx += (Math.random() - 0.5) * wave * 0.3;
+    }
+  });
+
+  // === 第二阶段：硬币间碰撞分离（4次迭代 + 扩大检测范围，让链式传导更远） ===
+  for (var iter = 0; iter < 4; iter++) {
     coins.forEach(function(coin) {
       if (coin.dropping) return;
       coins.forEach(function(other) {
         if (coin === other || other.dropping) return;
         var dx = coin.wx - other.wx, dz = coin.wz - other.wz;
         var dist = Math.sqrt(dx * dx + dz * dz);
-        var minD = 22;
+        var minD = 26;
         if (dist < minD && dist > 0.1) {
-          var push = (minD - dist) * 0.12;
-          coin.vx += (dx / dist) * push * 0.4;
-          coin.vz += (dz / dist) * push * 0.6;
+          var push = (minD - dist) * 0.10;
+          coin.vx += (dx / dist) * push * 0.35;
+          coin.vz += (dz / dist) * push * 0.65;
         }
       });
     });
   }
+
+  // 触发摩擦衰减窗口：推币后30帧内摩擦降低，动量传播更远
+  pushWaveTimer = 30;
 }
 
 // ================================================================
@@ -1361,6 +1838,16 @@ function updatePusher() {
   var fp = currentForceParams || getForceParams();
   if (pusherPhase === 1) {
     pusherZ -= fp.advSpeed;
+    // 连续微推：推子前进过程中每帧对前方硬币施加轻微推力，增强视觉动感
+    //  系数调低，避免频繁触发掉落；真实机器大量推币是"空推"
+    coins.forEach(function(coin) {
+      if (coin.dropping) return;
+      if (coin.wz < pusherZ + 12 && coin.wz > pusherZ - 4) {
+        var f = fp.force * 0.015;
+        coin.vz -= f;
+        coin.vx += (Math.random() - 0.5) * f * 0.4;
+      }
+    });
     if (pusherZ <= fp.frontZ) { pusherZ = fp.frontZ; doPushForce(); pusherPhase = 2; }
   } else {
     pusherZ += fp.retSpeed;
@@ -1387,6 +1874,9 @@ function updatePusher() {
 }
 
 function updatePhysics() {
+  // 递减推力波纹计时器
+  if (pushWaveTimer > 0) pushWaveTimer--;
+
   coins.forEach(function(coin) {
     if (coin.dropping) return;
     if (coin.wz < 25 && Math.random() < 0.15) { coin.vz += (Math.random() - 0.5) * 0.3; }
@@ -1394,14 +1884,17 @@ function updatePhysics() {
   coins.forEach(function(coin) {
     if (coin.dropping) { coin.dropVy += 0.9; coin.alpha -= 0.03; if (coin.alpha < 0) coin.alpha = 0; return; }
     coin.wx += coin.vx; coin.wz += coin.vz;
-    coin.vx *= 0.80; coin.vz *= 0.80;
+    // 推力波纹期间摩擦降低（0.88），让动量向纵深传播更远；平时恢复0.80
+    var friction = pushWaveTimer > 0 ? 0.88 : 0.80;
+    coin.vx *= friction; coin.vz *= friction;
     if (coin.wx < 15) { coin.wx = 15; coin.vx = Math.abs(coin.vx) * 0.3; }
     if (coin.wx > TABLE_W - 15) { coin.wx = TABLE_W - 15; coin.vx = -Math.abs(coin.vx) * 0.3; }
     if (coin.wz > TABLE_D - 5) { coin.wz = TABLE_D - 5; coin.vz = -Math.abs(coin.vz) * 0.2; }
     if (coin.wz <= DROP_Z) {
       coin.dropping = true; coin.dropVy = -1.5;
       totalWon++; sessionWon++; lifetimeWon++;
-      saveLifetimeStats();
+      saveLifetimeStats(); saveGame();
+      sessionLog.push({type:'drop', time:Date.now(), coinType:coin.type, totalWon:totalWon});
       batchDropCount++; batchDroppedThisPush.push(coin.type);
       if (batchDropTimer) clearTimeout(batchDropTimer);
       batchDropTimer = setTimeout(function() {
@@ -1924,7 +2417,9 @@ function pushCoin() {
   }
   walletTokens--; updateWallet(); pushQueueLen++;
   totalInserted++; streakCount++;
-  sessionPushes++; lifetimePushes++; saveLifetimeStats();
+  sessionPushes++; lifetimePushes++; saveLifetimeStats(); saveGame();
+  // 记录推币事件日志
+  sessionLog.push({type:'push', time:Date.now(), seq:totalInserted, spent:totalSpent, won:totalWon});
   updateStats(); sPush();
   if (vipBoostsRemaining > 0) {
     vipBoostsRemaining--; updateVipBadge();
@@ -1959,19 +2454,45 @@ function changeDensity(d) {
 }
 
 function updateStats() {
+  // 推满100次后才显示"理论应亏"和"理论亏损率"——让玩家先亲身体验，再给结论
+  var showTheory = lifetimePushes >= 100;
+  var lossBox = document.getElementById('statLossBox');
+  if (lossBox) lossBox.style.display = showTheory ? '' : 'none';
+  var lossItem = document.getElementById('mathLossRateItem');
+  if (lossItem) lossItem.style.display = showTheory ? '' : 'none';
   document.getElementById('statInserted').textContent = totalInserted;
   document.getElementById('statWon').textContent = totalWon;
-  var loss = totalInserted - totalWon;
+  // 理论应亏：每花¥1，期望回收 0.18×REDEMPTION_RATE 元，其余全是亏损
+  var expLossPerPush = 1 - (0.18 * REDEMPTION_RATE);
+  var expLoss = (totalInserted * expLossPerPush).toFixed(1);
   var lossEl = document.getElementById('statLoss');
-  lossEl.textContent = loss;
-  lossEl.className = 'stat-value ' + (loss > 0 ? 'red' : 'green');
+  lossEl.textContent = '¥' + expLoss;
+  lossEl.className = 'stat-value red';
+  // rorDisplay 已从主面板移除（避免显示>100%的正收益误导玩家），保留更新以防管理员面板引用
   var ror = totalInserted > 0 ? (totalWon / totalInserted * 100).toFixed(1) : '0.0';
-  document.getElementById('rorDisplay').textContent = ror + '%';
-  document.getElementById('rorDisplay').className = 'math-val ' + (parseFloat(ror) < 50 ? 'bad' : 'good');
-  document.getElementById('rorBar').style.width = Math.min(100, parseFloat(ror)) + '%';
+  var rorEl = document.getElementById('rorDisplay');
+  if (rorEl) { rorEl.textContent = ror + '%'; rorEl.className = 'math-val ' + (parseFloat(ror) < 50 ? 'bad' : 'good'); }
+  // 进度条改为显示实际现金回报率（永远远低于保本线100%）
+  var realRor = totalSpent > 0 ? (totalWon * REDEMPTION_RATE / totalSpent * 100).toFixed(1) : '0.0';
+  var realEl = document.getElementById('realRorDisplay');
+  if (realEl) {
+    realEl.textContent = realRor + '%';
+    realEl.className = 'math-val bad';
+  }
+  // 进度条：用实际现金回报率填充（满格=100%保本线，实际永远不会到达）
+  var rorBar = document.getElementById('rorBar');
+  if (rorBar) rorBar.style.width = Math.min(100, parseFloat(realRor)) + '%';
   document.getElementById('statStreak').textContent = streakCount;
   updateHistory(); updateEvDisplay(); updateSessionStats();
 }
+function updateRedeemRateDisplay() {
+  var elZh = document.getElementById('redeemRateZh');
+  var elEn = document.getElementById('redeemRateEn');
+  var pct = (REDEMPTION_RATE * 100).toFixed(0) + '%';
+  if (elZh) elZh.textContent = pct;
+  if (elEn) elEn.textContent = pct;
+}
+
 function updateHistory() {
   var row = document.getElementById('historyRow');
   row.innerHTML = '';
@@ -1991,9 +2512,13 @@ function showJackpot() {
   var net = totalWon - totalInserted;
   var netAbs = Math.abs(net);
   var label = net >= 0 ? t('jackpotWin') : t('jackpotLoss');
+  var label2 = net >= 0 ? (currentLang === 'zh' ? '净赚' : 'Net profit') : (currentLang === 'zh' ? '净亏' : 'Net loss');
   var emoji = net >= 0 ? '\ud83e\udd11' : '\ud83d\ude2d';
+  var cashVal = (netAbs * REDEMPTION_RATE).toFixed(1);
+  var ratePct = (REDEMPTION_RATE * 100).toFixed(0) + '%';
   document.getElementById('jackpotSub').innerHTML =
-    t('jackpotSub', { emoji: emoji, ins: totalInserted, won: totalWon, label: label, net: netAbs });
+    t('jackpotSub', { emoji: emoji, ins: totalInserted, won: totalWon, label: label, net: netAbs,
+                       rate: ratePct, label2: label2, cashVal: cashVal });
   document.getElementById('jackpotOverlay').classList.add('show');
 }
 function closeJackpot() { document.getElementById('jackpotOverlay').classList.remove('show'); }
@@ -2035,10 +2560,14 @@ window.onerror = function(msg, url, line, col, err) {
 
 loadLifetimeStats();
 initVisitorCounter();
-initCoins();
+// 尝试从本地存档恢复；若无可恢复存档，才初始化新局
+if (!loadGame()) {
+  initCoins();
+}
 updateStats();
 updateWallet();
 updateSessionStats();
+updateEvDisplay();
 // applyLang() is NOT called on init — HTML defaults are already Chinese
 // It's only called when user toggles language
 loop();
