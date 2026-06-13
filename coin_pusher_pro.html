@@ -493,7 +493,8 @@
     <h3 data-i18n="exchangeTitle">💰 兑换游戏币</h3>
     <div class="exchange-sub" id="exchangeDesc" data-i18n-html="exchangeDesc">
       推币需要消耗游戏币<br>
-      请用 <b style="color:#ffd700">现金 ¥</b> 兑换游戏币继续
+      请用 <b style="color:#ffd700">现金 ¥</b> 兑换游戏币继续<br>
+      <span style="font-size:.58rem;color:#ff605088;margin-top:4px;display:inline-block;">💡 提示：真实推币机不存在免费币，首发10枚已计入成本</span>
     </div>
     <div class="exchange-btns">
       <div class="ex-btn" onclick="buyCoins(1, 1)" data-i18n-html="exchange1">¥1<br><span style="font-size:.65rem;color:#888;">= 1币</span></div>
@@ -659,7 +660,8 @@
         </span>
       </div>
       <div class="math-item"><span class="math-key" data-i18n="mathDropProb">单次掉落概率</span><span class="math-val bad" id="mathDropProb">~18%</span></div>
-      <div class="math-item"><span class="math-key" data-i18n="mathExpect">数学期望（每次）</span><span class="math-val bad" id="mathExpect">-0.64 币</span></div>
+      <div class="math-item" style="font-size:.55rem;"><span class="math-key" style="color:#6a5a8a;" data-i18n="mathEmpDrop">当前实测</span><span class="math-val" id="mathEmpDrop" style="color:#aa88cc;font-size:.7rem;">--</span></div>
+      <div class="math-item"><span class="math-key" data-i18n="mathExpect">数学期望（每次）</span><span class="math-val bad" id="mathExpect">-0.82 币</span></div>
       <div class="math-item"><span class="math-key" data-i18n="mathROR">投入回报率</span><span class="math-val bad" id="rorDisplay">0%</span></div>
       <div class="math-item"><span class="math-key" data-i18n="mathLossRate">理论亏损率</span><span class="math-val bad" id="mathLossRate">约 82%</span></div>
       <div style="margin-top:7px;">
@@ -750,7 +752,7 @@ const i18n = {
     warning: '⚠️ 警告\n18岁以下用户请在成年人监护下体验\n运气？技术？还是概率陷阱？\n本程序仅供教育展示 —— 智赢人生，数明正途',
     panelRealtime: '实时数学数据', panelHistory: '本局推币历史',
     winDot: '掉落', loseDot: '未掉', winRate: '胜率: --',
-    mathDropProb: '单次掉落概率', mathExpect: '数学期望（每次）', mathROR: '投入回报率', mathLossRate: '理论亏损率',
+    mathDropProb: '单次掉落概率', mathEmpDrop: '当前实测', mathExpect: '数学期望（每次）', mathROR: '投入回报率', mathLossRate: '理论亏损率',
     revealTitle: '🔬 概率揭秘',
     revealLocked: '🔑 氪金密钥<br><span style="font-size:.55rem;">点击验证身份</span>',
     revealTrap: '「差一点」视觉陷阱',
@@ -763,7 +765,7 @@ const i18n = {
     settingsTitle: '⚙️ 设置', forceLabel: '推力强度', forceWeak: '弱', forceStrong: '强',
     densityLabel: '硬币密度', resetBtn: '🔄 完全重置游戏', sysLock: '-- 系统参数锁定 --',
     exchangeTitle: '💰 兑换游戏币',
-    exchangeDesc: '推币需要消耗游戏币<br>请用 <b style="color:#ffd700">现金 ¥</b> 兑换游戏币继续',
+    exchangeDesc: '推币需要消耗游戏币<br>请用 <b style="color:#ffd700">现金 ¥</b> 兑换游戏币继续<br><span style="font-size:.58rem;color:#ff605088;margin-top:4px;display:inline-block;">💡 提示：真实推币机不存在免费币，首发10枚已计入成本</span>',
     exchange1: '¥1<br><span style="font-size:.65rem;color:#888;">= 1币</span>',
     exchange5: '¥5<br><span style="font-size:.65rem;color:#888;">= 5币</span>',
     exchange10: '¥10<br><span style="font-size:.65rem;color:#888;">= 10币</span>',
@@ -822,7 +824,7 @@ const i18n = {
     warning: '⚠️ WARNING\nUsers under 18 must experience this program under adult supervision.\nLuck? Skill? Or a probability trap?\nThis program is for educational demonstration only.\n— Win life with wisdom; let math light the right path.',
     panelRealtime: 'Real-time Math', panelHistory: 'Push History',
     winDot: 'Win', loseDot: 'Lose', winRate: 'Win%: --',
-    mathDropProb: 'Drop Probability', mathExpect: 'Expectation (per push)', mathROR: 'Return on Risk', mathLossRate: 'Theoretical Loss',
+    mathDropProb: 'Drop Probability', mathEmpDrop: 'Observed', mathExpect: 'Expectation (per push)', mathROR: 'Return on Risk', mathLossRate: 'Theoretical Loss',
     revealTitle: '\ud83d\udd2c Probability Revealed',
     revealLocked: '🔑 Pay-to-Unlock<br><span style="font-size:.55rem;">Click to verify</span>',
     revealTrap: '"Almost Won" Visual Trap',
@@ -835,7 +837,7 @@ const i18n = {
     settingsTitle: '\u2699\ufe0f Settings', forceLabel: 'Push Force', forceWeak: 'Weak', forceStrong: 'Strong',
     densityLabel: 'Coin Density', resetBtn: '\ud83d\udd04 Full Reset', sysLock: '-- System Locked --',
     exchangeTitle: '\ud83d\udcb0 Exchange Coins',
-    exchangeDesc: 'Each push consumes 1 coin<br>Please use <b style="color:#ffd700">Cash $</b> to exchange coins',
+    exchangeDesc: 'Each push consumes 1 coin<br>Please use <b style="color:#ffd700">Cash $</b> to exchange coins<br><span style="font-size:.58rem;color:#ff605088;margin-top:4px;display:inline-block;">💡 Note: real arcades have no free coins. The starter 10 coins are already counted as spent.</span>',
     exchange1: '$1<br><span style="font-size:.65rem;color:#888;">= 1 coin</span>',
     exchange5: '$5<br><span style="font-size:.65rem;color:#888;">= 5 coins</span>',
     exchange10: '$10<br><span style="font-size:.65rem;color:#888;">= 10 coins</span>',
@@ -995,9 +997,10 @@ var coins = [], coinDensity = 120;
 
 var goldProb = 0.04, specialProb = 0.12, adminUnlocked = false;
 var totalInserted = 0, totalWon = 0, streakCount = 0, pushHistory = [];
-var walletTokens = 10, totalSpent = 0, walletSpentEl = null;
+// 初始10枚币视为已购买（真实场景不存在免费币），单价¥1/枚
+var walletTokens = 10, totalSpent = 10, walletSpentEl = null;
 var vipBoostsRemaining = 0, vipGoldProb = 0.04, vipSpecialProb = 0.12;
-var sessionPushes = 0, sessionSpent = 0, sessionWon = 0;
+var sessionPushes = 0, sessionSpent = 10, sessionWon = 0;
 var lifetimePushes = 0, lifetimeSpent = 0, lifetimeWon = 0;
 var batchDropCount = 0, batchDropTimer = null, batchDroppedThisPush = [];
 var particles = [], floatTexts = [];
@@ -1097,19 +1100,33 @@ function updateWallet() {
 //  管理员后台
 // ================================================================
 function updateEvDisplay() {
-  var empRate = totalInserted > 0 ? totalWon / totalInserted : 0;
-  var p = empRate > 0.01 ? empRate : 0.18;
-  var q = 1 - p;
-  var ev = p - 1;
-  var evFormatted = ev.toFixed(2);
-  var ratePct = (p * 100).toFixed(1);
-  document.getElementById('evFormula').textContent = p.toFixed(2);
-  document.getElementById('evComp').textContent = q.toFixed(2);
-  document.getElementById('evResult').textContent = evFormatted;
-  document.getElementById('llnRate').textContent = ratePct + '%';
-  document.getElementById('mathDropProb').textContent = '~' + ratePct + '%';
-  document.getElementById('mathExpect').textContent = t('mathEvFmt', { ev: evFormatted });
-  document.getElementById('mathLossRate').textContent = t('mathLossRateFmt', { pct: (q * 100).toFixed(0) });
+  // ====== 理论值（固定不变 —— 这是机器的固有参数）======
+  var THEORY_P = 0.18;           // 单次掉落概率（物理设定）
+  var THEORY_Q = 1 - THEORY_P;   // 未掉落概率 = 0.82
+  var THEORY_EV = THEORY_P - 1;  // E = 0.18 - 1 = -0.82
+
+  // 主面板：固定显示理论值
+  document.getElementById('mathDropProb').textContent = '~' + (THEORY_P * 100).toFixed(0) + '%';
+  document.getElementById('mathExpect').textContent = t('mathEvFmt', { ev: THEORY_EV.toFixed(2) });
+  document.getElementById('mathLossRate').textContent = t('mathLossRateFmt', { pct: '82' });
+
+  // 揭秘卡片：公式也用理论值（教学一致性）
+  document.getElementById('evFormula').textContent = THEORY_P.toFixed(2);
+  document.getElementById('evComp').textContent = THEORY_Q.toFixed(2);
+  document.getElementById('evResult').textContent = THEORY_EV.toFixed(2);
+
+  // ====== 实测值（动态变化 —— 展示大数定律收敛过程）======
+  var pushes = pushHistory.length;
+  if (pushes >= 3) {
+    var drops = pushHistory.filter(Boolean).length;
+    var empPct = (drops / pushes * 100).toFixed(1);
+    document.getElementById('mathEmpDrop').textContent = empPct + '% (' + drops + '/' + pushes + ')';
+    // 大数定律：展示收敛趋势（可波动）
+    document.getElementById('llnRate').textContent = empPct + '%';
+  } else {
+    document.getElementById('mathEmpDrop').textContent = '-- (需≥3次)';
+    document.getElementById('llnRate').textContent = (THEORY_P * 100).toFixed(0) + '%';
+  }
 }
 
 function updateAdminPanel() {
@@ -1257,18 +1274,21 @@ function initVisitorCounter() {
 
 // ================================================================
 //  硬币初始化
+//  主层：均匀分布在整个台面，略偏后区（模拟真实硬币自然堆积）
+//  边缘层：8 枚在掉落线附近（平衡视觉效果与开局掉落率）
 // ================================================================
 function initCoins() {
   coins = [];
   var COUNT = coinDensity;
+  // 主层：均匀分布（wz ∈ [15, 285]），视觉铺满
   for (var i = 0; i < COUNT; i++) {
-    coins.push(makeCoin(20 + Math.random() * (TABLE_W - 40), 5 + Math.random() * (TABLE_D - 25)));
+    var wx = 20 + Math.random() * (TABLE_W - 40);
+    var wz = 15 + Math.random() * (TABLE_D - 45);
+    coins.push(makeCoin(wx, wz));
   }
-  for (var i = 0; i < 16; i++) {
-    coins.push(makeCoin(50 + Math.random() * (TABLE_W - 100), 3 + Math.random() * 18));
-  }
-  for (var i = 0; i < 10; i++) {
-    coins.push(makeCoin(30 + Math.random() * (TABLE_W - 60), 18 + Math.random() * 35));
+  // 边缘层：8 枚在掉落线附近（原26枚太多导致开局虚高，3枚太少导致无聊）
+  for (var j = 0; j < 8; j++) {
+    coins.push(makeCoin(30 + Math.random() * (TABLE_W - 60), 2 + Math.random() * 16));
   }
   sortCoins();
 }
@@ -1277,7 +1297,7 @@ function makeCoin(wx, wz) {
     wx: wx, wz: wz, vx: 0, vz: 0,
     dropping: false, dropVy: 0, alpha: 1, scale: 1, glow: 0,
     shimmerPhase: Math.random() * Math.PI * 2,
-    type: Math.random() < goldProb ? 'gold' : Math.random() < specialProb ? 'special' : 'normal',
+    type: (function() { var r = Math.random(); return r < goldProb ? 'gold' : r < goldProb + specialProb ? 'special' : 'normal'; })(),
     angle: Math.random() * Math.PI * 2, tiltDir: (Math.random() - 0.5) * 0.3,
   };
 }
@@ -1403,10 +1423,10 @@ function updatePhysics() {
       spawnParticles(
         rect.left + (proj.sx / W) * rect.width,
         rect.top + (proj.sy / H) * rect.height,
-        coin.type === 'gold'
+        coin.type
       );
       if (coin.type === 'gold') { sJack(); showJackpot(); }
-      addFloat('+1', proj.sx, proj.sy, coin.type === 'gold' ? '#ffd700' : '#00ff88');
+      addFloat('+1', proj.sx, proj.sy, coin.type === 'gold' ? '#d0d0e0' : coin.type === 'special' ? '#00bfff' : '#ffd700');
       if (!batchDropTimer) {
         var typeLabel = coin.type === 'gold' ? t('msgDropGold') : t('msgDropNormal');
         setMsg(t('msgDrop', { type: typeLabel, ins: totalInserted, won: totalWon }));
@@ -1417,8 +1437,16 @@ function updatePhysics() {
   });
   coins = coins.filter(function(c) { return !(c.dropping && c.alpha <= 0); });
   sortCoins();
+  // 自动补币：混合分布（70%中后区 + 30%前中区），保持游戏可玩性
   while (coins.length < coinDensity * 0.9) {
-    coins.push(makeCoin(20 + Math.random() * (TABLE_W - 40), TABLE_D - 15 - Math.random() * 40));
+    var rwx = 20 + Math.random() * (TABLE_W - 40);
+    var rwz;
+    if (Math.random() < 0.7) {
+      rwz = TABLE_D - 15 - Math.random() * 50;   // 中后区（主流）
+    } else {
+      rwz = 40 + Math.random() * (TABLE_D * 0.4); // 前中区（30%概率）
+    }
+    coins.push(makeCoin(rwx, rwz));
   }
 }
 
@@ -1643,6 +1671,8 @@ function drawSingleCoin(ctx, sx, sy, scale, coin, castShadow) {
   var r = COIN_BASE_R * scale;
   var ry = r * 0.42;
   var isGold = coin.type === 'gold', isSpec = coin.type === 'special';
+  // 视觉增强：普通币（铜色）略大，金币用银白色，稀有币脉动光环
+  if (!isGold && !isSpec) { r *= 1.08; ry = r * 0.42; } // 普通币略大
   var shimmer = 0.5 + 0.5 * Math.sin(coin.shimmerPhase);
   var glowA = coin.glow;
   if (castShadow && scale > 0.4) {
@@ -1653,46 +1683,77 @@ function drawSingleCoin(ctx, sx, sy, scale, coin, castShadow) {
   }
   if (r > 4) {
     ctx.beginPath(); ctx.ellipse(sx, sy + ry * 0.6, r * 0.98, ry * 0.55, 0, 0, Math.PI * 2);
-    ctx.fillStyle = isGold ? '#6a4400' : isSpec ? '#1a3a6a' : '#4a3000'; ctx.fill();
+    ctx.fillStyle = isGold ? '#9a9aa8' : isSpec ? '#1a3a6a' : '#6a4400'; ctx.fill();
   }
-  if (glowA > 0.1 || isGold) {
-    ctx.shadowBlur = (isGold ? 20 : 12) * scale;
-    ctx.shadowColor = isGold ? '#ffd700' : isSpec ? '#00bfff' : 'rgba(255,160,0,.9)';
+  if (glowA > 0.1 || (!isGold && !isSpec)) {
+    ctx.shadowBlur = (!isGold && !isSpec) ? 16 * scale : isGold ? 10 * scale : 12 * scale;
+    ctx.shadowColor = isGold ? 'rgba(180,180,200,.6)' : isSpec ? '#00bfff' : '#ffd700';
   }
   var grad = ctx.createRadialGradient(sx - r * 0.2, sy - ry * 0.3, r * 0.05, sx, sy, r);
   if (isGold) {
-    grad.addColorStop(0, 'hsl(48,100%,' + (78 + shimmer * 15) + '%)');
-    grad.addColorStop(0.55, '#d4a000'); grad.addColorStop(1, '#7a5000');
+    // 金币：银白色
+    grad.addColorStop(0, 'hsl(0,0%,' + (92 + shimmer * 8) + '%)');
+    grad.addColorStop(0.45, '#c8c8d8'); grad.addColorStop(0.7, '#9898a8'); grad.addColorStop(1, '#686878');
   } else if (isSpec) {
     grad.addColorStop(0, 'hsl(200,100%,' + (72 + shimmer * 14) + '%)');
     grad.addColorStop(0.55, '#0080c0'); grad.addColorStop(1, '#003060');
   } else {
-    grad.addColorStop(0, 'hsl(40,85%,' + (68 + shimmer * 12) + '%)');
-    grad.addColorStop(0.55, '#c08820'); grad.addColorStop(1, '#6a4a08');
+    // 普通币：发亮金色
+    grad.addColorStop(0, 'hsl(45,100%,' + (82 + shimmer * 13) + '%)');
+    grad.addColorStop(0.5, '#e8a800'); grad.addColorStop(0.85, '#b07800'); grad.addColorStop(1, '#7a5000');
   }
   ctx.fillStyle = grad;
   ctx.beginPath(); ctx.ellipse(sx, sy, r, ry, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = isGold ? 'rgba(255,230,80,.5)' : 'rgba(220,180,60,.3)';
+  // 描边
+  ctx.strokeStyle = isGold ? 'rgba(180,180,200,.5)' : isSpec ? 'rgba(100,200,255,.4)' : 'rgba(255,200,60,.55)';
   ctx.lineWidth = Math.max(0.5, 1 * scale); ctx.stroke();
   if (r > 6) {
     ctx.beginPath(); ctx.ellipse(sx, sy, r * 0.65, ry * 0.65, 0, 0, Math.PI * 2);
-    ctx.strokeStyle = isGold ? 'rgba(255,255,150,.2)' : 'rgba(255,220,100,.12)';
+    ctx.strokeStyle = isGold ? 'rgba(200,200,220,.18)' : isSpec ? 'rgba(150,220,255,.15)' : 'rgba(255,220,100,.2)';
     ctx.lineWidth = Math.max(0.5, 0.8 * scale); ctx.stroke();
   }
   if (r > 7) {
     ctx.font = 'bold ' + Math.round(r * 1.1) + 'px sans-serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillStyle = isGold ? '#fff8e0' : isSpec ? '#e0f4ff' : '#ffe880';
+    ctx.fillStyle = isGold ? '#e0e0f0' : isSpec ? '#e0f4ff' : '#fff8e0';
     ctx.shadowBlur = 0;
     ctx.fillText(isGold ? '\u2605' : isSpec ? '\u25c6' : '\u00a5', sx, sy);
     ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
   }
   if (r > 4) {
     ctx.beginPath(); ctx.ellipse(sx - r * 0.22, sy - ry * 0.28, r * 0.28, ry * 0.16, -0.4, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255,255,255,' + ((0.2 + shimmer * 0.18) * scale) + ')';
+    ctx.fillStyle = 'rgba(255,255,255,' + ((!isGold && !isSpec) ? (0.3 + shimmer * 0.22) : (0.2 + shimmer * 0.18)) * scale + ')';
     ctx.shadowBlur = 0; ctx.fill();
   }
   ctx.shadowBlur = 0;
+  // 视觉增强：普通币金色光晕，金币银色微光，稀有币脉动光环
+  if (!isGold && !isSpec) {
+    // 普通币：金色光晕
+    ctx.save(); ctx.globalAlpha = 0.2 + shimmer * 0.15;
+    ctx.shadowBlur = 16 * scale; ctx.shadowColor = '#ffd700';
+    ctx.beginPath(); ctx.ellipse(sx, sy, r * 1.3, ry * 1.3, 0, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255,215,0,0.35)'; ctx.lineWidth = 1.8 * scale; ctx.stroke();
+    ctx.restore();
+  }
+  if (isGold) {
+    // 金币：银色微光
+    ctx.save(); ctx.globalAlpha = 0.15 + shimmer * 0.1;
+    ctx.shadowBlur = 10 * scale; ctx.shadowColor = 'rgba(180,180,200,0.5)';
+    ctx.beginPath(); ctx.ellipse(sx, sy, r * 1.25, ry * 1.25, 0, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(200,200,220,0.3)'; ctx.lineWidth = 1.5 * scale; ctx.stroke();
+    ctx.restore();
+  }
+  if (isSpec) {
+    // 稀有币：脉动青色光环
+    var pulse = 0.5 + 0.5 * Math.sin(Date.now() * 0.004 + coin.shimmerPhase);
+    ctx.save(); ctx.globalAlpha = 0.3 + pulse * 0.3;
+    ctx.shadowBlur = 14 * scale; ctx.shadowColor = '#00bfff';
+    ctx.beginPath(); ctx.ellipse(sx, sy, r * 1.4, ry * 1.4, 0, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(0,191,255,' + (0.5 + pulse * 0.3) + ')'; ctx.lineWidth = 1.8 * scale; ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(sx, sy, r * 1.15, ry * 1.15, 0, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(100,220,255,' + (0.2 + pulse * 0.2) + ')'; ctx.lineWidth = 1 * scale; ctx.stroke();
+    ctx.restore();
+  }
 }
 
 function drawDropEdge() {
@@ -1796,18 +1857,20 @@ var pCanvas = document.getElementById('particleCanvas');
 var pCtx = pCanvas.getContext('2d');
 function resizePCanvas() { pCanvas.width = window.innerWidth; pCanvas.height = window.innerHeight; }
 resizePCanvas(); window.addEventListener('resize', resizePCanvas);
-function spawnParticles(px, py, isGold) {
-  var n = isGold ? 70 : 35;
+function spawnParticles(px, py, coinType) {
+  var isGold = coinType === 'gold', isSpec = coinType === 'special';
+  var n = isGold ? 70 : isSpec ? 50 : 35;
   for (var i = 0; i < n; i++) {
     var a = Math.random() * Math.PI * 2;
-    var sp = isGold ? 5 + Math.random() * 9 : 2 + Math.random() * 6;
+    var sp = isGold ? 5 + Math.random() * 9 : isSpec ? 3.5 + Math.random() * 7.5 : 2 + Math.random() * 6;
     particles.push({
-      x: px, y: py, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - (isGold ? 5 : 2.5),
+      x: px, y: py, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - (isGold ? 5 : isSpec ? 3.5 : 2.5),
       life: 1, decay: 0.018 + Math.random() * 0.02,
-      r: isGold ? 3 + Math.random() * 5 : 2 + Math.random() * 4,
-      color: isGold ? (Math.random() < 0.5 ? '#ffd700' : '#ff8c00') : (Math.random() < 0.5 ? '#c8a020' : '#ffd060'),
+      r: isGold ? 3 + Math.random() * 5 : isSpec ? 2.5 + Math.random() * 4.5 : 2 + Math.random() * 4,
+      color: isGold ? (Math.random() < 0.5 ? '#c8c8d8' : '#f0f0ff') : isSpec ? (Math.random() < 0.5 ? '#00bfff' : '#60d0ff') : (Math.random() < 0.5 ? '#ffd700' : '#ff8c00'),
       rot: Math.random() * Math.PI * 2, rs: (Math.random() - 0.5) * 0.3,
       star: isGold && Math.random() < 0.4,
+      spark: isSpec && Math.random() < 0.3,
     });
   }
 }
@@ -1823,6 +1886,15 @@ function updateParticles() {
     if (p.star) {
       pCtx.fillStyle = p.color;
       drawStar(pCtx, 0, 0, 5, p.r * 1.6, p.r * 0.6); pCtx.fill();
+    } else if (p.spark) {
+      // 稀有币粒子：闪烁核心 + 青色光晕
+      pCtx.save(); pCtx.globalAlpha = Math.max(0, p.life * (0.6 + 0.4 * Math.sin(Date.now() * 0.01 + p.rot)));
+      pCtx.shadowBlur = 14; pCtx.shadowColor = '#00bfff';
+      pCtx.beginPath(); pCtx.arc(0, 0, p.r * 1.2, 0, Math.PI * 2);
+      pCtx.fillStyle = '#a0e0ff'; pCtx.fill();
+      pCtx.restore();
+      pCtx.beginPath(); pCtx.arc(0, 0, p.r * 0.5, 0, Math.PI * 2);
+      pCtx.fillStyle = '#ffffff'; pCtx.fill();
     } else {
       pCtx.beginPath(); pCtx.ellipse(0, 0, p.r, p.r * 0.45, 0, 0, Math.PI * 2);
       pCtx.fillStyle = p.color; pCtx.fill();
@@ -1867,7 +1939,8 @@ function pushCoin() {
 
 function fullReset() {
   totalInserted = 0; totalWon = 0; streakCount = 0; pushHistory = [];
-  walletTokens = 10; totalSpent = 0;
+  // 重置后补充10枚币，视同花费¥10（真实推币机不存在免费币）
+  walletTokens = 10; totalSpent += 10; sessionSpent += 10;
   batchDropCount = 0; if (batchDropTimer) clearTimeout(batchDropTimer); batchDropTimer = null;
   batchDroppedThisPush = [];
   pusherZ = PUSHER_NEAR_Z; pusherPhase = 0; pushQueueLen = 0;
